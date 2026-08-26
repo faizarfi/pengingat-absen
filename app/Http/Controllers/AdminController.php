@@ -108,6 +108,29 @@ class AdminController extends Controller
 
         $waDriver = config('whatsapp.driver', 'desktop');
 
+        // ── Recent Outbox Messages & Holiday Info ──
+        $outboxMessages = WaOutbox::with('employee')
+            ->orderBy('id', 'desc')
+            ->limit(25)
+            ->get();
+
+        $holidayService = app(\App\Services\HolidayService::class);
+        $todayHoliday = $holidayService->getHolidayInfo(now());
+        $isTodayHoliday = $holidayService->isHoliday(now());
+        $todayHolidayName = $todayHoliday ? $todayHoliday->name : (now()->isWeekend() ? 'Libur Akhir Pekan (' . (now()->isSaturday() ? 'Sabtu' : 'Minggu') . ')' : null);
+
+        $holidaysJson = \App\Models\Holiday::all()->mapWithKeys(function ($h) {
+            return [$h->date->format('Y-m-d') => [
+                'name' => $h->name,
+                'is_national' => (bool) $h->is_national_holiday
+            ]];
+        })->toJson();
+
+        $upcomingHolidays = \App\Models\Holiday::where('date', '>=', now()->toDateString())
+            ->orderBy('date', 'asc')
+            ->limit(6)
+            ->get();
+
         return view('admin.dashboard', compact(
             'employees',
             'checkIn',
@@ -129,7 +152,12 @@ class AdminController extends Controller
             'whatsappReady',
             'agentLastSeen',
             'outboxStats',
-            'waDriver'
+            'waDriver',
+            'outboxMessages',
+            'isTodayHoliday',
+            'todayHolidayName',
+            'holidaysJson',
+            'upcomingHolidays'
         ));
     }
 
@@ -527,5 +555,52 @@ class AdminController extends Controller
         Setting::set('pre_reminder_minutes', 30);
 
         return redirect()->back()->with('status', 'Waktu default disimpan: Masuk 07:30, Pulang Sen-Kam 16:00, Pulang Jumat 16:30.');
+    }
+
+    // ── Fitur Kontrol Antrean Outbox ──
+
+    public function retryFailedOutbox()
+    {
+        $updated = WaOutbox::whereIn('status', [WaOutbox::STATUS_FAILED, WaOutbox::STATUS_RETRY])
+            ->update([
+                'status'        => WaOutbox::STATUS_PENDING,
+                'attempts'      => 0,
+                'last_error'    => null,
+                'scheduled_at'  => now(),
+                'updated_at'    => now(),
+            ]);
+
+        return redirect()->back()->with('status', "Berhasil memindahkan {$updated} pesan gagal kembali ke antrean pending.");
+    }
+
+    public function cancelPendingOutbox()
+    {
+        $updated = WaOutbox::whereIn('status', [WaOutbox::STATUS_PENDING, WaOutbox::STATUS_RETRY])
+            ->update([
+                'status'     => WaOutbox::STATUS_CANCELLED,
+                'updated_at' => now(),
+            ]);
+
+        return redirect()->back()->with('status', "Berhasil membatalkan {$updated} pesan yang sedang menunggu antrean.");
+    }
+
+    public function retrySingleOutbox($id)
+    {
+        $msg = WaOutbox::findOrFail($id);
+        $msg->update([
+            'status'        => WaOutbox::STATUS_PENDING,
+            'attempts'      => 0,
+            'last_error'    => null,
+            'scheduled_at'  => now(),
+            'updated_at'    => now(),
+        ]);
+
+        return redirect()->back()->with('status', "Pesan ID #{$id} berhasil dipindahkan kembali ke antrean.");
+    }
+
+    public function syncHolidays()
+    {
+        $count = app(\App\Services\HolidayService::class)->syncNationalHolidays(date('Y'));
+        return redirect()->back()->with('status', "Berhasil sinkronisasi {$count} hari libur nasional tahun " . date('Y') . ".");
     }
 }

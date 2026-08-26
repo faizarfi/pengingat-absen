@@ -36,6 +36,12 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->controller(AdminCont
     Route::post('/send-pre-checkin', 'sendPreCheckinNow')->name('send-pre-checkin');
     Route::post('/send-pre-checkout', 'sendPreCheckoutNow')->name('send-pre-checkout');
 
+    // Outbox & Holiday Actions (POST)
+    Route::post('/outbox/retry-failed', 'retryFailedOutbox')->name('outbox.retry-failed');
+    Route::post('/outbox/cancel-pending', 'cancelPendingOutbox')->name('outbox.cancel-pending');
+    Route::post('/outbox/{id}/retry', 'retrySingleOutbox')->name('outbox.retry-single');
+    Route::post('/holidays/sync', 'syncHolidays')->name('holidays.sync');
+
     // Fallback GET redirects (mencegah MethodNotAllowed jika diakses lewat URL)
     Route::get('/send-now', fn() => redirect()->route('admin.dashboard')->with('error', 'Gunakan tombol di dashboard untuk mengirim pengingat (POST).'));
     Route::get('/send-pre-checkin', fn() => redirect()->route('admin.dashboard')->with('error', 'Gunakan tombol di dashboard untuk mengirim pengingat masuk (POST).'));

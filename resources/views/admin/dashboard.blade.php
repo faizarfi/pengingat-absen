@@ -1049,6 +1049,12 @@ textarea.form-control {
                 Jadwal & Pesan
             </a>
 
+            <span class="nav-category">Jadwal & Kalender</span>
+            <a href="#kalender" class="nav-link">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                Kalender Libur
+            </a>
+
             <span class="nav-category">Integrasi & Export</span>
             <a href="#webhook" class="nav-link">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
@@ -1195,6 +1201,51 @@ textarea.form-control {
                 </div>
             </div>
 
+            {{-- HOLIDAY & QUEUE CONTROL BAR --}}
+            <div style="display: grid; grid-template-columns: 1fr auto; gap: 16px; align-items: center; background: #ffffff; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 16px 20px; margin-bottom: 20px; box-shadow: var(--shadow-sm);">
+                <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                    @if($isTodayHoliday ?? false)
+                        <span style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; background: #fef3c7; color: #b45309; font-size: 12px; font-weight: 700;">
+                            🏖️ {{ $todayHolidayName ?? 'Hari Libur' }} (Pengingat Otomatis Libur)
+                        </span>
+                    @else
+                        <span style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; background: #ecfdf5; color: #059669; font-size: 12px; font-weight: 700;">
+                            💼 Hari Kerja Aktif (Pengingat Otomatis Berjalan)
+                        </span>
+                    @endif
+
+                    <form method="POST" action="{{ route('admin.holidays.sync') }}" style="display: inline; margin: 0;">
+                        @csrf
+                        <button type="submit" class="btn btn-secondary btn-sm" title="Sinkronkan kalender tanggal merah">
+                            <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                            Sync Tanggal Merah
+                        </button>
+                    </form>
+                </div>
+
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    @if(($outboxStats['failed'] ?? 0) > 0)
+                        <form method="POST" action="{{ route('admin.outbox.retry-failed') }}" style="margin: 0;" onsubmit="return confirm('Kirim ulang semua pesan yang gagal?')">
+                            @csrf
+                            <button type="submit" class="btn btn-sm" style="background: #fef2f2; color: #dc2626; border: 1px solid #fecaca;">
+                                <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                                Retry Semua Gagal ({{ $outboxStats['failed'] }})
+                            </button>
+                        </form>
+                    @endif
+
+                    @if(($outboxStats['pending'] ?? 0) > 0)
+                        <form method="POST" action="{{ route('admin.outbox.cancel-pending') }}" style="margin: 0;" onsubmit="return confirm('Batalkan semua antrean yang belum terkirim?')">
+                            @csrf
+                            <button type="submit" class="btn btn-sm" style="background: #fffbeb; color: #d97706; border: 1px solid #fde68a;">
+                                <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                Batalkan Pending ({{ $outboxStats['pending'] }})
+                            </button>
+                        </form>
+                    @endif
+                </div>
+            </div>
+
             {{-- ACTION BANNER (MANUAL BROADCAST) --}}
             <div class="action-banner" id="broadcast">
                 <div class="action-banner-text">
@@ -1225,6 +1276,199 @@ textarea.form-control {
                         <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
                         Kirim Broadcast Cepat
                     </button>
+                </div>
+            </div>
+
+            {{-- LIVE OUTBOX MONITORING TABLE --}}
+            <div style="background: #ffffff; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 20px 24px; margin-bottom: 24px; box-shadow: var(--shadow-sm);">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+                    <div>
+                        <h3 style="font-size: 15px; font-weight: 800; margin: 0; color: var(--navy-dark); display: flex; align-items: center; gap: 8px;">
+                            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                            Antrean & Log Outbox WhatsApp Desktop
+                        </h3>
+                        <p style="font-size: 12px; color: var(--text-muted); margin: 4px 0 0;">Menampilkan riwayat dan status proses pengiriman pesan terbaru oleh Agent.</p>
+                    </div>
+
+                    <div style="display: flex; gap: 6px;">
+                        <button type="button" onclick="location.reload()" class="btn btn-sm btn-secondary" title="Refresh data">
+                            <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                            Refresh
+                        </button>
+                    </div>
+                </div>
+
+                @if(isset($outboxMessages) && $outboxMessages->isNotEmpty())
+                    <div style="overflow-x: auto;">
+                        <table style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left;">
+                            <thead>
+                                <tr style="border-bottom: 2px solid var(--border); color: var(--text-muted); text-transform: uppercase; font-size: 10px; letter-spacing: 0.05em;">
+                                    <th style="padding: 10px 12px;">ID</th>
+                                    <th style="padding: 10px 12px;">Penerima</th>
+                                    <th style="padding: 10px 12px;">Nomor WA</th>
+                                    <th style="padding: 10px 12px;">Tipe</th>
+                                    <th style="padding: 10px 12px;">Status</th>
+                                    <th style="padding: 10px 12px;">Waktu Terkirim</th>
+                                    <th style="padding: 10px 12px; text-align: right;">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($outboxMessages as $msg)
+                                    <tr style="border-bottom: 1px solid var(--border-light);">
+                                        <td style="padding: 10px 12px; font-weight: 700; color: var(--text-muted);">#{{ $msg->id }}</td>
+                                        <td style="padding: 10px 12px; font-weight: 700; color: var(--navy-dark);">
+                                            {{ $msg->employee->name ?? 'Pegawai' }}
+                                        </td>
+                                        <td style="padding: 10px 12px; font-family: monospace; color: var(--text-muted);">
+                                            {{ $msg->phone_number }}
+                                        </td>
+                                        <td style="padding: 10px 12px;">
+                                            <span style="font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 6px; background: #f1f5f9; color: var(--text-muted);">
+                                                {{ $msg->type }}
+                                            </span>
+                                        </td>
+                                        <td style="padding: 10px 12px;">
+                                            @if($msg->status === 'sent')
+                                                <span style="display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 999px; background: #ecfdf5; color: #059669; font-size: 11px; font-weight: 700;">
+                                                    <span style="width: 6px; height: 6px; border-radius: 50%; background: #10b981;"></span>
+                                                    Terkirim
+                                                </span>
+                                            @elseif($msg->status === 'processing')
+                                                <span style="display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 999px; background: #eff6ff; color: #2563eb; font-size: 11px; font-weight: 700;">
+                                                    <span style="width: 6px; height: 6px; border-radius: 50%; background: #3b82f6;"></span>
+                                                    Diproses Agent
+                                                </span>
+                                            @elseif($msg->status === 'pending')
+                                                <span style="display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 999px; background: #fef3c7; color: #b45309; font-size: 11px; font-weight: 700;">
+                                                    <span style="width: 6px; height: 6px; border-radius: 50%; background: #f59e0b;"></span>
+                                                    Pending
+                                                </span>
+                                            @elseif($msg->status === 'failed')
+                                                <span style="display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 999px; background: #fef2f2; color: #dc2626; font-size: 11px; font-weight: 700;" title="{{ $msg->last_error }}">
+                                                    <span style="width: 6px; height: 6px; border-radius: 50%; background: #ef4444;"></span>
+                                                    Gagal
+                                                </span>
+                                            @elseif($msg->status === 'cancelled')
+                                                <span style="display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 999px; background: #f1f5f9; color: var(--text-muted); font-size: 11px; font-weight: 700;">
+                                                    Dibatalkan
+                                                </span>
+                                            @else
+                                                <span style="padding: 3px 8px; border-radius: 999px; background: #f1f5f9; color: var(--text-muted); font-size: 11px; font-weight: 700;">
+                                                    {{ $msg->status }}
+                                                </span>
+                                            @endif
+                                        </td>
+                                        <td style="padding: 10px 12px; color: var(--text-muted); font-size: 11px;">
+                                            @if($msg->sent_at)
+                                                {{ \Carbon\Carbon::parse($msg->sent_at)->format('H:i:s d/m/Y') }}
+                                            @elseif($msg->scheduled_at)
+                                                Jadwal: {{ \Carbon\Carbon::parse($msg->scheduled_at)->format('H:i:s') }}
+                                            @else
+                                                -
+                                            @endif
+                                        </td>
+                                        <td style="padding: 10px 12px; text-align: right;">
+                                            @if(in_array($msg->status, ['failed', 'cancelled']))
+                                                <form method="POST" action="{{ route('admin.outbox.retry-single', $msg->id) }}" style="display: inline; margin: 0;">
+                                                    @csrf
+                                                    <button type="submit" class="btn btn-sm btn-secondary" style="padding: 4px 8px; font-size: 10px;" title="Kirim ulang pesan ini">
+                                                        Retry
+                                                    </button>
+                                                </form>
+                                            @else
+                                                <span style="color: var(--text-subtle); font-size: 11px;">-</span>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @else
+                    <div style="padding: 24px; text-align: center; color: var(--text-muted); font-size: 13px;">
+                        <p style="margin: 0;">Belum ada riwayat antrean outbox hari ini.</p>
+                    </div>
+                @endif
+            </div>
+
+            {{-- KALENDER KERJA & HARI LIBUR NASIONAL --}}
+            <div id="kalender" style="background: #ffffff; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 24px; margin-bottom: 24px; box-shadow: var(--shadow-sm);">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+                    <div>
+                        <h3 style="font-size: 16px; font-weight: 800; margin: 0; color: var(--navy-dark); display: flex; align-items: center; gap: 8px;">
+                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                            Kalender Kerja & Hari Libur Nasional
+                        </h3>
+                        <p style="font-size: 12px; color: var(--text-muted); margin: 4px 0 0;">Pantau tanggal merah, hari libur resmi, dan jadwal kerja aktif yang terhubung dengan otomatisasi pengingat.</p>
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="changeMonth(-1)" title="Bulan Sebelumnya" style="padding: 6px 12px;">
+                            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                        </button>
+                        <span id="calendarMonthYear" style="font-size: 14px; font-weight: 800; color: var(--navy-dark); min-width: 150px; text-align: center;">...</span>
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="changeMonth(1)" title="Bulan Berikutnya" style="padding: 6px 12px;">
+                            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-primary-soft" onclick="goToToday()" style="background: var(--primary-light); color: var(--primary); border: none; font-weight: 700; padding: 6px 12px; border-radius: 8px;">
+                            Bulan Ini
+                        </button>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px;">
+                    <!-- Calendar Grid -->
+                    <div>
+                        <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; text-align: center; font-size: 11px; font-weight: 800; color: var(--text-muted); margin-bottom: 8px;">
+                            <span style="color: #ef4444;">Min</span>
+                            <span>Sen</span>
+                            <span>Sel</span>
+                            <span>Rab</span>
+                            <span>Kam</span>
+                            <span>Jum</span>
+                            <span style="color: #ef4444;">Sab</span>
+                        </div>
+                        <div id="calendarGrid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px;">
+                            <!-- Generated by Javascript -->
+                        </div>
+
+                        <div style="display: flex; gap: 16px; margin-top: 16px; font-size: 11px; color: var(--text-muted); flex-wrap: wrap;">
+                            <span style="display: flex; align-items: center; gap: 6px;">
+                                <span style="width: 10px; height: 10px; border-radius: 3px; background: #2563eb;"></span> Hari Ini
+                            </span>
+                            <span style="display: flex; align-items: center; gap: 6px;">
+                                <span style="width: 10px; height: 10px; border-radius: 3px; background: #fee2e2; border: 1px solid #fca5a5;"></span> Tanggal Merah / Libur
+                            </span>
+                            <span style="display: flex; align-items: center; gap: 6px;">
+                                <span style="width: 10px; height: 10px; border-radius: 3px; background: #f8fafc; border: 1px solid #e2e8f0;"></span> Hari Kerja Aktif
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Upcoming Holidays List -->
+                    <div style="background: var(--surface-alt); border: 1px solid var(--border-light); border-radius: var(--radius-sm); padding: 16px;">
+                        <h4 style="font-size: 13px; font-weight: 800; margin: 0 0 12px; color: var(--navy-dark); display: flex; align-items: center; justify-content: space-between;">
+                            <span>📅 Libur Nasional Mendatang</span>
+                            <span style="font-size: 10px; color: var(--primary); font-weight: 700;">Tahun {{ date('Y') }}</span>
+                        </h4>
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            @if(isset($upcomingHolidays) && $upcomingHolidays->isNotEmpty())
+                                @foreach($upcomingHolidays as $h)
+                                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 10px; background: #ffffff; border: 1px solid var(--border-light); border-radius: 8px;">
+                                        <div>
+                                            <strong style="font-size: 12px; color: var(--navy-dark); display: block;">{{ $h->name }}</strong>
+                                            <span style="font-size: 10px; color: var(--text-muted);">{{ \Carbon\Carbon::parse($h->date)->translatedFormat('l, d F Y') }}</span>
+                                        </div>
+                                        <span style="font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: #fee2e2; color: #dc2626; white-space: nowrap;">
+                                            {{ \Carbon\Carbon::parse($h->date)->isToday() ? 'Hari Ini' : \Carbon\Carbon::parse($h->date)->diffForHumans() }}
+                                        </span>
+                                    </div>
+                                @endforeach
+                            @else
+                                <p style="font-size: 11px; color: var(--text-muted); margin: 0;">Tidak ada jadwal libur terdekat.</p>
+                            @endif
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -1543,6 +1787,105 @@ document.querySelectorAll('.nav-link').forEach(function(item) {
             document.getElementById('sidebar').classList.remove('open');
         }
     });
+});
+
+/* Dynamic Interactive Calendar Engine */
+const holidaysMap = {!! $holidaysJson ?? '{}' !!};
+let currentCalDate = new Date();
+
+const monthNamesIndo = [
+    'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+    'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+];
+
+function renderCalendar() {
+    const year = currentCalDate.getFullYear();
+    const month = currentCalDate.getMonth();
+
+    document.getElementById('calendarMonthYear').textContent = monthNamesIndo[month] + ' ' + year;
+
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const daysInPrevMonth = new Date(year, month, 0).getDate();
+
+    const grid = document.getElementById('calendarGrid');
+    grid.innerHTML = '';
+
+    const today = new Date();
+    const isCurrentMonth = today.getFullYear() === year && today.getMonth() === month;
+
+    // Previous month filler cells
+    for (let i = firstDay - 1; i >= 0; i--) {
+        const d = daysInPrevMonth - i;
+        const cell = document.createElement('div');
+        cell.style.cssText = 'padding: 10px 6px; text-align: center; border-radius: 8px; font-size: 12px; color: #cbd5e1; background: #f8fafc; min-height: 48px; display: flex; flex-direction: column; align-items: center; justify-content: center;';
+        cell.innerHTML = `<span>${d}</span>`;
+        grid.appendChild(cell);
+    }
+
+    // Current month cells
+    for (let day = 1; day <= daysInMonth; day++) {
+        const dateStr = year + '-' + String(month + 1).padStart(2, '0') + '-' + String(day).padStart(2, '0');
+        const dayOfWeek = new Date(year, month, day).getDay();
+        const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
+        const isToday = isCurrentMonth && today.getDate() === day;
+        const holiday = holidaysMap[dateStr];
+
+        const cell = document.createElement('div');
+        let bg = '#ffffff';
+        let border = '1px solid #e2e8f0';
+        let textColor = isWeekend ? '#ef4444' : '#0f172a';
+        let badgeHtml = '';
+
+        if (isToday) {
+            bg = '#2563eb';
+            border = '1px solid #1d4ed8';
+            textColor = '#ffffff';
+            badgeHtml = '<span style="font-size: 8px; font-weight: 800; text-transform: uppercase; background: rgba(255,255,255,0.25); padding: 1px 4px; border-radius: 4px; margin-top: 2px;">Hari Ini</span>';
+        } else if (holiday) {
+            bg = '#fef2f2';
+            border = '1px solid #fca5a5';
+            textColor = '#dc2626';
+            badgeHtml = `<span style="font-size: 8px; font-weight: 700; color: #dc2626; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; margin-top: 2px;" title="${holiday.name}">🏖️ ${holiday.name.substring(0, 8)}...</span>`;
+        }
+
+        cell.style.cssText = `padding: 8px 4px; text-align: center; border-radius: 8px; font-size: 12px; font-weight: 700; color: ${textColor}; background: ${bg}; border: ${border}; min-height: 48px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.15s ease;`;
+        cell.innerHTML = `<span>${day}</span>${badgeHtml}`;
+
+        cell.addEventListener('mouseenter', () => {
+            cell.style.transform = 'scale(1.05)';
+        });
+        cell.addEventListener('mouseleave', () => {
+            cell.style.transform = 'scale(1)';
+        });
+
+        cell.addEventListener('click', () => {
+            let info = holiday ? `🏖️ <strong>${holiday.name}</strong><br><span style="color:#dc2626; font-size:12px;">Hari Libur Nasional (Scheduler Otomatis Libur)</span>` : (isWeekend ? '<span style="color:#d97706; font-size:12px;">Akhir Pekan (Weekend)</span>' : '<span style="color:#059669; font-size:12px;">💼 Hari Kerja Aktif (Scheduler Berjalan)</span>');
+            Swal.fire({
+                title: `${day} ${monthNamesIndo[month]} ${year}`,
+                html: `<div style="text-align: center; padding: 10px 0; font-size: 14px;">${info}</div>`,
+                icon: holiday ? 'info' : (isWeekend ? 'warning' : 'success'),
+                confirmButtonColor: '#2563eb'
+            });
+        });
+
+        grid.appendChild(cell);
+    }
+}
+
+function changeMonth(delta) {
+    currentCalDate.setMonth(currentCalDate.getMonth() + delta);
+    renderCalendar();
+}
+
+function goToToday() {
+    currentCalDate = new Date();
+    renderCalendar();
+}
+
+// Inisialisasi Kalender saat halaman dimuat
+document.addEventListener('DOMContentLoaded', function() {
+    renderCalendar();
 });
 
 /* Tab Switcher for Employee Card */

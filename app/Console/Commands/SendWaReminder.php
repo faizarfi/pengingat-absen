@@ -46,6 +46,16 @@ class SendWaReminder extends Command
             return 0;
         }
 
+        // Cek Hari Libur Nasional & Akhir Pekan (Sabtu / Minggu)
+        $holidayService = app(\App\Services\HolidayService::class);
+        if ($holidayService->isHoliday(now())) {
+            $holiday = $holidayService->getHolidayInfo(now());
+            $reason = $holiday ? $holiday->name : (now()->isWeekend() ? 'Akhir Pekan (Weekend)' : 'Hari Libur');
+            $this->info("Pengingat absen [{$type}] dilewati karena hari ini adalah: {$reason}");
+            Log::info("SendWaReminder: dilewati karena hari libur ({$reason})", ['type' => $type]);
+            return 0;
+        }
+
         $employees = Employee::where('is_active', true)->get();
         $queued = 0;
 

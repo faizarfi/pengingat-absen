@@ -101,14 +101,21 @@ def send_via_whatsapp(phone: str, message: str) -> bool:
     print(f"[{time.strftime('%H:%M:%S')}] 💬 Membuka WhatsApp chat: {clean_phone}")
     os.system(f'start "" "{uri}"')
 
-    # Jeda acak (3.5 - 6.0 detik) agar WhatsApp fokus dan meniru delay ketik manusia
-    focus_delay = round(random.uniform(3.5, 6.0), 2)
+    # Jeda acak (4.0 - 6.0 detik) agar WhatsApp membuka chat dan mengisi teks
+    focus_delay = round(random.uniform(4.0, 6.0), 2)
     time.sleep(focus_delay)
 
-    # Gunakan WScript.Shell bawaan Windows untuk menekan ENTER
+    # Gunakan WScript.Shell bawaan Windows untuk fokus ke jendela WhatsApp dan menekan ENTER
     try:
-        cmd = '$wshell = New-Object -ComObject wscript.shell; Start-Sleep -Milliseconds 400; $wshell.SendKeys("{ENTER}")'
-        subprocess.run(["powershell", "-NoProfile", "-Command", cmd], check=True)
+        ps_script = (
+            '$wshell = New-Object -ComObject wscript.shell; '
+            '$wshell.AppActivate("WhatsApp"); '
+            'Start-Sleep -Milliseconds 600; '
+            '$wshell.SendKeys("{ENTER}"); '
+            'Start-Sleep -Milliseconds 300; '
+            '$wshell.SendKeys("{ENTER}");'
+        )
+        subprocess.run(["powershell", "-NoProfile", "-Command", ps_script], check=True)
         print(f"[{time.strftime('%H:%M:%S')}] ✅ Pesan terkirim ke {clean_phone}")
         return True
     except Exception as e:

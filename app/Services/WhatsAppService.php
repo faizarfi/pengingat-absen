@@ -46,6 +46,12 @@ class WhatsAppService
     ): WaOutbox {
         $phone = $this->normalizePhone($phone);
 
+        // Tandai bahwa ada batch pengiriman aktif
+        if (!\Illuminate\Support\Facades\Cache::has('wa_batch_active')) {
+            \Illuminate\Support\Facades\Cache::put('wa_batch_active', true, 7200);
+            \Illuminate\Support\Facades\Cache::put('wa_batch_start', now()->timestamp, 7200);
+        }
+
         return WaOutbox::create([
             'employee_id'  => $employeeId,
             'phone_number' => $phone,
@@ -55,6 +61,61 @@ class WhatsAppService
             'attempts'     => 0,
             'scheduled_at' => $scheduledAt ?? now(),
         ]);
+    }
+
+    /**
+     * Periksa apakah antrean outbox telah selesai diproses semua,
+     * dan kirimkan ringkasan rekap ke Telegram Admin jika iya.
+     */
+    public function checkAndSendBatchCompletionReport(): bool
+    {
+        if (!\Illuminate\Support\Facades\Cache::get('wa_batch_active')) {
+            return false;
+        }
+
+        $pendingCount = WaOutbox::whereIn('status', [
+            WaOutbox::STATUS_PENDING,
+            WaOutbox::STATUS_PROCESSING,
+            WaOutbox::STATUS_RETRY
+        ])->count();
+
+        if ($pendingCount > 0) {
+            return false;
+        }
+
+        // Antrean telah selesai diproses semua!
+        \Illuminate\Support\Facades\Cache::forget('wa_batch_active');
+        $startTime = \Illuminate\Support\Facades\Cache::pull('wa_batch_start', now()->subMinutes(3)->timestamp);
+        $durationSeconds = max(1, now()->timestamp - $startTime);
+        $durationText = $durationSeconds >= 60 
+            ? floor($durationSeconds / 60) . " Menit " . ($durationSeconds % 60) . " Detik"
+            : "{$durationSeconds} Detik";
+
+        $sentToday = WaOutbox::where('status', WaOutbox::STATUS_SENT)->today()->count();
+        $failedToday = WaOutbox::failed()->today()->with('employee')->get();
+        $failedCount = $failedToday->count();
+
+        $failedDetails = '';
+        if ($failedCount > 0) {
+            $failedDetails = "\n\n❌ <b>Daftar Gagal Kirim:</b>";
+            foreach ($failedToday->take(5) as $f) {
+                $name = $f->employee ? $f->employee->name : $f->phone_number;
+                $failedDetails .= "\n• <b>{$name}</b> ({$f->phone_number}): <i>{$f->last_error}</i>";
+            }
+            if ($failedCount > 5) {
+                $failedDetails .= "\n<i>...dan " . ($failedCount - 5) . " pesan gagal lainnya.</i>";
+            }
+        }
+
+        $report = "🎉 <b>LAPORAN PENGIRIMAN WHATSAPP SELESAI</b>\n\n"
+                . "✅ <b>Berhasil Terkirim :</b> {$sentToday} Pesan\n"
+                . "❌ <b>Gagal Dikirim     :</b> {$failedCount} Pesan\n"
+                . "⏱️ <b>Durasi Pengiriman :</b> {$durationText}\n"
+                . "💻 <b>Status Antrean    :</b> Selesai Diproses (0 pending)"
+                . $failedDetails . "\n\n"
+                . "💡 <i>Semua pesan telah dikirim oleh WhatsApp Desktop PC kantor secara aman.</i>";
+
+        return app(TelegramService::class)->sendAdmin($report);
     }
 
     /**

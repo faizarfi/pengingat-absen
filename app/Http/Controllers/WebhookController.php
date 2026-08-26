@@ -182,7 +182,7 @@ class WebhookController extends Controller
             ]);
 
             try {
-                SendWhatsAppJob::dispatchSync($logId, $emp->id, $emp->phone_number, $text, "webhook_check{$type}");
+                app(WhatsAppService::class)->send($emp->id, $emp->phone_number, $text, "webhook_check{$type}");
                 $sent++;
             } catch (\Exception $e) {
                 Log::error("Webhook broadcast {$type} failed", ['employee_id' => $emp->id, 'error' => $e->getMessage()]);
@@ -201,8 +201,11 @@ class WebhookController extends Controller
     private function sendAdminConfirmation(string $message): void
     {
         try {
-            app(WhatsAppService::class)->sendMessage(config('whatsapp.admin_number', ''), $message);
-            Log::info('Webhook: Admin confirmation sent');
+            $adminNumber = config('whatsapp.admin_number', '');
+            if (!empty($adminNumber)) {
+                app(WhatsAppService::class)->send(0, $adminNumber, $message, 'admin_confirmation');
+                Log::info('Webhook: Admin confirmation queued to outbox');
+            }
         } catch (\Exception $e) {
             Log::error('Webhook: Failed to send admin confirmation', ['error' => $e->getMessage()]);
         }

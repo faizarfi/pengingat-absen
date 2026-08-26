@@ -30,3 +30,10 @@ Route::prefix('agent')
         Route::post('/heartbeat', 'heartbeat');
         Route::get('/status', 'status');
     });
+
+/*
+|--------------------------------------------------------------------------
+| Telegram Bot Webhook
+|--------------------------------------------------------------------------
+*/
+Route::post('/telegram/webhook', [\App\Http\Controllers\TelegramWebhookController::class, 'handle'])->name('telegram.webhook');

@@ -61,7 +61,7 @@ class AgentApiController extends Controller
      * POST /api/agent/messages/{id}/sent
      * Tandai pesan berhasil terkirim.
      */
-    public function markSent(int $id): JsonResponse
+    public function markSent(int $id, \App\Services\WhatsAppService $waService): JsonResponse
     {
         $outbox = WaOutbox::find($id);
 
@@ -76,6 +76,9 @@ class AgentApiController extends Controller
             'phone'     => $outbox->phone_number,
         ]);
 
+        // Cek jika seluruh antrean batch telah selesai
+        $waService->checkAndSendBatchCompletionReport();
+
         return response()->json(['success' => true, 'status' => $outbox->status]);
     }
 
@@ -83,7 +86,7 @@ class AgentApiController extends Controller
      * POST /api/agent/messages/{id}/failed
      * Tandai pesan gagal dikirim.
      */
-    public function markFailed(Request $request, int $id): JsonResponse
+    public function markFailed(Request $request, int $id, \App\Services\WhatsAppService $waService): JsonResponse
     {
         $outbox = WaOutbox::find($id);
 
@@ -101,6 +104,9 @@ class AgentApiController extends Controller
             'attempts'  => $outbox->attempts,
             'status'    => $outbox->status,
         ]);
+
+        // Cek jika seluruh antrean batch telah selesai
+        $waService->checkAndSendBatchCompletionReport();
 
         return response()->json([
             'success'  => true,
