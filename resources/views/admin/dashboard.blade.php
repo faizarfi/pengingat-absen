@@ -3,60 +3,86 @@
 @section('content')
 
 <style>
+/* ==========================================================================
+   MODERN DESIGN SYSTEM - PENGINGAT ABSEN BPS KARANGANYAR
+   ========================================================================== */
+
 :root {
     --primary: #2563eb;
     --primary-hover: #1d4ed8;
     --primary-light: #eff6ff;
-    --primary-glow: rgba(37, 99, 235, 0.18);
+    --primary-glow: rgba(37, 99, 235, 0.22);
+    
     --navy-dark: #0f172a;
     --navy-card: #1e293b;
     --surface: #ffffff;
     --surface-alt: #f8fafc;
+    --surface-glass: rgba(255, 255, 255, 0.92);
+    
     --border: #e2e8f0;
     --border-light: #f1f5f9;
+    --border-glass: rgba(226, 232, 240, 0.8);
+    
     --text-main: #0f172a;
     --text-muted: #64748b;
     --text-subtle: #94a3b8;
+    
     --success: #10b981;
     --success-light: #ecfdf5;
+    --success-border: #a7f3d0;
+    --success-text: #065f46;
+    
     --warning: #f59e0b;
     --warning-light: #fffbeb;
+    --warning-border: #fde68a;
+    --warning-text: #92400e;
+    
     --danger: #ef4444;
     --danger-light: #fef2f2;
+    --danger-border: #fecaca;
+    --danger-text: #991b1b;
+    
     --info: #06b6d4;
     --info-light: #ecfeff;
-    --sidebar-w: 260px;
-    --header-h: 70px;
-    --radius-lg: 20px;
-    --radius-md: 14px;
-    --radius-sm: 10px;
-    --shadow-sm: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03);
-    --shadow-md: 0 4px 20px -2px rgba(15,23,42,0.06), 0 2px 6px -1px rgba(15,23,42,0.04);
-    --shadow-lg: 0 12px 36px -4px rgba(15,23,42,0.09), 0 4px 12px -2px rgba(15,23,42,0.05);
-    --shadow-glow: 0 12px 32px rgba(37,99,235,0.22);
+    --info-border: #a5f3fc;
+    --info-text: #155e75;
+
+    --sidebar-w: 270px;
+    --header-h: 72px;
+    --radius-xl: 24px;
+    --radius-lg: 18px;
+    --radius-md: 12px;
+    --radius-sm: 8px;
+    
+    --shadow-subtle: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+    --shadow-card: 0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.03);
+    --shadow-hover: 0 16px 36px -4px rgba(15, 23, 42, 0.09), 0 4px 12px -2px rgba(15, 23, 42, 0.05);
+    --shadow-glow-blue: 0 10px 25px -3px rgba(37, 99, 235, 0.28);
 }
 
+/* Base resets & layout */
 * { box-sizing: border-box; }
-html, body {
+body {
+    background: #f8fafc;
+    color: var(--text-main);
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
     margin: 0;
     padding: 0;
-    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-    background: #f1f5f9;
-    color: var(--text-main);
-    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
 }
 
-/* Layout container */
 .app-container {
     display: flex;
     min-height: 100vh;
     background: 
-        radial-gradient(at 100% 0%, rgba(37, 99, 235, 0.04) 0px, transparent 50%),
-        radial-gradient(at 0% 100%, rgba(6, 182, 212, 0.04) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(37, 99, 235, 0.04) 0px, transparent 45%),
+        radial-gradient(at 0% 100%, rgba(6, 182, 212, 0.03) 0px, transparent 45%),
         #f8fafc;
 }
 
-/* ================= SIDEBAR ================= */
+/* ==========================================================================
+   SIDEBAR NAVIGATION
+   ========================================================================== */
 .app-sidebar {
     width: var(--sidebar-w);
     position: fixed;
@@ -68,6 +94,7 @@ html, body {
     display: flex;
     flex-direction: column;
     z-index: 50;
+    box-shadow: 2px 0 12px rgba(15, 23, 42, 0.02);
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -81,18 +108,16 @@ html, body {
 }
 
 .brand-icon {
-    width: 42px;
-    height: 42px;
+    width: 44px;
+    height: 44px;
     border-radius: 12px;
-    background: linear-gradient(135deg, #1e40af, #3b82f6);
+    background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 8px 16px rgba(37, 99, 235, 0.25);
-    color: #ffffff;
-    font-weight: 900;
-    font-size: 13px;
+    box-shadow: 0 8px 16px rgba(37, 99, 235, 0.22);
     overflow: hidden;
+    flex-shrink: 0;
 }
 
 .brand-icon img {
@@ -110,7 +135,7 @@ html, body {
 }
 
 .brand-text span {
-    font-size: 9px;
+    font-size: 10px;
     font-weight: 700;
     color: var(--primary);
     text-transform: uppercase;
@@ -134,7 +159,7 @@ html, body {
     color: var(--text-subtle);
     text-transform: uppercase;
     letter-spacing: 0.1em;
-    padding: 12px 12px 6px;
+    padding: 12px 14px 6px;
 }
 
 .nav-link {
@@ -142,25 +167,26 @@ html, body {
     align-items: center;
     gap: 12px;
     padding: 11px 14px;
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius-md);
     color: var(--text-muted);
     font-size: 13px;
     font-weight: 600;
     text-decoration: none;
-    transition: all 0.2s ease;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .nav-link svg {
     width: 18px;
     height: 18px;
     color: var(--text-subtle);
-    transition: color 0.2s ease;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
 }
 
 .nav-link:hover {
     background: var(--primary-light);
     color: var(--primary);
-    transform: translateX(3px);
+    transform: translateX(4px);
 }
 
 .nav-link:hover svg {
@@ -171,7 +197,7 @@ html, body {
     background: linear-gradient(135deg, #2563eb, #1d4ed8);
     color: #ffffff;
     font-weight: 700;
-    box-shadow: 0 8px 20px rgba(37, 99, 235, 0.28);
+    box-shadow: 0 8px 20px rgba(37, 99, 235, 0.26);
 }
 
 .nav-link.active svg {
@@ -184,7 +210,7 @@ html, body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: #fcfdfe;
+    background: #fafcff;
 }
 
 .user-profile {
@@ -204,6 +230,7 @@ html, body {
     justify-content: center;
     font-weight: 800;
     font-size: 13px;
+    box-shadow: 0 4px 10px rgba(14, 165, 233, 0.25);
 }
 
 .user-details strong {
@@ -219,7 +246,9 @@ html, body {
     display: block;
 }
 
-/* ================= MAIN CONTENT ================= */
+/* ==========================================================================
+   MAIN LAYOUT & HEADER
+   ========================================================================== */
 .app-main {
     margin-left: var(--sidebar-w);
     flex: 1;
@@ -228,12 +257,11 @@ html, body {
     flex-direction: column;
 }
 
-/* Topbar */
 .app-header {
     height: var(--header-h);
     position: sticky;
     top: 0;
-    background: rgba(255, 255, 255, 0.88);
+    background: rgba(255, 255, 255, 0.9);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     border-bottom: 1px solid var(--border);
@@ -242,6 +270,7 @@ html, body {
     justify-content: space-between;
     padding: 0 32px;
     z-index: 40;
+    box-shadow: 0 1px 6px rgba(15, 23, 42, 0.02);
 }
 
 .header-left {
@@ -256,7 +285,12 @@ html, body {
     border: none;
     color: var(--navy-dark);
     cursor: pointer;
-    padding: 6px;
+    padding: 8px;
+    border-radius: 8px;
+}
+
+.mobile-toggle:hover {
+    background: var(--surface-alt);
 }
 
 .page-title h1 {
@@ -271,23 +305,24 @@ html, body {
     font-size: 11px;
     color: var(--text-muted);
     margin: 2px 0 0;
+    font-weight: 500;
 }
 
 .header-right {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 14px;
 }
 
 .live-badge {
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 7px 14px;
+    padding: 7px 16px;
     border-radius: 999px;
     background: #ffffff;
     border: 1px solid var(--border);
-    box-shadow: var(--shadow-sm);
+    box-shadow: var(--shadow-subtle);
 }
 
 .pulse-dot {
@@ -320,6 +355,7 @@ html, body {
     font-weight: 800;
     color: var(--navy-dark);
     font-variant-numeric: tabular-nums;
+    letter-spacing: 0.02em;
 }
 
 .date-text {
@@ -327,9 +363,10 @@ html, body {
     color: var(--text-muted);
     border-left: 1px solid var(--border);
     padding-left: 10px;
+    font-weight: 600;
 }
 
-/* Content Area */
+/* Main Content Wrapper */
 .app-content {
     padding: 28px 32px 48px;
     flex: 1;
@@ -338,43 +375,46 @@ html, body {
     margin: 0 auto;
 }
 
-/* HERO SECTION */
+/* ==========================================================================
+   HERO BANNER - MODERN AMBIENT GLOW
+   ========================================================================== */
 .hero-banner {
     position: relative;
-    border-radius: var(--radius-lg);
-    background: linear-gradient(125deg, #0f172a 0%, #1e293b 50%, #1e3a8a 100%);
-    padding: 32px 36px;
+    border-radius: var(--radius-xl);
+    background: linear-gradient(130deg, #091223 0%, #0f244a 45%, #183870 80%, #1e40af 100%);
+    padding: 34px 40px;
     color: #ffffff;
     overflow: hidden;
     margin-bottom: 24px;
-    box-shadow: 0 20px 40px -10px rgba(15, 23, 42, 0.3);
+    box-shadow: 0 20px 45px -10px rgba(15, 36, 74, 0.35);
     display: grid;
     grid-template-columns: 1fr auto;
     gap: 32px;
     align-items: center;
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .hero-banner::before {
     content: '';
     position: absolute;
-    top: -120px;
-    right: -80px;
-    width: 380px;
-    height: 380px;
+    top: -140px;
+    right: -60px;
+    width: 420px;
+    height: 420px;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(59, 130, 246, 0.25) 0%, rgba(37, 99, 235, 0) 70%);
+    background: radial-gradient(circle, rgba(59, 130, 246, 0.35) 0%, rgba(37, 99, 235, 0) 70%);
     pointer-events: none;
 }
 
 .hero-banner::after {
     content: '';
     position: absolute;
-    bottom: -100px;
-    left: 20%;
-    width: 300px;
-    height: 300px;
+    bottom: -120px;
+    left: 25%;
+    width: 340px;
+    height: 340px;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(6, 182, 212, 0.15) 0%, rgba(6, 182, 212, 0) 70%);
+    background: radial-gradient(circle, rgba(6, 182, 212, 0.22) 0%, rgba(6, 182, 212, 0) 70%);
     pointer-events: none;
 }
 
@@ -382,14 +422,14 @@ html, body {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    padding: 6px 12px;
+    padding: 6px 14px;
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(8px);
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     font-size: 11px;
     font-weight: 700;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
     margin-bottom: 14px;
 }
@@ -400,14 +440,17 @@ html, body {
     line-height: 1.25;
     letter-spacing: -0.03em;
     margin: 0 0 10px;
+    background: linear-gradient(180deg, #ffffff 0%, #e2e8f0 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
 .hero-desc {
     font-size: 13px;
     line-height: 1.6;
     color: #cbd5e1;
-    max-width: 620px;
-    margin: 0 0 20px;
+    max-width: 640px;
+    margin: 0 0 22px;
 }
 
 .hero-pills {
@@ -421,143 +464,219 @@ html, body {
     align-items: center;
     gap: 8px;
     padding: 8px 14px;
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius-md);
     background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.14);
     font-size: 12px;
     font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.hero-pill-item:hover {
+    background: rgba(255, 255, 255, 0.14);
+    transform: translateY(-1px);
 }
 
 .hero-clock-box {
     position: relative;
     background: rgba(255, 255, 255, 0.07);
-    backdrop-filter: blur(14px);
-    border: 1px solid rgba(255, 255, 255, 0.18);
-    border-radius: var(--radius-md);
-    padding: 24px 28px;
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-lg);
+    padding: 24px 30px;
     text-align: center;
-    min-width: 240px;
+    min-width: 250px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
 }
 
 .hero-clock-label {
     font-size: 10px;
     font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: 0.12em;
+    letter-spacing: 0.14em;
     color: #93c5fd;
+    margin-bottom: 6px;
 }
 
 .hero-clock-time {
-    font-size: 36px;
-    font-weight: 900;
-    letter-spacing: -0.04em;
-    margin: 6px 0;
+    font-size: 34px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
     font-variant-numeric: tabular-nums;
-    background: linear-gradient(180deg, #ffffff 0%, #dbeafe 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    color: #ffffff;
+    text-shadow: 0 0 20px rgba(147, 197, 253, 0.4);
 }
 
 .hero-clock-date {
     font-size: 11px;
+    font-weight: 600;
     color: #cbd5e1;
-    font-weight: 500;
+    margin-top: 6px;
 }
 
-/* STATS GRID */
+/* ==========================================================================
+   STAT CARDS - MODERN GLASSMORPHIC WITH TOP ACCENT GLOW
+   ========================================================================== */
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 16px;
+    gap: 20px;
     margin-bottom: 24px;
 }
 
 .stat-card {
     background: #ffffff;
     border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    padding: 20px 22px;
+    border-radius: var(--radius-lg);
+    padding: 22px 24px;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
-    box-shadow: var(--shadow-sm);
-    transition: all 0.25s ease;
+    box-shadow: var(--shadow-card);
     position: relative;
     overflow: hidden;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: transparent;
+    transition: all 0.25s ease;
 }
 
 .stat-card:hover {
-    transform: translateY(-3px);
-    box-shadow: var(--shadow-md);
-    border-color: #cbd5e1;
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-hover);
 }
+
+.stat-card.card-blue::before { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+.stat-card.card-orange::before { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+.stat-card.card-cyan::before { background: linear-gradient(90deg, #06b6d4, #38bdf8); }
+.stat-card.card-green::before { background: linear-gradient(90deg, #10b981, #34d399); }
 
 .stat-info span {
     font-size: 11px;
     font-weight: 700;
     color: var(--text-muted);
     text-transform: uppercase;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.05em;
     display: block;
+    margin-bottom: 6px;
 }
 
 .stat-info h3 {
-    font-size: 24px;
+    font-size: 26px;
     font-weight: 800;
     letter-spacing: -0.03em;
-    margin: 6px 0 2px;
+    margin: 0 0 6px;
     color: var(--navy-dark);
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
 }
 
 .stat-info small {
     font-size: 11px;
-    font-weight: 600;
-    color: var(--text-subtle);
+    color: var(--text-muted);
+    font-weight: 500;
+    display: block;
 }
 
 .stat-icon-wrap {
     width: 48px;
     height: 48px;
-    border-radius: 14px;
+    border-radius: var(--radius-md);
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+    transition: transform 0.2s ease;
 }
 
-.icon-blue { background: #eff6ff; color: #2563eb; }
-.icon-orange { background: #fff7ed; color: #ea580c; }
-.icon-green { background: #ecfdf5; color: #059669; }
-.icon-cyan { background: #ecfeff; color: #0891b2; }
+.stat-card:hover .stat-icon-wrap {
+    transform: scale(1.08);
+}
 
-/* ACTION BAR BANNER */
-.action-banner {
+.icon-blue { background: #eff6ff; color: #2563eb; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15); }
+.icon-orange { background: #fffbeb; color: #d97706; box-shadow: 0 4px 12px rgba(217, 119, 6, 0.15); }
+.icon-cyan { background: #ecfeff; color: #0891b2; box-shadow: 0 4px 12px rgba(8, 145, 178, 0.15); }
+.icon-green { background: #ecfdf5; color: #059669; box-shadow: 0 4px 12px rgba(5, 150, 105, 0.15); }
+
+/* ==========================================================================
+   HOLIDAY & QUEUE CONTROL BAR
+   ========================================================================== */
+.control-bar {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 16px;
+    align-items: center;
     background: #ffffff;
     border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    padding: 20px 24px;
+    border-radius: var(--radius-lg);
+    padding: 16px 22px;
     margin-bottom: 24px;
+    box-shadow: var(--shadow-card);
+}
+
+.status-tag-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 14px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.status-tag-workday {
+    background: var(--success-light);
+    color: var(--success-text);
+    border: 1px solid var(--success-border);
+}
+
+.status-tag-holiday {
+    background: var(--warning-light);
+    color: var(--warning-text);
+    border: 1px solid var(--warning-border);
+}
+
+/* ==========================================================================
+   ACTION BANNER (MANUAL BROADCAST HUB)
+   ========================================================================== */
+.action-banner {
+    position: relative;
+    border-radius: var(--radius-lg);
+    background: linear-gradient(135deg, #ffffff 0%, #f8faff 100%);
+    border: 1px solid rgba(37, 99, 235, 0.25);
+    padding: 24px 28px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 20px;
-    box-shadow: var(--shadow-sm);
+    gap: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 8px 24px -4px rgba(37, 99, 235, 0.08);
 }
 
 .action-banner-text h3 {
-    font-size: 15px;
+    font-size: 16px;
     font-weight: 800;
-    margin: 0;
+    margin: 0 0 4px;
     color: var(--navy-dark);
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
 }
 
 .action-banner-text p {
     font-size: 12px;
     color: var(--text-muted);
-    margin: 4px 0 0;
+    margin: 0;
 }
 
 .action-buttons-group {
@@ -566,34 +685,53 @@ html, body {
     flex-wrap: wrap;
 }
 
-/* BUTTON SYSTEM */
+/* ==========================================================================
+   BUTTON SYSTEM
+   ========================================================================== */
 .btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
     padding: 10px 18px;
-    border-radius: var(--radius-sm);
-    font-size: 12px;
+    border-radius: var(--radius-md);
+    font-size: 13px;
     font-weight: 700;
-    text-decoration: none;
     border: 1px solid transparent;
     cursor: pointer;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    white-space: nowrap;
+    text-decoration: none;
+}
+
+.btn-sm {
+    padding: 6px 12px;
+    font-size: 11px;
+    border-radius: var(--radius-sm);
 }
 
 .btn-primary {
     background: linear-gradient(135deg, #2563eb, #1d4ed8);
     color: #ffffff;
-    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25);
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.28);
 }
 
 .btn-primary:hover {
     background: linear-gradient(135deg, #1d4ed8, #1e40af);
-    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.35);
     transform: translateY(-1px);
-    color: #ffffff;
+    box-shadow: 0 6px 18px rgba(37, 99, 235, 0.35);
+}
+
+.btn-secondary {
+    background: #ffffff;
+    color: var(--navy-dark);
+    border-color: var(--border);
+    box-shadow: var(--shadow-subtle);
+}
+
+.btn-secondary:hover {
+    background: var(--surface-alt);
+    border-color: #cbd5e1;
+    transform: translateY(-1px);
 }
 
 .btn-success {
@@ -605,60 +743,44 @@ html, body {
 .btn-success:hover {
     background: linear-gradient(135deg, #059669, #047857);
     transform: translateY(-1px);
-    color: #ffffff;
-}
-
-.btn-secondary {
-    background: #ffffff;
-    border-color: var(--border);
-    color: var(--navy-dark);
-}
-
-.btn-secondary:hover {
-    background: #f8fafc;
-    border-color: #cbd5e1;
-    color: var(--primary);
-}
-
-.btn-sm {
-    padding: 6px 12px;
-    font-size: 11px;
-    border-radius: 8px;
-}
-
-.btn-danger-soft {
-    background: var(--danger-light);
-    color: var(--danger);
-}
-.btn-danger-soft:hover {
-    background: #fee2e2;
 }
 
 .btn-primary-soft {
     background: var(--primary-light);
     color: var(--primary);
+    border-color: rgba(37, 99, 235, 0.15);
 }
+
 .btn-primary-soft:hover {
     background: #dbeafe;
+    color: var(--primary-hover);
 }
 
-/* SECTION GRID (TWO COLUMNS) */
-.section-grid {
-    display: grid;
-    grid-template-columns: 1.15fr 0.85fr;
-    gap: 24px;
-    margin-bottom: 24px;
+.btn-danger-soft {
+    background: var(--danger-light);
+    color: var(--danger);
+    border-color: var(--danger-border);
 }
 
-/* CARD COMPONENT */
+.btn-danger-soft:hover {
+    background: #fee2e2;
+    color: var(--danger-text);
+}
+
+/* ==========================================================================
+   APP CARDS & SECTION CONTAINERS
+   ========================================================================== */
 .app-card {
     background: #ffffff;
     border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-sm);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
     overflow: hidden;
-    display: flex;
-    flex-direction: column;
+    transition: box-shadow 0.2s ease;
+}
+
+.app-card:hover {
+    box-shadow: var(--shadow-hover);
 }
 
 .card-header {
@@ -667,6 +789,8 @@ html, body {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
 }
 
 .card-title-group h3 {
@@ -674,73 +798,277 @@ html, body {
     font-weight: 800;
     margin: 0;
     color: var(--navy-dark);
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .card-title-group p {
-    font-size: 11px;
+    font-size: 12px;
     color: var(--text-muted);
     margin: 3px 0 0;
 }
 
 .card-body {
     padding: 24px;
-    flex: 1;
 }
 
-/* FORM ELEMENTS */
-.form-group {
-    margin-bottom: 16px;
+.section-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 0.8fr;
+    gap: 24px;
+    margin-bottom: 24px;
 }
 
-.form-label {
-    display: block;
+/* ==========================================================================
+   DATA TABLES (OUTBOX & LOGS)
+   ========================================================================== */
+.table-responsive {
+    overflow-x: auto;
+    border-radius: var(--radius-md);
+}
+
+.modern-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 12px;
+    text-align: left;
+}
+
+.modern-table thead th {
+    background: #f8fafc;
+    color: var(--text-muted);
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+}
+
+.modern-table tbody tr {
+    transition: background 0.15s ease;
+}
+
+.modern-table tbody tr:hover {
+    background: #f8faff;
+}
+
+.modern-table tbody td {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border-light);
+    color: var(--navy-dark);
+    vertical-align: middle;
+}
+
+.modern-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Status Badges */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+}
+
+.badge-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+}
+
+.badge-success { background: var(--success-light); color: var(--success-text); border: 1px solid var(--success-border); }
+.badge-success .badge-dot { background: var(--success); }
+
+.badge-warning { background: var(--warning-light); color: var(--warning-text); border: 1px solid var(--warning-border); }
+.badge-warning .badge-dot { background: var(--warning); }
+
+.badge-danger { background: var(--danger-light); color: var(--danger-text); border: 1px solid var(--danger-border); }
+.badge-danger .badge-dot { background: var(--danger); }
+
+.badge-info { background: var(--info-light); color: var(--info-text); border: 1px solid var(--info-border); }
+.badge-info .badge-dot { background: var(--info); }
+
+.badge-neutral { background: #f1f5f9; color: var(--text-muted); border: 1px solid #e2e8f0; }
+
+/* ==========================================================================
+   CALENDAR COMPONENT
+   ========================================================================== */
+.calendar-wrapper {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 24px;
+}
+
+.cal-header-day {
+    padding: 8px 4px;
+    text-align: center;
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--text-muted);
+    text-transform: uppercase;
+}
+
+.cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+}
+
+.cal-cell {
+    padding: 8px 4px;
+    text-align: center;
+    border-radius: var(--radius-sm);
     font-size: 12px;
     font-weight: 700;
-    color: var(--navy-dark);
-    margin-bottom: 6px;
-}
-
-.form-control {
-    width: 100%;
-    height: 42px;
-    padding: 0 14px;
-    border-radius: var(--radius-sm);
-    border: 1px solid var(--border);
-    background: #ffffff;
-    font-size: 13px;
-    color: var(--navy-dark);
-    transition: all 0.2s ease;
-    outline: none;
-}
-
-.form-control:focus {
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
-}
-
-textarea.form-control {
-    height: auto;
-    min-height: 90px;
-    padding: 10px 14px;
-    resize: vertical;
-}
-
-.form-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 14px;
-}
-
-/* EMPLOYEE LIST & SEARCH */
-.search-filter-box {
+    min-height: 52px;
     display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+    user-select: none;
+}
+
+.cal-cell:hover {
+    transform: scale(1.06);
+    z-index: 2;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.cal-legend {
+    display: flex;
+    gap: 16px;
+    margin-top: 18px;
+    font-size: 11px;
+    color: var(--text-muted);
+    flex-wrap: wrap;
+}
+
+.cal-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 600;
+}
+
+.upcoming-holiday-card {
+    background: #ffffff;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    transition: transform 0.15s ease;
+}
+
+.upcoming-holiday-card:hover {
+    transform: translateX(3px);
+    border-color: #cbd5e1;
+}
+
+/* ==========================================================================
+   WEBHOOK & CHEATSHEET CARD
+   ========================================================================== */
+.webhook-box {
+    background: linear-gradient(135deg, #091223 0%, #112240 50%, #1e3a8a 100%);
+    border-radius: var(--radius-lg);
+    padding: 24px 28px;
+    color: #ffffff;
+    margin-bottom: 24px;
+    box-shadow: 0 12px 30px -4px rgba(15, 36, 74, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.webhook-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
     gap: 10px;
+}
+
+.webhook-header h4 {
+    font-size: 15px;
+    font-weight: 800;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #ffffff;
+}
+
+.code-pill {
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: var(--radius-md);
+    padding: 12px 16px;
+    font-family: 'JetBrains Mono', 'Courier New', monospace;
+    font-size: 12px;
+    color: #38bdf8;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    gap: 12px;
+}
+
+.command-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+}
+
+.command-item {
+    background: rgba(255, 255, 255, 0.07);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: var(--radius-md);
+    padding: 12px 14px;
+    transition: background 0.2s ease;
+}
+
+.command-item:hover {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.command-item code {
+    color: #4ade80;
+    font-weight: 800;
+    font-size: 12px;
+    display: block;
+    margin-bottom: 4px;
+}
+
+.command-item p {
+    font-size: 11px;
+    color: #cbd5e1;
+    margin: 0;
+    line-height: 1.4;
+}
+
+/* ==========================================================================
+   EMPLOYEE LIST & FILTER
+   ========================================================================== */
+.search-filter-box {
     margin-bottom: 16px;
 }
 
 .search-input-wrap {
     position: relative;
-    flex: 1;
 }
 
 .search-input-wrap svg {
@@ -754,14 +1082,16 @@ textarea.form-control {
 }
 
 .search-input-wrap input {
-    padding-left: 38px;
+    padding-left: 40px;
 }
 
 .employee-table-wrap {
-    max-height: 380px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 520px;
     overflow-y: auto;
-    border-radius: var(--radius-sm);
-    border: 1px solid var(--border-light);
+    padding-right: 4px;
 }
 
 .employee-row {
@@ -769,37 +1099,36 @@ textarea.form-control {
     align-items: center;
     justify-content: space-between;
     padding: 12px 16px;
-    border-bottom: 1px solid var(--border-light);
-    transition: background 0.15s ease;
-}
-
-.employee-row:last-child {
-    border-bottom: none;
+    background: #ffffff;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    transition: all 0.2s ease;
 }
 
 .employee-row:hover {
-    background: #f8fafc;
+    background: #f8faff;
+    border-color: #cbd5e1;
+    transform: translateX(2px);
 }
 
 .emp-main {
     display: flex;
     align-items: center;
     gap: 12px;
-    min-width: 0;
 }
 
 .emp-avatar {
-    width: 36px;
-    height: 36px;
+    width: 38px;
+    height: 38px;
     border-radius: 10px;
-    background: linear-gradient(135deg, #3b82f6, #6366f1);
     color: #ffffff;
-    font-size: 13px;
     font-weight: 800;
+    font-size: 13px;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 .emp-info h4 {
@@ -807,36 +1136,57 @@ textarea.form-control {
     font-weight: 700;
     margin: 0;
     color: var(--navy-dark);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
 }
 
 .emp-info p {
     font-size: 11px;
     color: var(--text-muted);
-    margin: 2px 0 0;
+    margin: 3px 0 0;
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 6px;
 }
 
-.badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    padding: 4px 8px;
-    border-radius: 999px;
-    font-size: 10px;
+/* ==========================================================================
+   FORM CONTROLS & DROPZONE
+   ========================================================================== */
+.form-group {
+    margin-bottom: 18px;
+}
+
+.form-label {
+    display: block;
+    font-size: 12px;
     font-weight: 700;
+    color: var(--navy-dark);
+    margin-bottom: 6px;
 }
 
-.badge-success { background: var(--success-light); color: var(--success); }
-.badge-warning { background: var(--warning-light); color: var(--warning); }
-.badge-danger { background: var(--danger-light); color: var(--danger); }
-.badge-neutral { background: #f1f5f9; color: var(--text-muted); }
+.form-control {
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+    background: #ffffff;
+    color: var(--navy-dark);
+    font-size: 13px;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+}
 
-/* TAB SYSTEM FOR SETTINGS */
+.form-control:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-glow);
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+}
+
+/* Tab Controls for Forms */
 .tab-nav {
     display: flex;
     gap: 6px;
@@ -874,75 +1224,11 @@ textarea.form-control {
     display: block;
 }
 
-/* WEBHOOK CHEATSHEET CARD */
-.webhook-box {
-    background: linear-gradient(135deg, #0f172a, #1e293b);
-    border-radius: var(--radius-md);
-    padding: 20px 24px;
-    color: #ffffff;
-    margin-bottom: 24px;
-}
-
-.webhook-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 14px;
-}
-
-.webhook-header h4 {
-    font-size: 14px;
-    font-weight: 800;
-    margin: 0;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.code-pill {
-    background: rgba(0, 0, 0, 0.4);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 8px;
-    padding: 10px 14px;
-    font-family: monospace;
-    font-size: 12px;
-    color: #38bdf8;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 14px;
-}
-
-.command-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-}
-
-.command-item {
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 8px;
-    padding: 10px 12px;
-}
-
-.command-item code {
-    color: #4ade80;
-    font-weight: 700;
-    font-size: 12px;
-}
-
-.command-item p {
-    font-size: 10px;
-    color: #94a3b8;
-    margin: 4px 0 0;
-}
-
-/* DROPZONE */
+/* Dropzone */
 .file-dropzone {
-    border: 2px dashed var(--border);
-    border-radius: var(--radius-sm);
-    padding: 24px;
+    border: 2px dashed #cbd5e1;
+    border-radius: var(--radius-md);
+    padding: 28px 20px;
     text-align: center;
     background: var(--surface-alt);
     cursor: pointer;
@@ -955,15 +1241,35 @@ textarea.form-control {
 }
 
 .file-dropzone svg {
-    width: 32px;
-    height: 32px;
+    width: 36px;
+    height: 36px;
     color: var(--text-subtle);
     margin-bottom: 8px;
+    transition: color 0.2s ease;
 }
 
-/* FOOTER */
+.file-dropzone:hover svg {
+    color: var(--primary);
+}
+
+/* Variable Tag Helper */
+.var-pill {
+    display: inline-block;
+    padding: 2px 6px;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 10px;
+    color: #475569;
+    margin: 2px;
+}
+
+/* ==========================================================================
+   FOOTER & RESPONSIVENESS
+   ========================================================================== */
 .app-footer {
-    padding: 20px 32px;
+    padding: 22px 32px;
     background: #ffffff;
     border-top: 1px solid var(--border);
     display: flex;
@@ -973,10 +1279,10 @@ textarea.form-control {
     color: var(--text-muted);
 }
 
-/* RESPONSIVE */
-@media (max-width: 1180px) {
+@media (max-width: 1200px) {
     .stats-grid { grid-template-columns: repeat(2, 1fr); }
     .section-grid { grid-template-columns: 1fr; }
+    .calendar-wrapper { grid-template-columns: 1fr; }
     .command-grid { grid-template-columns: 1fr; }
 }
 
@@ -1004,6 +1310,9 @@ textarea.form-control {
     .stats-grid {
         grid-template-columns: 1fr;
     }
+    .control-bar {
+        grid-template-columns: 1fr;
+    }
     .app-header {
         padding: 0 16px;
     }
@@ -1013,12 +1322,15 @@ textarea.form-control {
     .date-text {
         display: none;
     }
+    .form-row {
+        grid-template-columns: 1fr;
+    }
 }
 </style>
 
 <div class="app-container">
 
-    {{-- ================= SIDEBAR ================= --}}
+    {{-- ================= SIDEBAR NAVIGATION ================= --}}
     <aside class="app-sidebar" id="sidebar">
         <div class="sidebar-brand">
             <div class="brand-icon">
@@ -1055,11 +1367,7 @@ textarea.form-control {
                 Kalender Libur
             </a>
 
-            <span class="nav-category">Integrasi & Export</span>
-            <a href="#webhook" class="nav-link">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                Bot WhatsApp
-            </a>
+            <span class="nav-category">Export & Laporan</span>
             <a href="{{ url('/admin/employees/export') }}" class="nav-link">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                 Export Excel (.csv)
@@ -1083,18 +1391,18 @@ textarea.form-control {
         </div>
     </aside>
 
-    {{-- ================= MAIN ================= --}}
+    {{-- ================= MAIN CONTENT ================= --}}
     <div class="app-main">
 
         {{-- TOPBAR --}}
         <header class="app-header">
             <div class="header-left">
-                <button class="mobile-toggle" onclick="toggleSidebar()">
-                    <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                <button class="mobile-toggle" onclick="toggleSidebar()" aria-label="Toggle Menu">
+                    <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
                 </button>
                 <div class="page-title">
                     <h1>Dashboard Pengingat Absensi</h1>
-                    <p>{{ $organization }} • Pusat Kontrol Notifikasi WhatsApp</p>
+                    <p>{{ $organization }} • Pusat Kontrol Notifikasi Otomatis</p>
                 </div>
             </div>
 
@@ -1112,19 +1420,19 @@ textarea.form-control {
             </div>
         </header>
 
-        {{-- CONTENT --}}
+        {{-- CONTENT BODY --}}
         <main class="app-content" id="dashboard">
 
             {{-- HERO BANNER --}}
             <div class="hero-banner">
                 <div>
                     <div class="hero-tag">
-                        <span style="width: 6px; height: 6px; border-radius: 50%; background: #4ade80;"></span>
+                        <span style="width: 7px; height: 7px; border-radius: 50%; background: #4ade80; display: inline-block;"></span>
                         SISTEM MONITORING KEHADIRAN AKTIF
                     </div>
                     <h2 class="hero-title">Otomatisasi Pengingat Absen Pegawai</h2>
                     <p class="hero-desc">
-                        Kelola jadwal kehadiran pegawai, kirimkan notifikasi WA tepat waktu dengan pantun motivasi, dan kendalikan pengiriman broadcast langsung via WhatsApp Admin.
+                        Kelola jadwal kehadiran pegawai, kirimkan notifikasi WA tepat waktu dengan pantun & kata mutiara motivasi, dan kendalikan pengiriman pesan otomatis secara tersinkronisasi.
                     </p>
                     <div class="hero-pills">
                         <div class="hero-pill-item">
@@ -1156,10 +1464,10 @@ textarea.form-control {
 
             {{-- STATS GRID --}}
             <div class="stats-grid">
-                <div class="stat-card">
+                <div class="stat-card card-blue">
                     <div class="stat-info">
                         <span>Jadwal Absen Masuk</span>
-                        <h3>{{ $checkIn }} <small style="font-size:13px; font-weight:600; color:var(--text-muted)">WIB</small></h3>
+                        <h3>{{ $checkIn }} <small style="font-size:13px; font-weight:700; color:var(--text-muted)">WIB</small></h3>
                         <small>Reminder: {{ $preReminderMinutes }} mnt sebelumnya</small>
                     </div>
                     <div class="stat-icon-wrap icon-blue">
@@ -1167,10 +1475,10 @@ textarea.form-control {
                     </div>
                 </div>
 
-                <div class="stat-card">
+                <div class="stat-card card-orange">
                     <div class="stat-info">
                         <span>Jadwal Pulang {{ now()->isFriday() ? '(Hari Ini: Jumat)' : '(Senin - Kamis)' }}</span>
-                        <h3>{{ $todayCheckOut ?? $checkOut }} <small style="font-size:13px; font-weight:600; color:var(--text-muted)">WIB</small></h3>
+                        <h3>{{ $todayCheckOut ?? $checkOut }} <small style="font-size:13px; font-weight:700; color:var(--text-muted)">WIB</small></h3>
                         <small>Sen-Kam: {{ $checkOut }} | Jum: {{ $checkOutFriday ?? '16:30' }} WIB</small>
                     </div>
                     <div class="stat-icon-wrap icon-orange">
@@ -1178,10 +1486,10 @@ textarea.form-control {
                     </div>
                 </div>
 
-                <div class="stat-card">
+                <div class="stat-card card-cyan">
                     <div class="stat-info">
-                        <span>Antrean Outbox (WA Desktop)</span>
-                        <h3>{{ $outboxStats['pending'] ?? 0 }} <small style="font-size:13px; font-weight:600; color:var(--text-muted)">Pending</small></h3>
+                        <span>Antrean Outbox</span>
+                        <h3>{{ $outboxStats['pending'] ?? 0 }} <small style="font-size:13px; font-weight:700; color:var(--text-muted)">Pending</small></h3>
                         <small>Diproses: {{ $outboxStats['processing'] ?? 0 }} | Retry: {{ $outboxStats['retry'] ?? 0 }}</small>
                     </div>
                     <div class="stat-icon-wrap icon-cyan">
@@ -1189,10 +1497,10 @@ textarea.form-control {
                     </div>
                 </div>
 
-                <div class="stat-card">
+                <div class="stat-card card-green">
                     <div class="stat-info">
                         <span>Terkirim Hari Ini</span>
-                        <h3>{{ ($outboxStats['sent_today'] ?? 0) + ($totalSentToday ?? 0) }} <small style="font-size:13px; font-weight:600; color:var(--text-muted)">Pesan</small></h3>
+                        <h3>{{ ($outboxStats['sent_today'] ?? 0) + ($totalSentToday ?? 0) }} <small style="font-size:13px; font-weight:700; color:var(--text-muted)">Pesan</small></h3>
                         <small>Gagal: <strong style="color:var(--danger)">{{ $outboxStats['failed'] ?? 0 }}</strong> | Agent: <strong style="color:{{ ($agentStatus ?? '') === 'online' ? 'var(--success)' : 'var(--danger)' }}">{{ strtoupper($agentStatus ?? 'OFFLINE') }}</strong></small>
                     </div>
                     <div class="stat-icon-wrap icon-green">
@@ -1202,14 +1510,14 @@ textarea.form-control {
             </div>
 
             {{-- HOLIDAY & QUEUE CONTROL BAR --}}
-            <div style="display: grid; grid-template-columns: 1fr auto; gap: 16px; align-items: center; background: #ffffff; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 16px 20px; margin-bottom: 20px; box-shadow: var(--shadow-sm);">
+            <div class="control-bar">
                 <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
                     @if($isTodayHoliday ?? false)
-                        <span style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; background: #fef3c7; color: #b45309; font-size: 12px; font-weight: 700;">
+                        <span class="status-tag-pill status-tag-holiday">
                             🏖️ {{ $todayHolidayName ?? 'Hari Libur' }} (Pengingat Otomatis Libur)
                         </span>
                     @else
-                        <span style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; background: #ecfdf5; color: #059669; font-size: 12px; font-weight: 700;">
+                        <span class="status-tag-pill status-tag-workday">
                             💼 Hari Kerja Aktif (Pengingat Otomatis Berjalan)
                         </span>
                     @endif
@@ -1227,7 +1535,7 @@ textarea.form-control {
                     @if(($outboxStats['failed'] ?? 0) > 0)
                         <form method="POST" action="{{ route('admin.outbox.retry-failed') }}" style="margin: 0;" onsubmit="return confirm('Kirim ulang semua pesan yang gagal?')">
                             @csrf
-                            <button type="submit" class="btn btn-sm" style="background: #fef2f2; color: #dc2626; border: 1px solid #fecaca;">
+                            <button type="submit" class="btn btn-sm btn-danger-soft">
                                 <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                                 Retry Semua Gagal ({{ $outboxStats['failed'] }})
                             </button>
@@ -1237,7 +1545,7 @@ textarea.form-control {
                     @if(($outboxStats['pending'] ?? 0) > 0)
                         <form method="POST" action="{{ route('admin.outbox.cancel-pending') }}" style="margin: 0;" onsubmit="return confirm('Batalkan semua antrean yang belum terkirim?')">
                             @csrf
-                            <button type="submit" class="btn btn-sm" style="background: #fffbeb; color: #d97706; border: 1px solid #fde68a;">
+                            <button type="submit" class="btn btn-sm" style="background: var(--warning-light); color: var(--warning-text); border: 1px solid var(--warning-border);">
                                 <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                                 Batalkan Pending ({{ $outboxStats['pending'] }})
                             </button>
@@ -1279,86 +1587,91 @@ textarea.form-control {
                 </div>
             </div>
 
-            {{-- LIVE OUTBOX MONITORING TABLE --}}
-            <div style="background: #ffffff; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 20px 24px; margin-bottom: 24px; box-shadow: var(--shadow-sm);">
-                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
-                    <div>
-                        <h3 style="font-size: 15px; font-weight: 800; margin: 0; color: var(--navy-dark); display: flex; align-items: center; gap: 8px;">
+            {{-- LIVE OUTBOX MONITORING TABLE WITH PAGINATION --}}
+            <div class="app-card" id="outbox-section" style="margin-bottom: 24px;">
+                <div class="card-header">
+                    <div class="card-title-group">
+                        <h3>
                             <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
                             Antrean & Log Outbox WhatsApp Desktop
+                            @if(isset($outboxMessages) && $outboxMessages->total() > 0)
+                                <span style="font-size: 11px; font-weight: 700; background: var(--primary-light); color: var(--primary); padding: 2px 8px; border-radius: 999px;">
+                                    Total: {{ $outboxMessages->total() }}
+                                </span>
+                            @endif
                         </h3>
-                        <p style="font-size: 12px; color: var(--text-muted); margin: 4px 0 0;">Menampilkan riwayat dan status proses pengiriman pesan terbaru oleh Agent.</p>
+                        <p>Menampilkan riwayat dan status proses pengiriman pesan terbaru (5 pesan per halaman).</p>
                     </div>
 
-                    <div style="display: flex; gap: 6px;">
+                    <div style="display: flex; gap: 8px;">
                         <button type="button" onclick="location.reload()" class="btn btn-sm btn-secondary" title="Refresh data">
                             <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                            Refresh
+                            Refresh Log
                         </button>
                     </div>
                 </div>
 
                 @if(isset($outboxMessages) && $outboxMessages->isNotEmpty())
-                    <div style="overflow-x: auto;">
-                        <table style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left;">
+                    <div class="table-responsive">
+                        <table class="modern-table">
                             <thead>
-                                <tr style="border-bottom: 2px solid var(--border); color: var(--text-muted); text-transform: uppercase; font-size: 10px; letter-spacing: 0.05em;">
-                                    <th style="padding: 10px 12px;">ID</th>
-                                    <th style="padding: 10px 12px;">Penerima</th>
-                                    <th style="padding: 10px 12px;">Nomor WA</th>
-                                    <th style="padding: 10px 12px;">Tipe</th>
-                                    <th style="padding: 10px 12px;">Status</th>
-                                    <th style="padding: 10px 12px;">Waktu Terkirim</th>
-                                    <th style="padding: 10px 12px; text-align: right;">Aksi</th>
+                                <tr>
+                                    <th style="padding-left: 24px;">ID</th>
+                                    <th>Penerima</th>
+                                    <th>Nomor WA</th>
+                                    <th>Tipe Pesan</th>
+                                    <th>Status</th>
+                                    <th>Waktu Pengiriman</th>
+                                    <th style="text-align: right; padding-right: 24px;">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach($outboxMessages as $msg)
-                                    <tr style="border-bottom: 1px solid var(--border-light);">
-                                        <td style="padding: 10px 12px; font-weight: 700; color: var(--text-muted);">#{{ $msg->id }}</td>
-                                        <td style="padding: 10px 12px; font-weight: 700; color: var(--navy-dark);">
+                                    <tr>
+                                        <td style="padding-left: 24px; font-weight: 700; color: var(--text-muted);">#{{ $msg->id }}</td>
+                                        <td style="font-weight: 700; color: var(--navy-dark);">
                                             {{ $msg->employee->name ?? 'Pegawai' }}
                                         </td>
-                                        <td style="padding: 10px 12px; font-family: monospace; color: var(--text-muted);">
+                                        <td style="font-family: monospace; color: var(--text-muted);">
                                             {{ $msg->phone_number }}
                                         </td>
-                                        <td style="padding: 10px 12px;">
-                                            <span style="font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 6px; background: #f1f5f9; color: var(--text-muted);">
+                                        <td>
+                                            <span style="font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 6px; background: #f1f5f9; color: var(--text-muted); text-transform: uppercase;">
                                                 {{ $msg->type }}
                                             </span>
                                         </td>
-                                        <td style="padding: 10px 12px;">
+                                        <td>
                                             @if($msg->status === 'sent')
-                                                <span style="display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 999px; background: #ecfdf5; color: #059669; font-size: 11px; font-weight: 700;">
-                                                    <span style="width: 6px; height: 6px; border-radius: 50%; background: #10b981;"></span>
+                                                <span class="badge badge-success">
+                                                    <span class="badge-dot"></span>
                                                     Terkirim
                                                 </span>
                                             @elseif($msg->status === 'processing')
-                                                <span style="display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 999px; background: #eff6ff; color: #2563eb; font-size: 11px; font-weight: 700;">
-                                                    <span style="width: 6px; height: 6px; border-radius: 50%; background: #3b82f6;"></span>
+                                                <span class="badge badge-info">
+                                                    <span class="badge-dot"></span>
                                                     Diproses Agent
                                                 </span>
                                             @elseif($msg->status === 'pending')
-                                                <span style="display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 999px; background: #fef3c7; color: #b45309; font-size: 11px; font-weight: 700;">
-                                                    <span style="width: 6px; height: 6px; border-radius: 50%; background: #f59e0b;"></span>
+                                                <span class="badge badge-warning">
+                                                    <span class="badge-dot"></span>
                                                     Pending
                                                 </span>
                                             @elseif($msg->status === 'failed')
-                                                <span style="display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 999px; background: #fef2f2; color: #dc2626; font-size: 11px; font-weight: 700;" title="{{ $msg->last_error }}">
-                                                    <span style="width: 6px; height: 6px; border-radius: 50%; background: #ef4444;"></span>
+                                                <span class="badge badge-danger" title="{{ $msg->last_error }}">
+                                                    <span class="badge-dot"></span>
                                                     Gagal
                                                 </span>
                                             @elseif($msg->status === 'cancelled')
-                                                <span style="display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 999px; background: #f1f5f9; color: var(--text-muted); font-size: 11px; font-weight: 700;">
+                                                <span class="badge badge-neutral">
                                                     Dibatalkan
                                                 </span>
                                             @else
-                                                <span style="padding: 3px 8px; border-radius: 999px; background: #f1f5f9; color: var(--text-muted); font-size: 11px; font-weight: 700;">
+                                                <span class="badge badge-neutral">
                                                     {{ $msg->status }}
                                                 </span>
                                             @endif
                                         </td>
-                                        <td style="padding: 10px 12px; color: var(--text-muted); font-size: 11px;">
+                                        <td style="color: var(--text-muted); font-size: 11px;">
                                             @if($msg->sent_at)
                                                 {{ \Carbon\Carbon::parse($msg->sent_at)->format('H:i:s d/m/Y') }}
                                             @elseif($msg->scheduled_at)
@@ -1367,7 +1680,7 @@ textarea.form-control {
                                                 -
                                             @endif
                                         </td>
-                                        <td style="padding: 10px 12px; text-align: right;">
+                                        <td style="text-align: right; padding-right: 24px;">
                                             @if(in_array($msg->status, ['failed', 'cancelled']))
                                                 <form method="POST" action="{{ route('admin.outbox.retry-single', $msg->id) }}" style="display: inline; margin: 0;">
                                                     @csrf
@@ -1384,128 +1697,133 @@ textarea.form-control {
                             </tbody>
                         </table>
                     </div>
+
+                    {{-- PAGINATION CONTROLS --}}
+                    @if($outboxMessages->hasPages())
+                        <div style="padding: 14px 24px; border-top: 1px solid var(--border-light); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; background: #fafcff;">
+                            <div style="font-size: 12px; color: var(--text-muted); font-weight: 500;">
+                                Menampilkan <strong>{{ $outboxMessages->firstItem() ?? 0 }}</strong> - <strong>{{ $outboxMessages->lastItem() ?? 0 }}</strong> dari <strong>{{ $outboxMessages->total() }}</strong> pesan
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                {{-- Previous Button --}}
+                                @if ($outboxMessages->onFirstPage())
+                                    <span class="btn btn-sm btn-secondary" style="opacity: 0.45; cursor: not-allowed; padding: 5px 12px;">
+                                        &laquo; Sebelumnya
+                                    </span>
+                                @else
+                                    <a href="{{ $outboxMessages->previousPageUrl() }}" class="btn btn-sm btn-secondary" style="padding: 5px 12px;">
+                                        &laquo; Sebelumnya
+                                    </a>
+                                @endif
+
+                                <span style="font-size: 11px; font-weight: 800; color: var(--navy-dark); padding: 5px 10px; background: #ffffff; border: 1px solid var(--border); border-radius: var(--radius-sm);">
+                                    {{ $outboxMessages->currentPage() }} / {{ $outboxMessages->lastPage() }}
+                                </span>
+
+                                {{-- Next Button --}}
+                                @if ($outboxMessages->hasMorePages())
+                                    <a href="{{ $outboxMessages->nextPageUrl() }}" class="btn btn-sm btn-secondary" style="padding: 5px 12px;">
+                                        Berikutnya &raquo;
+                                    </a>
+                                @else
+                                    <span class="btn btn-sm btn-secondary" style="opacity: 0.45; cursor: not-allowed; padding: 5px 12px;">
+                                        Berikutnya &raquo;
+                                    </span>
+                                @endif
+                            </div>
+                        </div>
+                    @endif
                 @else
-                    <div style="padding: 24px; text-align: center; color: var(--text-muted); font-size: 13px;">
+                    <div style="padding: 36px 20px; text-align: center; color: var(--text-muted); font-size: 13px;">
+                        <svg width="36" height="36" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin: 0 auto 10px; color: var(--text-subtle); display:block;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/></svg>
                         <p style="margin: 0;">Belum ada riwayat antrean outbox hari ini.</p>
                     </div>
                 @endif
             </div>
 
             {{-- KALENDER KERJA & HARI LIBUR NASIONAL --}}
-            <div id="kalender" style="background: #ffffff; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 24px; margin-bottom: 24px; box-shadow: var(--shadow-sm);">
-                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
-                    <div>
-                        <h3 style="font-size: 16px; font-weight: 800; margin: 0; color: var(--navy-dark); display: flex; align-items: center; gap: 8px;">
+            <div id="kalender" class="app-card" style="margin-bottom: 24px;">
+                <div class="card-header">
+                    <div class="card-title-group">
+                        <h3>
                             <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                             Kalender Kerja & Hari Libur Nasional
                         </h3>
-                        <p style="font-size: 12px; color: var(--text-muted); margin: 4px 0 0;">Pantau tanggal merah, hari libur resmi, dan jadwal kerja aktif yang terhubung dengan otomatisasi pengingat.</p>
+                        <p>Pantau tanggal merah, hari libur resmi, dan jadwal kerja aktif yang terhubung dengan otomatisasi pengingat.</p>
                     </div>
 
                     <div style="display: flex; align-items: center; gap: 8px;">
-                        <button type="button" class="btn btn-secondary btn-sm" onclick="changeMonth(-1)" title="Bulan Sebelumnya" style="padding: 6px 12px;">
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="changeMonth(-1)" title="Bulan Sebelumnya" style="padding: 6px 10px;">
                             <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
                         </button>
-                        <span id="calendarMonthYear" style="font-size: 14px; font-weight: 800; color: var(--navy-dark); min-width: 150px; text-align: center;">...</span>
-                        <button type="button" class="btn btn-secondary btn-sm" onclick="changeMonth(1)" title="Bulan Berikutnya" style="padding: 6px 12px;">
+                        <span id="calendarMonthYear" style="font-size: 13px; font-weight: 800; color: var(--navy-dark); min-width: 140px; text-align: center;">...</span>
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="changeMonth(1)" title="Bulan Berikutnya" style="padding: 6px 10px;">
                             <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                         </button>
-                        <button type="button" class="btn btn-sm btn-primary-soft" onclick="goToToday()" style="background: var(--primary-light); color: var(--primary); border: none; font-weight: 700; padding: 6px 12px; border-radius: 8px;">
+                        <button type="button" class="btn btn-sm btn-primary-soft" onclick="goToToday()">
                             Bulan Ini
                         </button>
                     </div>
                 </div>
 
-                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px;">
-                    <!-- Calendar Grid -->
-                    <div>
-                        <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; text-align: center; font-size: 11px; font-weight: 800; color: var(--text-muted); margin-bottom: 8px;">
-                            <span style="color: #ef4444;">Min</span>
-                            <span>Sen</span>
-                            <span>Sel</span>
-                            <span>Rab</span>
-                            <span>Kam</span>
-                            <span>Jum</span>
-                            <span style="color: #ef4444;">Sab</span>
-                        </div>
-                        <div id="calendarGrid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px;">
-                            <!-- Generated by Javascript -->
+                <div class="card-body">
+                    <div class="calendar-wrapper">
+                        <!-- Calendar Grid -->
+                        <div>
+                            <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; text-align: center; margin-bottom: 8px;">
+                                <div class="cal-header-day" style="color: #ef4444;">Min</div>
+                                <div class="cal-header-day">Sen</div>
+                                <div class="cal-header-day">Sel</div>
+                                <div class="cal-header-day">Rab</div>
+                                <div class="cal-header-day">Kam</div>
+                                <div class="cal-header-day">Jum</div>
+                                <div class="cal-header-day" style="color: #ef4444;">Sab</div>
+                            </div>
+                            <div id="calendarGrid" class="cal-grid">
+                                <!-- Generated by Javascript -->
+                            </div>
+
+                            <div class="cal-legend">
+                                <div class="cal-legend-item">
+                                    <span style="width: 10px; height: 10px; border-radius: 3px; background: #2563eb;"></span> Hari Ini
+                                </div>
+                                <div class="cal-legend-item">
+                                    <span style="width: 10px; height: 10px; border-radius: 3px; background: #fee2e2; border: 1px solid #fca5a5;"></span> Tanggal Merah / Libur
+                                </div>
+                                <div class="cal-legend-item">
+                                    <span style="width: 10px; height: 10px; border-radius: 3px; background: #ffffff; border: 1px solid #e2e8f0;"></span> Hari Kerja Aktif
+                                </div>
+                            </div>
                         </div>
 
-                        <div style="display: flex; gap: 16px; margin-top: 16px; font-size: 11px; color: var(--text-muted); flex-wrap: wrap;">
-                            <span style="display: flex; align-items: center; gap: 6px;">
-                                <span style="width: 10px; height: 10px; border-radius: 3px; background: #2563eb;"></span> Hari Ini
-                            </span>
-                            <span style="display: flex; align-items: center; gap: 6px;">
-                                <span style="width: 10px; height: 10px; border-radius: 3px; background: #fee2e2; border: 1px solid #fca5a5;"></span> Tanggal Merah / Libur
-                            </span>
-                            <span style="display: flex; align-items: center; gap: 6px;">
-                                <span style="width: 10px; height: 10px; border-radius: 3px; background: #f8fafc; border: 1px solid #e2e8f0;"></span> Hari Kerja Aktif
-                            </span>
-                        </div>
-                    </div>
-
-                    <!-- Upcoming Holidays List -->
-                    <div style="background: var(--surface-alt); border: 1px solid var(--border-light); border-radius: var(--radius-sm); padding: 16px;">
-                        <h4 style="font-size: 13px; font-weight: 800; margin: 0 0 12px; color: var(--navy-dark); display: flex; align-items: center; justify-content: space-between;">
-                            <span>📅 Libur Nasional Mendatang</span>
-                            <span style="font-size: 10px; color: var(--primary); font-weight: 700;">Tahun {{ date('Y') }}</span>
-                        </h4>
-                        <div style="display: flex; flex-direction: column; gap: 8px;">
-                            @if(isset($upcomingHolidays) && $upcomingHolidays->isNotEmpty())
-                                @foreach($upcomingHolidays as $h)
-                                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 10px; background: #ffffff; border: 1px solid var(--border-light); border-radius: 8px;">
-                                        <div>
-                                            <strong style="font-size: 12px; color: var(--navy-dark); display: block;">{{ $h->name }}</strong>
-                                            <span style="font-size: 10px; color: var(--text-muted);">{{ \Carbon\Carbon::parse($h->date)->translatedFormat('l, d F Y') }}</span>
+                        <!-- Upcoming Holidays List -->
+                        <div style="background: var(--surface-alt); border: 1px solid var(--border-light); border-radius: var(--radius-md); padding: 18px;">
+                            <h4 style="font-size: 13px; font-weight: 800; margin: 0 0 14px; color: var(--navy-dark); display: flex; align-items: center; justify-content: space-between;">
+                                <span>📅 Libur Nasional Mendatang</span>
+                                <span style="font-size: 10px; color: var(--primary); font-weight: 700;">Tahun {{ date('Y') }}</span>
+                            </h4>
+                            <div style="display: flex; flex-direction: column; gap: 8px;">
+                                @if(isset($upcomingHolidays) && $upcomingHolidays->isNotEmpty())
+                                    @foreach($upcomingHolidays as $h)
+                                        <div class="upcoming-holiday-card">
+                                            <div>
+                                                <strong style="font-size: 12px; color: var(--navy-dark); display: block;">{{ $h->name }}</strong>
+                                                <span style="font-size: 10px; color: var(--text-muted);">{{ \Carbon\Carbon::parse($h->date)->translatedFormat('l, d F Y') }}</span>
+                                            </div>
+                                            <span style="font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 6px; background: #fee2e2; color: #dc2626; white-space: nowrap;">
+                                                {{ \Carbon\Carbon::parse($h->date)->isToday() ? 'Hari Ini' : \Carbon\Carbon::parse($h->date)->diffForHumans() }}
+                                            </span>
                                         </div>
-                                        <span style="font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: #fee2e2; color: #dc2626; white-space: nowrap;">
-                                            {{ \Carbon\Carbon::parse($h->date)->isToday() ? 'Hari Ini' : \Carbon\Carbon::parse($h->date)->diffForHumans() }}
-                                        </span>
-                                    </div>
-                                @endforeach
-                            @else
-                                <p style="font-size: 11px; color: var(--text-muted); margin: 0;">Tidak ada jadwal libur terdekat.</p>
-                            @endif
+                                    @endforeach
+                                @else
+                                    <p style="font-size: 11px; color: var(--text-muted); margin: 0;">Tidak ada jadwal libur terdekat.</p>
+                                @endif
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            {{-- WEBHOOK & BOT WA CHEATSHEET --}}
-            <div class="webhook-box" id="webhook">
-                <div class="webhook-header">
-                    <h4>
-                        <svg width="18" height="18" fill="none" stroke="#38bdf8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
-                        Integrasi Webhook Bot WhatsApp Fonnte
-                    </h4>
-                    <span style="font-size: 11px; background: rgba(56, 189, 248, 0.15); color: #38bdf8; padding: 4px 10px; border-radius: 999px; font-weight: 700;">
-                        Nomor Admin: {{ config('whatsapp.admin_number') ?? '082327867328' }}
-                    </span>
-                </div>
-
-                <div class="code-pill">
-                    <span>URL Webhook: <strong>{{ url('/webhook/fonnte') }}</strong></span>
-                    <button type="button" onclick="copyWebhookUrl('{{ url('/webhook/fonnte') }}')" class="btn btn-sm btn-primary-soft" style="background: rgba(255,255,255,0.15); color:#fff; border:none;">
-                        Salin URL
-                    </button>
-                </div>
-
-                <div class="command-grid">
-                    <div class="command-item">
-                        <code>masuk</code>
-                        <p>Kirim pengingat absen masuk pagi ke semua pegawai aktif.</p>
-                    </div>
-                    <div class="command-item">
-                        <code>pulang</code>
-                        <p>Kirim pengingat absen pulang sore ke semua pegawai aktif.</p>
-                    </div>
-                    <div class="command-item">
-                        <code>tambah [Nama] [Nomor]</code>
-                        <p>Daftarkan 1 atau banyak pegawai langsung via chat WA.</p>
-                    </div>
-                </div>
-            </div>
 
             {{-- TWO COLUMN WORK AREA --}}
             <div class="section-grid" id="karyawan">
@@ -1520,7 +1838,7 @@ textarea.form-control {
                         <div style="display:flex; gap:8px;">
                             <a href="{{ url('/admin/employees/export') }}" class="btn btn-sm btn-secondary">
                                 <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                                Export
+                                Export CSV
                             </a>
                         </div>
                     </div>
@@ -1538,18 +1856,22 @@ textarea.form-control {
                                 @php
                                     $status = $employeeStatuses[$emp->id] ?? null;
                                     $initials = strtoupper(substr($emp->name, 0, 1));
-                                    $colors = ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4'];
+                                    $colors = ['#2563eb', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#0284c7'];
                                     $bg = $colors[abs(crc32($emp->name)) % count($colors)];
                                 @endphp
                                 <div class="employee-row" data-name="{{ strtolower($emp->name) }}" data-phone="{{ $emp->phone_number }}">
                                     <div class="emp-main">
                                         <div class="emp-avatar" style="background: {{ $bg }}">{{ $initials }}</div>
                                         <div class="emp-info">
-                                            <h4><span style="color: var(--primary); font-weight: 800; font-size: 11px; background: var(--primary-light); padding: 2px 6px; border-radius: 4px; margin-right: 4px;">{{ $emp->panggilan ?? 'Yth.' }}</span> {{ $emp->name }}</h4>
+                                            <h4>
+                                                <span style="color: var(--primary); font-weight: 800; font-size: 11px; background: var(--primary-light); padding: 2px 6px; border-radius: 4px; margin-right: 4px;">{{ $emp->panggilan ?? 'Yth.' }}</span> 
+                                                {{ $emp->name }}
+                                            </h4>
                                             <p>
-                                                <span>{{ $emp->phone_number }}</span>
+                                                <span style="font-family: monospace;">{{ $emp->phone_number }}</span>
                                                 @if($status)
                                                     <span class="badge {{ $status['variant'] === 'success' ? 'badge-success' : ($status['variant'] === 'warning' ? 'badge-warning' : 'badge-danger') }}">
+                                                        <span class="badge-dot"></span>
                                                         {{ $status['label'] }}
                                                     </span>
                                                 @else
@@ -1558,7 +1880,11 @@ textarea.form-control {
                                             </p>
                                         </div>
                                     </div>
-                                    <div style="display:flex; gap:6px;">
+                                    <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+                                        <button type="button" onclick="openSendSingleModal({{ $emp->id }}, '{{ addslashes($emp->name) }}', '{{ $emp->phone_number }}', '{{ addslashes($emp->panggilan ?? 'Yth.') }}')" class="btn btn-sm btn-primary" style="padding: 5px 10px; font-size: 11px;" title="Kirim Notifikasi Langsung ke Pegawai ini">
+                                            <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+                                            Kirim
+                                        </button>
                                         <a href="https://wa.me/62{{ ltrim($emp->phone_number, '0') }}" target="_blank" class="btn btn-sm btn-primary-soft" title="Chat via WhatsApp">
                                             WA
                                         </a>
@@ -1686,7 +2012,7 @@ textarea.form-control {
                             <div class="form-group">
                                 <label class="form-label">Jam Pulang (Khusus Jumat)</label>
                                 <input type="time" name="check_out_time_friday" class="form-control" value="{{ $checkOutFriday ?? '16:30' }}" required>
-                                <small style="font-size:10px; color:var(--primary); font-weight:600; display:block; margin-top:3px;">Khusus hari Jumat</small>
+                                <small style="font-size:10px; color:var(--primary); font-weight:700; display:block; margin-top:3px;">Khusus hari Jumat</small>
                             </div>
                         </div>
 
@@ -1704,25 +2030,33 @@ textarea.form-control {
                         <div class="form-group">
                             <label class="form-label">Template Pengingat Absen Masuk</label>
                             <textarea name="template_pre_checkin" class="form-control" rows="4">{{ $templatePreCheckin }}</textarea>
-                            <small style="font-size:10px; color:var(--text-subtle); display:block; margin-top:4px;">
-                                Tag variabel yang tersedia: <code>{name}</code>, <code>{target_time}</code>, <code>{minutes_left}</code>, <code>{organization}</code>
-                            </small>
+                            <div style="margin-top: 6px;">
+                                <span class="var-pill">{name}</span>
+                                <span class="var-pill">{target_time}</span>
+                                <span class="var-pill">{minutes_left}</span>
+                                <span class="var-pill">{organization}</span>
+                            </div>
                         </div>
 
                         <div class="form-group">
                             <label class="form-label">Template Pengingat Absen Pulang</label>
                             <textarea name="template_pre_checkout" class="form-control" rows="4">{{ $templatePreCheckout }}</textarea>
-                            <small style="font-size:10px; color:var(--text-subtle); display:block; margin-top:4px;">
-                                Tag variabel yang tersedia: <code>{name}</code>, <code>{target_time}</code>, <code>{minutes_left}</code>, <code>{organization}</code>
-                            </small>
+                            <div style="margin-top: 6px;">
+                                <span class="var-pill">{name}</span>
+                                <span class="var-pill">{target_time}</span>
+                                <span class="var-pill">{minutes_left}</span>
+                                <span class="var-pill">{organization}</span>
+                            </div>
                         </div>
 
                         <div class="form-group">
                             <label class="form-label">Template Broadcast Cepat (Default)</label>
                             <textarea name="template_broadcast" class="form-control" rows="3">{{ $templateBroadcast ?? "Halo {name},\n\nPengumuman: mohon perhatian untuk seluruh pegawai.\n\n{kata}" }}</textarea>
-                            <small style="font-size:10px; color:var(--text-subtle); display:block; margin-top:4px;">
-                                Tag variabel yang tersedia: <code>{name}</code>, <code>{organization}</code>, <code>{kata}</code>
-                            </small>
+                            <div style="margin-top: 6px;">
+                                <span class="var-pill">{name}</span>
+                                <span class="var-pill">{organization}</span>
+                                <span class="var-pill">{kata}</span>
+                            </div>
                         </div>
 
                         <div class="form-group">
@@ -1802,13 +2136,17 @@ function renderCalendar() {
     const year = currentCalDate.getFullYear();
     const month = currentCalDate.getMonth();
 
-    document.getElementById('calendarMonthYear').textContent = monthNamesIndo[month] + ' ' + year;
+    const titleEl = document.getElementById('calendarMonthYear');
+    if (titleEl) {
+        titleEl.textContent = monthNamesIndo[month] + ' ' + year;
+    }
 
     const firstDay = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     const daysInPrevMonth = new Date(year, month, 0).getDate();
 
     const grid = document.getElementById('calendarGrid');
+    if (!grid) return;
     grid.innerHTML = '';
 
     const today = new Date();
@@ -1818,7 +2156,8 @@ function renderCalendar() {
     for (let i = firstDay - 1; i >= 0; i--) {
         const d = daysInPrevMonth - i;
         const cell = document.createElement('div');
-        cell.style.cssText = 'padding: 10px 6px; text-align: center; border-radius: 8px; font-size: 12px; color: #cbd5e1; background: #f8fafc; min-height: 48px; display: flex; flex-direction: column; align-items: center; justify-content: center;';
+        cell.className = 'cal-cell';
+        cell.style.cssText = 'color: #cbd5e1; background: #f8fafc; cursor: default; border: 1px solid #f1f5f9;';
         cell.innerHTML = `<span>${d}</span>`;
         grid.appendChild(cell);
     }
@@ -1832,38 +2171,35 @@ function renderCalendar() {
         const holiday = holidaysMap[dateStr];
 
         const cell = document.createElement('div');
+        cell.className = 'cal-cell';
+        
         let bg = '#ffffff';
         let border = '1px solid #e2e8f0';
         let textColor = isWeekend ? '#ef4444' : '#0f172a';
         let badgeHtml = '';
 
         if (isToday) {
-            bg = '#2563eb';
-            border = '1px solid #1d4ed8';
+            bg = 'linear-gradient(135deg, #2563eb, #1d4ed8)';
+            border = '1px solid #1e40af';
             textColor = '#ffffff';
-            badgeHtml = '<span style="font-size: 8px; font-weight: 800; text-transform: uppercase; background: rgba(255,255,255,0.25); padding: 1px 4px; border-radius: 4px; margin-top: 2px;">Hari Ini</span>';
+            badgeHtml = '<span style="font-size: 8px; font-weight: 800; text-transform: uppercase; background: rgba(255,255,255,0.25); padding: 2px 6px; border-radius: 4px; margin-top: 3px;">Hari Ini</span>';
         } else if (holiday) {
             bg = '#fef2f2';
             border = '1px solid #fca5a5';
             textColor = '#dc2626';
-            badgeHtml = `<span style="font-size: 8px; font-weight: 700; color: #dc2626; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; margin-top: 2px;" title="${holiday.name}">🏖️ ${holiday.name.substring(0, 8)}...</span>`;
+            badgeHtml = `<span style="font-size: 8px; font-weight: 700; color: #dc2626; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; margin-top: 3px;" title="${holiday.name}">🏖️ ${holiday.name.substring(0, 8)}...</span>`;
         }
 
-        cell.style.cssText = `padding: 8px 4px; text-align: center; border-radius: 8px; font-size: 12px; font-weight: 700; color: ${textColor}; background: ${bg}; border: ${border}; min-height: 48px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.15s ease;`;
+        cell.style.background = bg;
+        cell.style.border = border;
+        cell.style.color = textColor;
         cell.innerHTML = `<span>${day}</span>${badgeHtml}`;
 
-        cell.addEventListener('mouseenter', () => {
-            cell.style.transform = 'scale(1.05)';
-        });
-        cell.addEventListener('mouseleave', () => {
-            cell.style.transform = 'scale(1)';
-        });
-
         cell.addEventListener('click', () => {
-            let info = holiday ? `🏖️ <strong>${holiday.name}</strong><br><span style="color:#dc2626; font-size:12px;">Hari Libur Nasional (Scheduler Otomatis Libur)</span>` : (isWeekend ? '<span style="color:#d97706; font-size:12px;">Akhir Pekan (Weekend)</span>' : '<span style="color:#059669; font-size:12px;">💼 Hari Kerja Aktif (Scheduler Berjalan)</span>');
+            let info = holiday ? `🏖️ <strong>${holiday.name}</strong><br><span style="color:#dc2626; font-size:12px; margin-top:4px; display:block;">Hari Libur Nasional (Scheduler Otomatis Libur)</span>` : (isWeekend ? '<span style="color:#d97706; font-size:12px;">Akhir Pekan (Weekend)</span>' : '<span style="color:#059669; font-size:12px;">💼 Hari Kerja Aktif (Scheduler Berjalan)</span>');
             Swal.fire({
                 title: `${day} ${monthNamesIndo[month]} ${year}`,
-                html: `<div style="text-align: center; padding: 10px 0; font-size: 14px;">${info}</div>`,
+                html: `<div style="text-align: center; padding: 12px 0; font-size: 14px;">${info}</div>`,
                 icon: holiday ? 'info' : (isWeekend ? 'warning' : 'success'),
                 confirmButtonColor: '#2563eb'
             });
@@ -1898,21 +2234,24 @@ function switchEmpTab(tabId) {
 }
 
 /* Live Instant Employee Search */
-document.getElementById('searchEmployee').addEventListener('input', function(e) {
-    const query = e.target.value.toLowerCase().trim();
-    const rows = document.querySelectorAll('.employee-row');
+const searchInput = document.getElementById('searchEmployee');
+if (searchInput) {
+    searchInput.addEventListener('input', function(e) {
+        const query = e.target.value.toLowerCase().trim();
+        const rows = document.querySelectorAll('.employee-row');
 
-    rows.forEach(row => {
-        const name = row.getAttribute('data-name');
-        const phone = row.getAttribute('data-phone');
+        rows.forEach(row => {
+            const name = row.getAttribute('data-name') || '';
+            const phone = row.getAttribute('data-phone') || '';
 
-        if (name.includes(query) || phone.includes(query)) {
-            row.style.display = 'flex';
-        } else {
-            row.style.display = 'none';
-        }
+            if (name.includes(query) || phone.includes(query)) {
+                row.style.display = 'flex';
+            } else {
+                row.style.display = 'none';
+            }
+        });
     });
-});
+}
 
 /* File Selection Handler */
 function handleFileSelected(input) {
@@ -1921,19 +2260,6 @@ function handleFileSelected(input) {
     }
 }
 
-/* Copy Webhook URL to clipboard */
-function copyWebhookUrl(url) {
-    navigator.clipboard.writeText(url).then(() => {
-        Swal.fire({
-            icon: 'success',
-            title: 'URL Disalin!',
-            text: url,
-            timer: 2000,
-            showConfirmButton: false,
-            confirmButtonColor: '#2563eb'
-        });
-    });
-}
 
 /* Confirmation before manual broadcast */
 function confirmBroadcast(event, typeName) {
@@ -1953,6 +2279,7 @@ function confirmBroadcast(event, typeName) {
         if (result.isConfirmed) {
             Swal.fire({
                 title: 'Mengirim notifikasi...',
+                text: 'Mohon tunggu proses broadcast selesai...',
                 allowOutsideClick: false,
                 didOpen: () => { Swal.showLoading(); }
             });
@@ -1973,8 +2300,8 @@ function openQuickBroadcastModal() {
                 <p style="font-size: 12px; color: #64748b; margin: 0 0 10px;">
                     Tulis atau sesuaikan pesan pengumuman yang ingin dikirimkan ke seluruh pegawai aktif:
                 </p>
-                <textarea id="broadcastCustomMessage" class="form-control" rows="6" style="width: 100%; font-family: inherit; font-size: 13px; padding: 10px 12px; border-radius: 8px; border: 1px solid #cbd5e1; box-sizing: border-box; resize: vertical;">${defaultMsg}</textarea>
-                <div style="margin-top: 10px; font-size: 11px; color: #475569; background: #f1f5f9; padding: 8px 12px; border-radius: 6px; border: 1px solid #e2e8f0; line-height: 1.5;">
+                <textarea id="broadcastCustomMessage" class="form-control" rows="6" style="width: 100%; font-family: inherit; font-size: 13px; padding: 12px; border-radius: 10px; border: 1px solid #cbd5e1; box-sizing: border-box; resize: vertical;">${defaultMsg}</textarea>
+                <div style="margin-top: 12px; font-size: 11px; color: #475569; background: #f8fafc; padding: 10px 14px; border-radius: 8px; border: 1px solid #e2e8f0; line-height: 1.6;">
                     💡 <strong>Variabel Otomatis:</strong><br>
                     • <code>{name}</code> = Panggilan & Nama (misal: <em>Mas faiz i</em>)<br>
                     • <code>{kata}</code> = Kalimat penutup / salam<br>
@@ -2019,6 +2346,102 @@ function openQuickBroadcastModal() {
     });
 }
 
+/* Modal Kirim Pesan / Pengingat ke Satu Orang Pegawai */
+function openSendSingleModal(id, name, phone, panggilan) {
+    const sapaanLengkap = (panggilan ? panggilan + ' ' : '') + name;
+    
+    Swal.fire({
+        title: 'Kirim Notifikasi',
+        html: `
+            <div style="text-align: left; padding: 4px 0;">
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 14px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between;">
+                    <div>
+                        <strong style="font-size: 13px; color: #0f172a; display: block;">${sapaanLengkap}</strong>
+                        <span style="font-size: 11px; font-family: monospace; color: #64748b;">${phone}</span>
+                    </div>
+                    <span style="font-size: 10px; font-weight: 700; background: #eff6ff; color: #2563eb; padding: 3px 8px; border-radius: 6px;">Penerima Tunggal</span>
+                </div>
+
+                <p style="font-size: 12px; font-weight: 700; color: #0f172a; margin: 0 0 8px;">Pilih Jenis Pesan:</p>
+                
+                <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px;">
+                    <label style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; cursor: pointer; background: #ffffff;">
+                        <input type="radio" name="send_single_type" value="pre_checkin" checked onchange="toggleCustomSingleBox(this.value)">
+                        <div>
+                            <strong style="font-size: 12px; color: #0f172a; display: block;">🌅 Pengingat Absen Masuk</strong>
+                            <span style="font-size: 11px; color: #64748b;">Format otomatis: jadwal masuk, sisa menit, dan pantun pagi</span>
+                        </div>
+                    </label>
+
+                    <label style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; cursor: pointer; background: #ffffff;">
+                        <input type="radio" name="send_single_type" value="pre_checkout" onchange="toggleCustomSingleBox(this.value)">
+                        <div>
+                            <strong style="font-size: 12px; color: #0f172a; display: block;">🌇 Pengingat Absen Pulang</strong>
+                            <span style="font-size: 11px; color: #64748b;">Format otomatis: jadwal pulang dan ucapan terima kasih</span>
+                        </div>
+                    </label>
+
+                    <label style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; cursor: pointer; background: #ffffff;">
+                        <input type="radio" name="send_single_type" value="custom" onchange="toggleCustomSingleBox(this.value)">
+                        <div>
+                            <strong style="font-size: 12px; color: #0f172a; display: block;">💬 Pesan Kustom / Khusus</strong>
+                            <span style="font-size: 11px; color: #64748b;">Tulis pesan langsung untuk pegawai ini</span>
+                        </div>
+                    </label>
+                </div>
+
+                <div id="customSingleMessageBox" style="display: none;">
+                    <label style="font-size: 12px; font-weight: 700; color: #0f172a; display: block; margin-bottom: 4px;">Tulis Isi Pesan:</label>
+                    <textarea id="singleCustomText" class="form-control" rows="4" style="width: 100%; font-family: inherit; font-size: 12px; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; box-sizing: border-box; resize: vertical;" placeholder="Halo {name}, ...">Halo {name},&#10;&#10;Mohon perhatian terkait informasi berikut.&#10;&#10;{kata}</textarea>
+                </div>
+            </div>
+        `,
+        width: '540px',
+        showCancelButton: true,
+        confirmButtonColor: '#2563eb',
+        cancelButtonColor: '#64748b',
+        confirmButtonText: 'Kirim Sekarang',
+        cancelButtonText: 'Batal',
+        preConfirm: () => {
+            const selectedType = document.querySelector('input[name="send_single_type"]:checked')?.value || 'pre_checkin';
+            const customText = document.getElementById('singleCustomText')?.value || '';
+            if (selectedType === 'custom' && !customText.trim()) {
+                Swal.showValidationMessage('Isi pesan kustom tidak boleh kosong!');
+                return false;
+            }
+            return { type: selectedType, message: customText };
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            Swal.fire({
+                title: 'Mengirim pesan...',
+                text: 'Memasukkan notifikasi ke antrean outbox...',
+                allowOutsideClick: false,
+                didOpen: () => { Swal.showLoading(); }
+            });
+
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/admin/employees/${id}/send`;
+            form.innerHTML = `
+                @csrf
+                <input type="hidden" name="type" value="${result.value.type}">
+                <textarea name="message" style="display:none;"></textarea>
+            `;
+            form.querySelector('textarea').value = result.value.message;
+            document.body.appendChild(form);
+            form.submit();
+        }
+    });
+}
+
+function toggleCustomSingleBox(type) {
+    const box = document.getElementById('customSingleMessageBox');
+    if (box) {
+        box.style.display = type === 'custom' ? 'block' : 'none';
+    }
+}
+
 /* Edit Karyawan Modal */
 function editEmployee(id, name, phone, panggilan) {
     const panggilanOptions = ['Yth.', 'Bapak', 'Ibu', 'Pak', 'Bu', 'Mas', 'Mbak', 'Sdr.', 'Sdri.'];
@@ -2031,13 +2454,13 @@ function editEmployee(id, name, phone, panggilan) {
         html: `
             <div style="text-align: left; padding: 10px 0;">
                 <label style="font-size: 12px; font-weight: 700; color: #0f172a; display:block; margin-bottom:4px;">Nama Lengkap</label>
-                <input type="text" id="editName" value="${name}" class="swal2-input" style="width: 100%; margin: 0 0 14px; font-size:13px; height:42px;">
+                <input type="text" id="editName" value="${name}" class="swal2-input" style="width: 100%; margin: 0 0 14px; font-size:13px; height:42px; border-radius:8px;">
                 <label style="font-size: 12px; font-weight: 700; color: #0f172a; display:block; margin-bottom:4px;">Panggilan / Sapaan</label>
-                <select id="editPanggilan" class="swal2-input" style="width: 100%; margin: 0 0 14px; font-size:13px; height:42px;">
+                <select id="editPanggilan" class="swal2-input" style="width: 100%; margin: 0 0 14px; font-size:13px; height:42px; border-radius:8px;">
                     ${optionsHtml}
                 </select>
                 <label style="font-size: 12px; font-weight: 700; color: #0f172a; display:block; margin-bottom:4px;">Nomor WhatsApp</label>
-                <input type="text" id="editPhone" value="${phone}" class="swal2-input" style="width: 100%; margin: 0; font-size:13px; height:42px;">
+                <input type="text" id="editPhone" value="${phone}" class="swal2-input" style="width: 100%; margin: 0; font-size:13px; height:42px; border-radius:8px;">
             </div>
         `,
         showCancelButton: true,
@@ -2090,28 +2513,31 @@ function deleteEmployee(id, name) {
 }
 
 /* Set Default Times Button */
-document.getElementById('setDefaultsBtn').addEventListener('click', function() {
-    Swal.fire({
-        title: 'Reset Waktu Default?',
-        text: 'Waktu masuk diatur ke 07:30 WIB, pulang Senin-Kamis ke 16:00 WIB, dan pulang Jumat ke 16:30 WIB.',
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonColor: '#2563eb',
-        cancelButtonColor: '#64748b',
-        confirmButtonText: 'Ya, Terapkan'
-    }).then((res) => {
-        if (res.isConfirmed) {
-            fetch('{{ route('admin.set-default-times') }}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                },
-                body: JSON.stringify({})
-            }).then(() => location.reload()).catch(e => alert('Gagal: ' + e.message));
-        }
+const setDefaultsBtn = document.getElementById('setDefaultsBtn');
+if (setDefaultsBtn) {
+    setDefaultsBtn.addEventListener('click', function() {
+        Swal.fire({
+            title: 'Reset Waktu Default?',
+            text: 'Waktu masuk diatur ke 07:30 WIB, pulang Senin-Kamis ke 16:00 WIB, dan pulang Jumat ke 16:30 WIB.',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#2563eb',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: 'Ya, Terapkan'
+        }).then((res) => {
+            if (res.isConfirmed) {
+                fetch('{{ route('admin.set-default-times') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({})
+                }).then(() => location.reload()).catch(e => alert('Gagal: ' + e.message));
+            }
+        });
     });
-});
+}
 </script>
 
 @endsection

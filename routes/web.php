@@ -27,6 +27,7 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->controller(AdminCont
         Route::get('/export', 'exportEmployees')->name('export');
         Route::post('/import', 'importEmployees')->name('import');
         Route::post('/', 'storeEmployee')->name('store');
+        Route::post('/{id}/send', 'sendSingleEmployee')->name('send-single');
         Route::put('/{id}', 'updateEmployee')->name('update');
         Route::delete('/{id}', 'deleteEmployee')->name('delete');
     });

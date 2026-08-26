@@ -108,11 +108,11 @@ class AdminController extends Controller
 
         $waDriver = config('whatsapp.driver', 'desktop');
 
-        // ── Recent Outbox Messages & Holiday Info ──
+        // ── Recent Outbox Messages (Paginate 5 items per page) ──
         $outboxMessages = WaOutbox::with('employee')
             ->orderBy('id', 'desc')
-            ->limit(25)
-            ->get();
+            ->paginate(5, ['*'], 'outbox_page')
+            ->fragment('outbox-section');
 
         $holidayService = app(\App\Services\HolidayService::class);
         $todayHoliday = $holidayService->getHolidayInfo(now());
@@ -545,6 +545,103 @@ class AdminController extends Controller
         }
 
         return redirect()->back()->with('status', "Pengingat pulang dimasukkan ke antrean: {$queued}/{$employees->count()} karyawan. Sisa menit: {$minutesLeftGlobal}");
+    }
+
+    public function sendSingleEmployee(Request $request, $id)
+    {
+        $emp = Employee::findOrFail($id);
+        $type = $request->input('type', 'custom');
+        $customMessage = $request->input('message');
+        $wa = app(WhatsAppService::class);
+
+        $panggilan = $emp->panggilan ?? 'Yth.';
+        $namaLengkap = $panggilan . ' ' . $emp->name;
+        $kata = Setting::get('closing_word', 'Semangat kerja!');
+        $org = Setting::get('organization_name', 'BPS Kabupaten Karanganyar');
+
+        if ($type === 'pre_checkin') {
+            $template = Setting::get('template_pre_checkin', "{name},\n\nIni adalah pengingat absen masuk.\nJam masuk kerja Anda adalah pukul {target_time} WIB. Tersisa waktu kurang lebih {minutes_left} menit.\n\nMohon segera lakukan absen masuk. Jangan lupa absen ya!\n\nTerima kasih atas perhatian Anda.\n\nHormat kami,\n{organization}");
+            $checkIn = Setting::get('check_in_time', '07:30');
+            $target = Carbon::createFromFormat('H:i', $checkIn);
+            $now = Carbon::now();
+            $targetToday = $target->setDate($now->year, $now->month, $now->day);
+            $minutesLeft = (int) max(0, $now->diffInMinutes($targetToday));
+
+            $text = str_replace(
+                ['{name}', '{kata}', '{minutes_left}', '{target_time}', '{organization}'],
+                [$namaLengkap, $kata, $minutesLeft, $targetToday->format('H:i'), $org],
+                $template
+            );
+
+            if (strpos($template, '{minutes_left}') === false) {
+                $text = trim($text) . "\n\nTersisa waktu kurang lebih {$minutesLeft} menit menuju jam masuk.";
+            }
+
+            $pantun = DB::table('pantuns')->where('type', 'masuk')->inRandomOrder()->value('text');
+            if ($pantun) {
+                $pantun = str_replace('\\n', PHP_EOL, $pantun);
+                if (str_contains($text, '{pantun}')) {
+                    $text = str_replace('{pantun}', $pantun, $text);
+                } else {
+                    $lines = preg_split("/\r\n|\n|\r/", $text);
+                    if (isset($lines[0]) && trim($lines[0]) !== '') {
+                        array_splice($lines, 1, 0, ['', $pantun]);
+                        $text = implode(PHP_EOL, $lines);
+                    } else {
+                        $text = trim($text) . PHP_EOL . PHP_EOL . $pantun;
+                    }
+                }
+            }
+        } elseif ($type === 'pre_checkout') {
+            $template = Setting::get('template_pre_checkout', "{name},\n\nIni adalah pengingat absen pulang.\nJam pulang kerja Anda adalah pukul {target_time} WIB. Tersisa waktu kurang lebih {minutes_left} menit.\n\nMohon jangan lupa melakukan absen pulang sebelum meninggalkan kantor.\n\nTerima kasih atas dedikasi dan kerja keras Anda hari ini.\n\nHormat kami,\n{organization}");
+            $isFriday = now()->isFriday();
+            $checkOut = $isFriday ? Setting::get('check_out_time_friday', '16:30') : Setting::get('check_out_time', '16:00');
+            $target = Carbon::createFromFormat('H:i', $checkOut);
+            $now = Carbon::now();
+            $targetToday = $target->setDate($now->year, $now->month, $now->day);
+            $minutesLeft = (int) max(0, $now->diffInMinutes($targetToday));
+
+            $text = str_replace(
+                ['{name}', '{kata}', '{minutes_left}', '{target_time}', '{organization}'],
+                [$namaLengkap, $kata, $minutesLeft, $targetToday->format('H:i'), $org],
+                $template
+            );
+
+            if (strpos($template, '{minutes_left}') === false) {
+                $text = trim($text) . "\n\nTersisa waktu kurang lebih {$minutesLeft} menit menuju jam penyelesaian tugas hari ini.";
+            }
+
+            $pantun = DB::table('pantuns')->where('type', 'pulang')->inRandomOrder()->value('text');
+            if ($pantun) {
+                $pantun = str_replace('\\n', PHP_EOL, $pantun);
+                if (str_contains($text, '{pantun}')) {
+                    $text = str_replace('{pantun}', $pantun, $text);
+                } else {
+                    $lines = preg_split("/\r\n|\n|\r/", $text);
+                    if (isset($lines[0]) && trim($lines[0]) !== '') {
+                        array_splice($lines, 1, 0, ['', $pantun]);
+                        $text = implode(PHP_EOL, $lines);
+                    } else {
+                        $text = trim($text) . PHP_EOL . PHP_EOL . $pantun;
+                    }
+                }
+            }
+        } else {
+            $msgRaw = $customMessage ?: Setting::get('template_broadcast', "Halo {name},\n\nPengumuman: mohon perhatian untuk seluruh pegawai.\n\n{kata}");
+            $text = str_replace(
+                ['{name}', '{kata}', '{organization}'],
+                [$namaLengkap, $kata, $org],
+                $msgRaw
+            );
+        }
+
+        try {
+            $wa->send($emp->id, $emp->phone_number, $text, $type);
+            return redirect()->back()->with('status', "Pesan untuk {$namaLengkap} ({$emp->phone_number}) berhasil dimasukkan ke antrean Outbox!");
+        } catch (\Exception $e) {
+            \Log::error('sendSingleEmployee failed', ['employee_id' => $emp->id, 'error' => $e->getMessage()]);
+            return redirect()->back()->with('error', "Gagal mengirim pesan: " . $e->getMessage());
+        }
     }
 
     public function setDefaultTimes(Request $request)
