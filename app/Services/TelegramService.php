@@ -81,6 +81,23 @@ class TelegramService
         }
     }
 
+    public function deleteWebhook(bool $dropPendingUpdates = false): bool
+    {
+        if (!$this->isConfigured()) return false;
+
+        try {
+            $response = Http::withoutVerifying()
+                ->timeout(10)
+                ->post("{$this->baseUrl}/deleteWebhook", [
+                    'drop_pending_updates' => $dropPendingUpdates,
+                ]);
+            return $response->successful();
+        } catch (\Exception $e) {
+            Log::error('TelegramService: Gagal delete webhook', ['error' => $e->getMessage()]);
+            return false;
+        }
+    }
+
     public function getUpdates(int $offset = 0, int $timeout = 20): array
     {
         if (!$this->isConfigured()) return [];

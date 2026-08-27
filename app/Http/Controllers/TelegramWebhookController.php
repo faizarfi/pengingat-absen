@@ -33,21 +33,24 @@ class TelegramWebhookController extends Controller
 
         $chatId = (string) $message['chat']['id'];
         $text = trim($message['text']);
-        $adminChatId = (string) config('telegram.admin_chat_id', '');
+        $adminChatIdRaw = (string) config('telegram.admin_chat_id', '');
+        $adminChatIds = array_filter(array_map('trim', explode(',', $adminChatIdRaw)));
 
-        // Security check: jika admin_chat_id diset, hanya izinkan chat dari admin
-        if (!empty($adminChatId) && $chatId !== $adminChatId) {
+        // Security check: jika admin_chat_id diset, hanya izinkan chat dari admin terdaftar
+        if (!empty($adminChatIds) && !in_array($chatId, $adminChatIds, true)) {
             $telegram->sendMessage(
                 $chatId,
-                "⛔ <b>Akses Ditolak!</b>\nAnda tidak memiliki izin untuk mengontrol sistem Pengingat Absen.\nID Telegram Anda: <code>{$chatId}</code>"
+                "⛔ <b>Akses Ditolak!</b>\nAnda tidak memiliki izin untuk mengontrol sistem Pengingat Absen.\nID Telegram Anda: <code>{$chatId}</code>\n\n<i>Silakan masukkan ID ini ke TELEGRAM_ADMIN_CHAT_ID di .env agar mendapatkan akses.</i>"
             );
             return;
         }
 
-        $cmd = strtolower($text);
+        $cmd = mb_strtolower($text, 'UTF-8');
+        // Hapus mention bot jika ada (contoh: /masuk@bot_name -> /masuk)
+        $cmd = preg_replace('/@\w+/', '', $cmd);
 
         // 1. Perintah Start / Bantuan / Menu
-        if ($cmd === '/start' || $cmd === '/help' || str_contains($cmd, 'bantuan')) {
+        if (in_array($cmd, ['/start', 'start', '/help', 'help', '/menu', 'menu']) || str_contains($cmd, 'bantuan') || str_contains($cmd, 'menu')) {
             $menu = "👋 <b>Halo Admin! Pusat Kontrol Pengingat Absen BPS</b>\n\n"
                   . "Silakan klik tombol menu di bawah atau ketik perintah:\n\n"
                   . "🌅 <b>/masuk</b> — Kirim pengingat absen masuk pagi\n"
@@ -61,26 +64,26 @@ class TelegramWebhookController extends Controller
             return;
         }
 
-        // 2. Perintah Kirim Masuk
-        if ($cmd === '/masuk' || str_contains($cmd, 'kirim masuk')) {
+        // 2. Perintah Kirim Masuk (bisa: /masuk, masuk, kirim masuk, absen masuk)
+        if (in_array($cmd, ['/masuk', 'masuk', 'pagi', 'kirim pagi']) || str_contains($cmd, 'masuk')) {
             $this->triggerPreCheckin($chatId, $telegram, $wa);
             return;
         }
 
-        // 3. Perintah Kirim Pulang
-        if ($cmd === '/pulang' || str_contains($cmd, 'kirim pulang')) {
+        // 3. Perintah Kirim Pulang (bisa: /pulang, pulang, kirim pulang, absen pulang)
+        if (in_array($cmd, ['/pulang', 'pulang', 'sore', 'kirim sore']) || str_contains($cmd, 'pulang')) {
             $this->triggerPreCheckout($chatId, $telegram, $wa);
             return;
         }
 
         // 4. Perintah Status Sistem
-        if ($cmd === '/status' || str_contains($cmd, 'status')) {
+        if (in_array($cmd, ['/status', 'status', 'cek', 'info']) || str_contains($cmd, 'status')) {
             $this->sendStatusReport($chatId, $telegram);
             return;
         }
 
         // 5. Perintah Cek Hari Libur
-        if ($cmd === '/libur' || str_contains($cmd, 'libur')) {
+        if (in_array($cmd, ['/libur', 'libur', 'kalender']) || str_contains($cmd, 'libur')) {
             $this->sendHolidayReport($chatId, $telegram, $holiday);
             return;
         }

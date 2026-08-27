@@ -1,6 +1,6 @@
 """
 WA Desktop Agent — Lightweight Python Runner (Anti-Ban & Anti-Spam Protected)
-Menggunakan random jitter delay (5-110s), batch cooldown, dan simulasi pengetikan manusia.
+Menggunakan simulasi keystroke hardware Windows (ctypes), jeda acak manusiawi, dan batch cooldown.
 """
 
 import time
@@ -10,7 +10,11 @@ import urllib.request
 import json
 import os
 import sys
-import subprocess
+import ctypes
+
+# Windows User32 API untuk keystroke hardware langsung (tanpa subprocess focus-stealing)
+user32 = ctypes.windll.user32
+VK_RETURN = 0x0D
 
 # ==============================================================================
 # KONFIGURASI KEAMANAN & ANTI-BAN
@@ -21,15 +25,15 @@ AGENT_NAME = "default"
 
 POLL_INTERVAL = 5        # Interval polling database/API saat tidak ada antrean (detik)
 
-# Jeda Acak Antar Pesan (6 sampai 15 detik)
-DELAY_MIN = int(os.getenv("WA_DELAY_MIN", 6))     # Detik minimal (6s)
-DELAY_MAX = int(os.getenv("WA_DELAY_MAX", 15))    # Detik maksimal (15s)
+# Jeda Acak Antar Pesan (10 sampai 22 detik agar aman dan natural)
+DELAY_MIN = int(os.getenv("WA_DELAY_MIN", 10))    # Detik minimal (10s)
+DELAY_MAX = int(os.getenv("WA_DELAY_MAX", 22))    # Detik maksimal (22s)
 
 # Istirahat Berkala (Batch Cooldown)
-# Setiap X pesan terkirim, ambil istirahat ekstra agar mirip perilaku manusia
-BATCH_SIZE = 10          # Jumlah pesan sebelum istirahat batch
-COOLDOWN_MIN = 60        # Minimal istirahat batch (detik)
-COOLDOWN_MAX = 120       # Maksimal istirahat batch (detik)
+# Setiap 5 pesan terkirim, ambil istirahat ekstra agar mirip perilaku manusia
+BATCH_SIZE = 5           # Jumlah pesan sebelum istirahat batch
+COOLDOWN_MIN = 45        # Minimal istirahat batch (detik)
+COOLDOWN_MAX = 90        # Maksimal istirahat batch (detik)
 
 HEADERS = {
     "Authorization": f"Bearer {AGENT_TOKEN}",
@@ -73,7 +77,7 @@ def send_heartbeat():
         "agent_name": AGENT_NAME,
         "whatsapp_ready": True,
         "metadata": {
-            "runner": "python-anti-ban",
+            "runner": "python-anti-ban-ctypes",
             "delay_range": f"{DELAY_MIN}-{DELAY_MAX}s"
         }
     }
@@ -101,21 +105,23 @@ def send_via_whatsapp(phone: str, message: str) -> bool:
     print(f"[{time.strftime('%H:%M:%S')}] 💬 Membuka WhatsApp chat: {clean_phone}")
     os.system(f'start "" "{uri}"')
 
-    # Jeda acak (4.0 - 6.0 detik) agar WhatsApp membuka chat dan mengisi teks
-    focus_delay = round(random.uniform(4.0, 6.0), 2)
+    # Jeda acak (4.5 - 6.5 detik) agar WhatsApp membuka chat dan memuat teks
+    focus_delay = round(random.uniform(4.5, 6.5), 2)
     time.sleep(focus_delay)
 
-    # Gunakan WScript.Shell bawaan Windows untuk fokus ke jendela WhatsApp dan menekan ENTER
+    # Kirim tombol ENTER hardware via Windows user32 API (Langsung ke WhatsApp tanpa mencuri fokus)
     try:
-        ps_script = (
-            '$wshell = New-Object -ComObject wscript.shell; '
-            '$wshell.AppActivate("WhatsApp"); '
-            'Start-Sleep -Milliseconds 600; '
-            '$wshell.SendKeys("{ENTER}"); '
-            'Start-Sleep -Milliseconds 300; '
-            '$wshell.SendKeys("{ENTER}");'
-        )
-        subprocess.run(["powershell", "-NoProfile", "-Command", ps_script], check=True)
+        # Tekan ENTER pertama
+        user32.keybd_event(VK_RETURN, 0, 0, 0)
+        time.sleep(0.08)
+        user32.keybd_event(VK_RETURN, 0, 2, 0)
+
+        # Jeda singkat dan tekan ENTER kedua untuk memastikan terkirim
+        time.sleep(0.4)
+        user32.keybd_event(VK_RETURN, 0, 0, 0)
+        time.sleep(0.08)
+        user32.keybd_event(VK_RETURN, 0, 2, 0)
+
         print(f"[{time.strftime('%H:%M:%S')}] ✅ Pesan terkirim ke {clean_phone}")
         return True
     except Exception as e:
@@ -124,7 +130,7 @@ def send_via_whatsapp(phone: str, message: str) -> bool:
 
 def main():
     print("==================================================")
-    print("🛡️  WA Desktop Agent (Mode Anti-Ban & Anti-Spam) Aktif")
+    print("🛡️  WA Desktop Agent (Ctypes Direct Keystroke) Aktif")
     print(f"🌐 Backend API   : {API_BASE_URL}")
     print(f"⏳ Jeda Acak      : {DELAY_MIN} s.d. {DELAY_MAX} detik per pesan")
     print(f"☕ Cooldown Batch : Tiap {BATCH_SIZE} pesan istirahat {COOLDOWN_MIN}-{COOLDOWN_MAX} detik")
@@ -164,7 +170,7 @@ def main():
                         time.sleep(cooldown)
                         consecutive_sent_count = 0
                     else:
-                        # Jeda Acak (5 s.d. 110 detik) sebelum pesan berikutnya
+                        # Jeda Acak (10 s.d. 22 detik) sebelum pesan berikutnya
                         random_delay = random.randint(DELAY_MIN, DELAY_MAX)
                         print(f"[{time.strftime('%H:%M:%S')}] ⏳ Jeda acak {random_delay} detik sebelum pesan berikutnya...")
                         time.sleep(random_delay)

@@ -29,6 +29,9 @@ class TelegramPollCommand extends Command
         $this->info('Siap menerima perintah dari HP Admin...');
         $this->info('==================================================');
 
+        // Pastikan webhook lama dilepas agar getUpdates (polling) aktif menerima pesan
+        $telegram->deleteWebhook(false);
+
         $offset = 0;
 
         while (true) {
@@ -41,9 +44,10 @@ class TelegramPollCommand extends Command
 
                     $msg = $update['message']['text'] ?? '';
                     $from = $update['message']['from']['first_name'] ?? 'User';
+                    $chatId = $update['message']['chat']['id'] ?? '';
 
                     if (!empty($msg)) {
-                        $this->line("[<info>" . date('H:i:s') . "</info>] Pesan dari {$from}: <comment>{$msg}</comment>");
+                        $this->line("[<info>" . date('H:i:s') . "</info>] Pesan dari {$from} (ID: {$chatId}): <comment>{$msg}</comment>");
                         $controller->processUpdate($update, $telegram, $wa, $holiday);
                     }
                 }

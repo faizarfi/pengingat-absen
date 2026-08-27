@@ -1,4 +1,5 @@
 @echo off
+cd /d "%~dp0"
 title Telegram Bot Admin Listener
 echo ======================================================
 echo    BOT TELEGRAM ADMIN - PENGINGAT ABSENSI BPS
