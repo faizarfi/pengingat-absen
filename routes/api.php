@@ -29,6 +29,9 @@ Route::prefix('agent')
         // Heartbeat & status
         Route::post('/heartbeat', 'heartbeat');
         Route::get('/status', 'status');
+
+        // Notifikasi agent (disconnect/reconnect → Telegram admin)
+        Route::post('/notify', 'notify');
     });
 
 /*

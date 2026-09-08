@@ -161,4 +161,26 @@ class AgentApiController extends Controller
             'stats' => $stats,
         ]);
     }
+
+    /**
+     * POST /api/agent/notify
+     * Agent mengirimkan notifikasi penting (disconnect/reconnect/error) ke Telegram admin.
+     */
+    public function notify(Request $request, \App\Services\TelegramService $telegram): JsonResponse
+    {
+        $message = $request->input('message', '');
+
+        if (empty($message)) {
+            return response()->json(['success' => false, 'error' => 'Message is required'], 422);
+        }
+
+        Log::info('Agent notification', ['message' => $message]);
+
+        $sent = $telegram->sendAdmin($message);
+
+        return response()->json([
+            'success'  => $sent,
+            'notified' => $sent ? 'telegram' : 'none',
+        ]);
+    }
 }

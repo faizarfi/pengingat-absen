@@ -142,35 +142,43 @@
 
     {{-- SweetAlert: Flash Status Message --}}
     @if(session('status'))
+        <div id="flash-status-data" data-message="{{ session('status') }}" style="display:none;"></div>
         <script>
             document.addEventListener('DOMContentLoaded', function () {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Berhasil',
-                    text: @json(session('status')),
-                    confirmButtonColor: '#2563eb',
-                    timer: 3500,
-                    timerProgressBar: true,
-                    showConfirmButton: false,
-                    customClass: {
-                        popup: 'swal2-border-success'
-                    }
-                });
+                var el = document.getElementById('flash-status-data');
+                if (el && el.getAttribute('data-message')) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil',
+                        text: el.getAttribute('data-message'),
+                        confirmButtonColor: '#2563eb',
+                        timer: 3500,
+                        timerProgressBar: true,
+                        showConfirmButton: false,
+                        customClass: {
+                            popup: 'swal2-border-success'
+                        }
+                    });
+                }
             });
         </script>
     @endif
 
     {{-- SweetAlert: Flash Error Message --}}
     @if(session('error'))
+        <div id="flash-error-data" data-message="{{ session('error') }}" style="display:none;"></div>
         <script>
             document.addEventListener('DOMContentLoaded', function () {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Terjadi Kesalahan',
-                    text: @json(session('error')),
-                    confirmButtonColor: '#ef4444',
-                    confirmButtonText: 'Tutup'
-                });
+                var el = document.getElementById('flash-error-data');
+                if (el && el.getAttribute('data-message')) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Terjadi Kesalahan',
+                        text: el.getAttribute('data-message'),
+                        confirmButtonColor: '#ef4444',
+                        confirmButtonText: 'Tutup'
+                    });
+                }
             });
         </script>
     @endif

@@ -1,12 +1,12 @@
 @echo off
-cd /d "%~dp0"
-title Telegram Bot Admin Listener
+cd /d "%~dp0.."
+title Bot Telegram Admin Listener
 echo ======================================================
 echo    BOT TELEGRAM ADMIN - PENGINGAT ABSENSI BPS
 echo ======================================================
 echo.
-echo [INFO] Menghubungkan ke Telegram Bot (@bps_reminder_bot)...
-echo [INFO] Tekan Ctrl+C untuk menghentikan listener.
+echo [INFO] Menjalankan listener Telegram (Polling)...
+echo [INFO] Bot siap menerima perintah dari HP Admin.
 echo.
 php artisan telegram:poll
 pause

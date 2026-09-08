@@ -24,3 +24,8 @@ Homestead.yaml
 Thumbs.db
 cloudflared.exe
 *.exe
+
+# WA Desktop Agent (whatsapp-web.js)
+/wa-desktop-agent/.wwebjs_auth
+/wa-desktop-agent/.wwebjs_cache
+/wa-desktop-agent/node_modules
