@@ -442,8 +442,20 @@ body {
     margin: 0 0 10px;
     background: linear-gradient(180deg, #ffffff 0%, #e2e8f0 100%);
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
 }
+
+.status-online { color: var(--success); }
+.status-offline { color: var(--danger); }
+
+.emp-avatar.avatar-bg-0 { background: #2563eb; }
+.emp-avatar.avatar-bg-1 { background: #10b981; }
+.emp-avatar.avatar-bg-2 { background: #f59e0b; }
+.emp-avatar.avatar-bg-3 { background: #8b5cf6; }
+.emp-avatar.avatar-bg-4 { background: #ec4899; }
+.emp-avatar.avatar-bg-5 { background: #06b6d4; }
+.emp-avatar.avatar-bg-6 { background: #0284c7; }
 
 .hero-desc {
     font-size: 13px;
@@ -1111,6 +1123,133 @@ body {
     transform: translateX(2px);
 }
 
+.employee-row.is-selected {
+    background: #eff6ff !important;
+    border-color: #93c5fd !important;
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.12) !important;
+}
+
+.emp-checkbox-wrap {
+    display: flex;
+    align-items: center;
+    margin-right: 2px;
+}
+
+.emp-checkbox {
+    width: 18px;
+    height: 18px;
+    border-radius: 5px;
+    accent-color: var(--primary);
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+/* Floating Bulk Action Dock */
+.bulk-action-bar {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(140%);
+    z-index: 9999;
+    background: rgba(15, 23, 42, 0.95);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 999px;
+    padding: 8px 18px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 20px 45px -8px rgba(15, 23, 42, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.25s ease;
+    opacity: 0;
+    pointer-events: none;
+    max-width: 95vw;
+}
+
+.bulk-action-bar.is-active {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.bulk-pill {
+    background: rgba(37, 99, 235, 0.35);
+    border: 1px solid rgba(96, 165, 250, 0.4);
+    color: #93c5fd;
+    padding: 5px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+}
+
+.bulk-pill-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #60a5fa;
+    box-shadow: 0 0 8px #60a5fa;
+}
+
+.btn-bulk {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.btn-bulk-masuk {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: #ffffff;
+}
+
+.btn-bulk-masuk:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
+}
+
+.btn-bulk-pulang {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: #ffffff;
+}
+
+.btn-bulk-pulang:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.35);
+}
+
+.btn-bulk-kustom {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    color: #ffffff;
+}
+
+.btn-bulk-kustom:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+}
+
+.btn-bulk-cancel {
+    background: rgba(255, 255, 255, 0.12);
+    color: #cbd5e1;
+}
+
+.btn-bulk-cancel:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+}
+
 .emp-main {
     display: flex;
     align-items: center;
@@ -1501,7 +1640,7 @@ body {
                     <div class="stat-info">
                         <span>Terkirim Hari Ini</span>
                         <h3>{{ ($outboxStats['sent_today'] ?? 0) + ($totalSentToday ?? 0) }} <small style="font-size:13px; font-weight:700; color:var(--text-muted)">Pesan</small></h3>
-                        <small>Gagal: <strong style="color:var(--danger)">{{ $outboxStats['failed'] ?? 0 }}</strong> | Agent: <strong style="color:{{ ($agentStatus ?? '') === 'online' ? 'var(--success)' : 'var(--danger)' }}">{{ strtoupper($agentStatus ?? 'OFFLINE') }}</strong></small>
+                        <small>Gagal: <strong style="color:var(--danger)">{{ $outboxStats['failed'] ?? 0 }}</strong> | Agent: <strong class="{{ ($agentStatus ?? '') === 'online' ? 'status-online' : 'status-offline' }}">{{ strtoupper($agentStatus ?? 'OFFLINE') }}</strong></small>
                     </div>
                     <div class="stat-icon-wrap icon-green">
                         <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -1603,7 +1742,21 @@ body {
                         <p>Menampilkan riwayat dan status proses pengiriman pesan terbaru (5 pesan per halaman).</p>
                     </div>
 
-                    <div style="display: flex; gap: 8px;">
+                    <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                        {{-- Tombol Hapus Terpilih (Muncul dinamis saat checkbox tercentang) --}}
+                        <button type="button" id="btnDeleteSelectedOutbox" onclick="triggerDeleteSelectedOutbox()" class="btn btn-sm btn-danger" style="display: none; align-items: center; gap: 5px; background: #ef4444; border-color: #ef4444;" title="Hapus log yang dicentang">
+                            <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                            Hapus Terpilih (<span id="outboxSelectedCount">0</span>)
+                        </button>
+
+                        {{-- Tombol Bersihkan Semua Log --}}
+                        @if(isset($outboxMessages) && $outboxMessages->total() > 0)
+                            <button type="button" data-total="{{ $outboxMessages->total() }}" onclick="confirmClearAllOutbox(this.dataset.total)" class="btn btn-sm" style="display: inline-flex; align-items: center; gap: 5px; color: #dc2626; border: 1px solid #fca5a5; background: #fff5f5; font-weight: 600;" title="Bersihkan seluruh log dan reset cache">
+                                <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                Bersihkan Semua Log
+                            </button>
+                        @endif
+
                         <button type="button" onclick="location.reload()" class="btn btn-sm btn-secondary" title="Refresh data">
                             <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                             Refresh Log
@@ -1616,7 +1769,10 @@ body {
                         <table class="modern-table">
                             <thead>
                                 <tr>
-                                    <th style="padding-left: 24px;">ID</th>
+                                    <th style="width: 36px; padding-left: 20px; text-align: center;">
+                                        <input type="checkbox" id="outbox-select-all" title="Pilih Semua di Halaman Ini" onchange="toggleSelectAllOutbox(this)" style="cursor: pointer; transform: scale(1.15);">
+                                    </th>
+                                    <th>ID</th>
                                     <th>Penerima</th>
                                     <th>Nomor WA</th>
                                     <th>Tipe Pesan</th>
@@ -1628,7 +1784,10 @@ body {
                             <tbody>
                                 @foreach($outboxMessages as $msg)
                                     <tr>
-                                        <td style="padding-left: 24px; font-weight: 700; color: var(--text-muted);">#{{ $msg->id }}</td>
+                                        <td style="padding-left: 20px; text-align: center;">
+                                            <input type="checkbox" class="outbox-checkbox" value="{{ $msg->id }}" onchange="handleOutboxCheckChange()" style="cursor: pointer; transform: scale(1.15);">
+                                        </td>
+                                        <td style="font-weight: 700; color: var(--text-muted);">#{{ $msg->id }}</td>
                                         <td style="font-weight: 700; color: var(--navy-dark);">
                                             {{ $msg->employee->name ?? 'Pegawai' }}
                                         </td>
@@ -1680,17 +1839,20 @@ body {
                                                 -
                                             @endif
                                         </td>
-                                        <td style="text-align: right; padding-right: 24px;">
-                                            @if(in_array($msg->status, ['failed', 'cancelled']))
-                                                <form method="POST" action="{{ route('admin.outbox.retry-single', $msg->id) }}" style="display: inline; margin: 0;">
-                                                    @csrf
-                                                    <button type="submit" class="btn btn-sm btn-secondary" style="padding: 4px 8px; font-size: 10px;" title="Kirim ulang pesan ini">
-                                                        Retry
-                                                    </button>
-                                                </form>
-                                            @else
-                                                <span style="color: var(--text-subtle); font-size: 11px;">-</span>
-                                            @endif
+                                        <td style="text-align: right; padding-right: 24px; white-space: nowrap;">
+                                            <div style="display: inline-flex; align-items: center; gap: 4px;">
+                                                @if(in_array($msg->status, ['failed', 'cancelled']))
+                                                    <form method="POST" action="{{ route('admin.outbox.retry-single', $msg->id) }}" style="display: inline; margin: 0;">
+                                                        @csrf
+                                                        <button type="submit" class="btn btn-sm btn-secondary" style="padding: 4px 8px; font-size: 10px;" title="Kirim ulang pesan ini">
+                                                            Retry
+                                                        </button>
+                                                    </form>
+                                                @endif
+                                                <button type="button" class="btn btn-sm" style="padding: 4px 7px; font-size: 10px; background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; border-radius: 6px;" title="Hapus log ini" data-id="{{ $msg->id }}" onclick="confirmDeleteSingleOutbox(this.dataset.id)">
+                                                    <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 @endforeach
@@ -1844,10 +2006,19 @@ body {
                     </div>
 
                     <div class="card-body">
-                        <div class="search-filter-box">
-                            <div class="search-input-wrap">
+                        <div class="search-filter-box" style="display: flex; gap: 10px; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+                            <div class="search-input-wrap" style="flex: 1; min-width: 200px;">
                                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                                 <input type="text" id="searchEmployee" class="form-control" placeholder="Cari nama atau nomor WhatsApp...">
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+                                <label style="display: inline-flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 700; color: var(--navy-dark); cursor: pointer; user-select: none; background: var(--surface-alt); padding: 9px 12px; border-radius: var(--radius-md); border: 1px solid var(--border); transition: all 0.2s ease;">
+                                    <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAllEmployees(this)" style="width: 16px; height: 16px; accent-color: var(--primary); cursor: pointer;">
+                                    <span id="selectAllLabel">Pilih Semua</span>
+                                </label>
+                                <button type="button" id="clearSelectionBtn" onclick="clearSelectedEmployees()" class="btn btn-sm btn-secondary" style="display: none; padding: 7px 11px;">
+                                    Batal
+                                </button>
                             </div>
                         </div>
 
@@ -1856,12 +2027,14 @@ body {
                                 @php
                                     $status = $employeeStatuses[$emp->id] ?? null;
                                     $initials = strtoupper(substr($emp->name, 0, 1));
-                                    $colors = ['#2563eb', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#0284c7'];
-                                    $bg = $colors[abs(crc32($emp->name)) % count($colors)];
+                                    $colorIdx = abs(crc32($emp->name)) % 7;
                                 @endphp
-                                <div class="employee-row" data-name="{{ strtolower($emp->name) }}" data-phone="{{ $emp->phone_number }}">
+                                <div class="employee-row" data-id="{{ $emp->id }}" data-name="{{ strtolower($emp->name) }}" data-phone="{{ $emp->phone_number }}">
                                     <div class="emp-main">
-                                        <div class="emp-avatar" style="background: {{ $bg }}">{{ $initials }}</div>
+                                        <div class="emp-checkbox-wrap">
+                                            <input type="checkbox" class="emp-checkbox" value="{{ $emp->id }}" data-name="{{ $emp->name }}" data-phone="{{ $emp->phone_number }}" data-panggilan="{{ $emp->panggilan ?? 'Yth.' }}" onchange="handleEmpCheckChange()">
+                                        </div>
+                                        <div class="emp-avatar avatar-bg-{{ $colorIdx }}">{{ $initials }}</div>
                                         <div class="emp-info">
                                             <h4>
                                                 <span style="color: var(--primary); font-weight: 800; font-size: 11px; background: var(--primary-light); padding: 2px 6px; border-radius: 4px; margin-right: 4px;">{{ $emp->panggilan ?? 'Yth.' }}</span> 
@@ -1881,17 +2054,33 @@ body {
                                         </div>
                                     </div>
                                     <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
-                                        <button type="button" onclick="openSendSingleModal({{ $emp->id }}, '{{ addslashes($emp->name) }}', '{{ $emp->phone_number }}', '{{ addslashes($emp->panggilan ?? 'Yth.') }}')" class="btn btn-sm btn-primary" style="padding: 5px 10px; font-size: 11px;" title="Kirim Notifikasi Langsung ke Pegawai ini">
+                                        <button type="button" 
+                                            class="btn btn-sm btn-primary" 
+                                            style="padding: 5px 10px; font-size: 11px;" 
+                                            title="Kirim Notifikasi Langsung ke Pegawai ini"
+                                            data-id="{{ $emp->id }}" 
+                                            data-name="{{ $emp->name }}" 
+                                            data-phone="{{ $emp->phone_number }}" 
+                                            data-panggilan="{{ $emp->panggilan ?? 'Yth.' }}"
+                                            onclick="openSendSingleModal(this)">
                                             <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
                                             Kirim
                                         </button>
                                         <a href="https://wa.me/62{{ ltrim($emp->phone_number, '0') }}" target="_blank" class="btn btn-sm btn-primary-soft" title="Chat via WhatsApp">
                                             WA
                                         </a>
-                                        <button onclick="editEmployee({{ $emp->id }}, '{{ addslashes($emp->name) }}', '{{ $emp->phone_number }}', '{{ addslashes($emp->panggilan ?? 'Yth.') }}')" class="btn btn-sm btn-secondary">
+                                        <button type="button" class="btn btn-sm btn-secondary" 
+                                            data-id="{{ $emp->id }}" 
+                                            data-name="{{ $emp->name }}" 
+                                            data-phone="{{ $emp->phone_number }}" 
+                                            data-panggilan="{{ $emp->panggilan ?? 'Yth.' }}"
+                                            onclick="editEmployee(this)">
                                             Edit
                                         </button>
-                                        <button onclick="deleteEmployee({{ $emp->id }}, '{{ addslashes($emp->name) }}')" class="btn btn-sm btn-danger-soft">
+                                        <button type="button" class="btn btn-sm btn-danger-soft" 
+                                            data-id="{{ $emp->id }}" 
+                                            data-name="{{ $emp->name }}"
+                                            onclick="deleteEmployee(this)">
                                             Hapus
                                         </button>
                                     </div>
@@ -2086,6 +2275,37 @@ body {
 
 </div>
 
+{{-- FLOATING BULK ACTION DOCK --}}
+<div id="bulkActionBar" class="bulk-action-bar">
+    <div class="bulk-pill">
+        <span class="bulk-pill-dot"></span>
+        <span id="bulkSelectedCount">0</span> Pegawai Dipilih
+    </div>
+    <button type="button" onclick="triggerBulkSend('pre_checkin')" class="btn-bulk btn-bulk-masuk" title="Kirim Pengingat Masuk ke Pegawai Terpilih">
+        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+        Kirim Masuk
+    </button>
+    <button type="button" onclick="triggerBulkSend('pre_checkout')" class="btn-bulk btn-bulk-pulang" title="Kirim Pengingat Pulang ke Pegawai Terpilih">
+        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+        Kirim Pulang
+    </button>
+    <button type="button" onclick="triggerBulkSend('custom')" class="btn-bulk btn-bulk-kustom" title="Kirim Pesan Kustom ke Pegawai Terpilih">
+        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
+        Pesan Kustom
+    </button>
+    <button type="button" onclick="triggerBulkDelete()" class="btn-bulk" style="background: linear-gradient(135deg, #ef4444, #dc2626); color: white;" title="Hapus Pegawai Terpilih">
+        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+        Hapus Terpilih
+    </button>
+    <button type="button" onclick="clearSelectedEmployees()" class="btn-bulk btn-bulk-cancel" title="Batalkan Semua Pilihan">
+        ✕ Batal
+    </button>
+</div>
+
+{{-- EMBEDDED DATA FOR JAVASCRIPT --}}
+<script id="holidaysData" type="application/json">{!! $holidaysJson ?? '{}' !!}</script>
+<template id="defaultBroadcastTemplate">{{ $templateBroadcast ?? "Halo {name},\n\nPengumuman: mohon perhatian untuk seluruh pegawai.\n\n{kata}" }}</template>
+
 <script>
 /* Realtime WIB Clock */
 function updateClock() {
@@ -2124,7 +2344,8 @@ document.querySelectorAll('.nav-link').forEach(function(item) {
 });
 
 /* Dynamic Interactive Calendar Engine */
-const holidaysMap = {!! $holidaysJson ?? '{}' !!};
+const holidaysEl = document.getElementById('holidaysData');
+const holidaysMap = holidaysEl ? JSON.parse(holidaysEl.textContent || '{}') : {};
 let currentCalDate = new Date();
 
 const monthNamesIndo = [
@@ -2250,6 +2471,429 @@ if (searchInput) {
                 row.style.display = 'none';
             }
         });
+
+        handleEmpCheckChange();
+    });
+}
+
+/* ==========================================================================
+   MULTI-SELECT EMPLOYEE SYSTEM
+   ========================================================================== */
+function getSelectedEmployees() {
+    const checkedBoxes = document.querySelectorAll('.emp-checkbox:checked');
+    const selected = [];
+    checkedBoxes.forEach(cb => {
+        selected.push({
+            id: cb.value,
+            name: cb.getAttribute('data-name') || '',
+            phone: cb.getAttribute('data-phone') || '',
+            panggilan: cb.getAttribute('data-panggilan') || 'Yth.'
+        });
+    });
+    return selected;
+}
+
+function handleEmpCheckChange() {
+    const allCheckboxes = document.querySelectorAll('.emp-checkbox');
+    const checkedBoxes = document.querySelectorAll('.emp-checkbox:checked');
+    const count = checkedBoxes.length;
+
+    // Highlight row
+    allCheckboxes.forEach(cb => {
+        const row = cb.closest('.employee-row');
+        if (row) {
+            if (cb.checked) {
+                row.classList.add('is-selected');
+            } else {
+                row.classList.remove('is-selected');
+            }
+        }
+    });
+
+    // Update floating dock & header controls
+    const bulkDock = document.getElementById('bulkActionBar');
+    const countEl = document.getElementById('bulkSelectedCount');
+    const clearBtn = document.getElementById('clearSelectionBtn');
+    const selectAllCb = document.getElementById('selectAllCheckbox');
+    const selectAllLabel = document.getElementById('selectAllLabel');
+
+    if (countEl) countEl.textContent = count;
+
+    if (count > 0) {
+        if (bulkDock) bulkDock.classList.add('is-active');
+        if (clearBtn) clearBtn.style.display = 'inline-flex';
+        if (selectAllLabel) selectAllLabel.textContent = `${count} Terpilih`;
+    } else {
+        if (bulkDock) bulkDock.classList.remove('is-active');
+        if (clearBtn) clearBtn.style.display = 'none';
+        if (selectAllLabel) selectAllLabel.textContent = 'Pilih Semua';
+    }
+
+    // Sync select all checkbox state
+    if (selectAllCb) {
+        const visibleRows = Array.from(document.querySelectorAll('.employee-row')).filter(r => r.style.display !== 'none');
+        const visibleCheckboxes = visibleRows.map(r => r.querySelector('.emp-checkbox')).filter(Boolean);
+        const visibleChecked = visibleCheckboxes.filter(cb => cb.checked);
+
+        if (visibleCheckboxes.length > 0 && visibleChecked.length === visibleCheckboxes.length) {
+            selectAllCb.checked = true;
+            selectAllCb.indeterminate = false;
+        } else if (visibleChecked.length > 0) {
+            selectAllCb.checked = false;
+            selectAllCb.indeterminate = true;
+        } else {
+            selectAllCb.checked = false;
+            selectAllCb.indeterminate = false;
+        }
+    }
+}
+
+function toggleSelectAllEmployees(masterCheckbox) {
+    const shouldCheck = masterCheckbox.checked;
+    const visibleRows = Array.from(document.querySelectorAll('.employee-row')).filter(r => r.style.display !== 'none');
+    
+    visibleRows.forEach(row => {
+        const cb = row.querySelector('.emp-checkbox');
+        if (cb) {
+            cb.checked = shouldCheck;
+        }
+    });
+
+    handleEmpCheckChange();
+}
+
+function clearSelectedEmployees() {
+    document.querySelectorAll('.emp-checkbox').forEach(cb => {
+        cb.checked = false;
+    });
+    const selectAllCb = document.getElementById('selectAllCheckbox');
+    if (selectAllCb) {
+        selectAllCb.checked = false;
+        selectAllCb.indeterminate = false;
+    }
+    handleEmpCheckChange();
+}
+
+function triggerBulkSend(type) {
+    const selected = getSelectedEmployees();
+    if (selected.length === 0) {
+        Swal.fire({
+            icon: 'info',
+            title: 'Pilih Pegawai Terlebih Dahulu',
+            text: 'Centang kotak pada nama pegawai yang ingin Anda kirimi pesan.',
+            confirmButtonColor: '#2563eb'
+        });
+        return;
+    }
+
+    const count = selected.length;
+    const previewNames = selected.slice(0, 5).map(e => e.name).join(', ') + (count > 5 ? ` dan ${count - 5} lainnya` : '');
+
+    if (type === 'pre_checkin') {
+        Swal.fire({
+            title: `Kirim Pengingat Masuk?`,
+            html: `
+                <div style="text-align: left; padding: 4px 0;">
+                    <div style="background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 10px; padding: 10px 14px; margin-bottom: 14px;">
+                        <strong style="color: #065f46; font-size: 13px; display: block;">🌅 ${count} Pegawai Terpilih:</strong>
+                        <span style="font-size: 12px; color: #047857;">${previewNames}</span>
+                    </div>
+                    <p style="font-size: 12px; color: #475569; margin: 0; line-height: 1.5;">
+                        Pesan pengingat absen masuk akan dikirimkan ke <strong>${count} pegawai</strong> terpilih secara personal lengkap dengan nama sapaan, jam masuk kerja, sisa waktu, dan pantun pagi.
+                    </p>
+                </div>
+            `,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#10b981',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: `Ya, Kirim ke ${count} Orang`,
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                submitBulkSendForm('pre_checkin', selected.map(e => e.id));
+            }
+        });
+    } else if (type === 'pre_checkout') {
+        Swal.fire({
+            title: `Kirim Pengingat Pulang?`,
+            html: `
+                <div style="text-align: left; padding: 4px 0;">
+                    <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 10px; padding: 10px 14px; margin-bottom: 14px;">
+                        <strong style="color: #92400e; font-size: 13px; display: block;">🌇 ${count} Pegawai Terpilih:</strong>
+                        <span style="font-size: 12px; color: #b45309;">${previewNames}</span>
+                    </div>
+                    <p style="font-size: 12px; color: #475569; margin: 0; line-height: 1.5;">
+                        Pesan pengingat absen pulang akan dikirimkan ke <strong>${count} pegawai</strong> terpilih sebelum jam operasional selesai.
+                    </p>
+                </div>
+            `,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#f59e0b',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: `Ya, Kirim ke ${count} Orang`,
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                submitBulkSendForm('pre_checkout', selected.map(e => e.id));
+            }
+        });
+    } else if (type === 'custom') {
+        const defaultMsg = document.getElementById('defaultBroadcastTemplate')?.innerHTML || '';
+        
+        Swal.fire({
+            title: `Kirim Pesan Kustom`,
+            html: `
+                <div style="text-align: left; padding: 4px 0;">
+                    <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px; padding: 10px 14px; margin-bottom: 12px;">
+                        <strong style="color: #1e40af; font-size: 13px; display: block;">💬 ${count} Penerima Terpilih:</strong>
+                        <span style="font-size: 12px; color: #1d4ed8;">${previewNames}</span>
+                    </div>
+                    <label style="font-size: 12px; font-weight: 700; color: #0f172a; display: block; margin-bottom: 4px;">Isi Pesan Khusus:</label>
+                    <textarea id="bulkCustomMessage" class="form-control" rows="5" style="width: 100%; font-family: inherit; font-size: 12px; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; box-sizing: border-box; resize: vertical;" placeholder="Tulis pesan...">${defaultMsg}</textarea>
+                    <div style="margin-top: 10px; font-size: 11px; color: #475569; background: #f8fafc; padding: 8px 12px; border-radius: 8px; border: 1px solid #e2e8f0; line-height: 1.5;">
+                        💡 <strong>Variabel Otomatis:</strong> <code>{name}</code> = Nama pegawai, <code>{kata}</code> = Salam penutup, <code>{organization}</code> = Instansi.
+                    </div>
+                </div>
+            `,
+            width: '560px',
+            showCancelButton: true,
+            confirmButtonColor: '#2563eb',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: `Kirim ke ${count} Orang`,
+            cancelButtonText: 'Batal',
+            preConfirm: () => {
+                const msg = document.getElementById('bulkCustomMessage')?.value || '';
+                if (!msg.trim()) {
+                    Swal.showValidationMessage('Isi pesan tidak boleh kosong!');
+                    return false;
+                }
+                return msg;
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                submitBulkSendForm('custom', selected.map(e => e.id), result.value);
+            }
+        });
+    }
+}
+
+function submitBulkSendForm(type, employeeIds, message = '') {
+    Swal.fire({
+        title: 'Memasukkan ke antrean...',
+        text: `Menyiapkan pengiriman pesan untuk ${employeeIds.length} pegawai...`,
+        allowOutsideClick: false,
+        didOpen: () => { Swal.showLoading(); }
+    });
+
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '{{ route("admin.send-selected") }}';
+
+    let html = `@csrf<input type="hidden" name="type" value="${type}">`;
+    employeeIds.forEach(id => {
+        html += `<input type="hidden" name="employee_ids[]" value="${id}">`;
+    });
+    if (message) {
+        html += `<textarea name="message" style="display:none;"></textarea>`;
+    }
+    form.innerHTML = html;
+    if (message) {
+        form.querySelector('textarea').value = message;
+    }
+    document.body.appendChild(form);
+    form.submit();
+}
+
+/* Bulk Delete — Hapus Banyak Pegawai Sekaligus */
+function triggerBulkDelete() {
+    const selected = getSelectedEmployees();
+    if (selected.length === 0) {
+        Swal.fire({
+            icon: 'info',
+            title: 'Pilih Pegawai Terlebih Dahulu',
+            text: 'Centang kotak pada nama pegawai yang ingin dihapus.',
+            confirmButtonColor: '#2563eb'
+        });
+        return;
+    }
+
+    const count = selected.length;
+    const nameList = selected.slice(0, 10).map(e => `• ${e.name}`).join('\n') + (count > 10 ? `\n• ...dan ${count - 10} lainnya` : '');
+
+    Swal.fire({
+        title: `Hapus ${count} Pegawai?`,
+        html: `<p style="margin-bottom: 8px;">Data berikut akan <b>dihapus permanen</b>:</p>
+               <div style="text-align: left; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 12px; max-height: 200px; overflow-y: auto; font-size: 13px;">
+                   <pre style="margin: 0; font-family: inherit; white-space: pre-wrap;">${nameList}</pre>
+               </div>`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#64748b',
+        confirmButtonText: `Ya, Hapus ${count} Pegawai`,
+        cancelButtonText: 'Batal'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            Swal.fire({
+                title: 'Menghapus...',
+                text: `Menghapus ${count} data pegawai...`,
+                allowOutsideClick: false,
+                didOpen: () => { Swal.showLoading(); }
+            });
+
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '{{ route("admin.employees.delete-selected") }}';
+
+            let html = `@csrf`;
+            selected.forEach(e => {
+                html += `<input type="hidden" name="employee_ids[]" value="${e.id}">`;
+            });
+            form.innerHTML = html;
+            document.body.appendChild(form);
+            form.submit();
+        }
+    });
+}
+
+/* ==========================================================================
+   OUTBOX LOG MANAGEMENT (PILIH SEMUA, HAPUS TERPILIH, BERSIHKAN SEMUA)
+   ========================================================================== */
+
+function getSelectedOutboxIds() {
+    const checkboxes = document.querySelectorAll('.outbox-checkbox:checked');
+    return Array.from(checkboxes).map(cb => cb.value);
+}
+
+function handleOutboxCheckChange() {
+    const selectedIds = getSelectedOutboxIds();
+    const count = selectedIds.length;
+    const btnDelete = document.getElementById('btnDeleteSelectedOutbox');
+    const badgeCount = document.getElementById('outboxSelectedCount');
+    const masterCheckbox = document.getElementById('outbox-select-all');
+
+    if (badgeCount) badgeCount.textContent = count;
+
+    if (btnDelete) {
+        btnDelete.style.display = count > 0 ? 'inline-flex' : 'none';
+    }
+
+    if (masterCheckbox) {
+        const allCheckboxes = document.querySelectorAll('.outbox-checkbox');
+        if (allCheckboxes.length > 0) {
+            masterCheckbox.checked = count === allCheckboxes.length;
+            masterCheckbox.indeterminate = count > 0 && count < allCheckboxes.length;
+        }
+    }
+}
+
+function toggleSelectAllOutbox(master) {
+    const checkboxes = document.querySelectorAll('.outbox-checkbox');
+    checkboxes.forEach(cb => {
+        cb.checked = master.checked;
+    });
+    handleOutboxCheckChange();
+}
+
+function triggerDeleteSelectedOutbox() {
+    const ids = getSelectedOutboxIds();
+    if (ids.length === 0) {
+        Swal.fire({
+            icon: 'info',
+            title: 'Pilih Log Terlebih Dahulu',
+            text: 'Centang kotak pada baris log yang ingin dihapus.',
+            confirmButtonColor: '#2563eb'
+        });
+        return;
+    }
+
+    const count = ids.length;
+    Swal.fire({
+        title: `Hapus ${count} Log Terpilih?`,
+        text: `${count} riwayat antrean & log pengiriman ini akan dihapus permanen.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#64748b',
+        confirmButtonText: `Ya, Hapus ${count} Log`,
+        cancelButtonText: 'Batal'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            Swal.fire({
+                title: 'Menghapus...',
+                text: `Menghapus ${count} log antrean...`,
+                allowOutsideClick: false,
+                didOpen: () => { Swal.showLoading(); }
+            });
+
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '{{ route("admin.outbox.delete-selected") }}';
+
+            let html = `@csrf`;
+            ids.forEach(id => {
+                html += `<input type="hidden" name="outbox_ids[]" value="${id}">`;
+            });
+            form.innerHTML = html;
+            document.body.appendChild(form);
+            form.submit();
+        }
+    });
+}
+
+function confirmClearAllOutbox(total) {
+    Swal.fire({
+        title: 'Bersihkan Seluruh Log & Cache?',
+        html: `<p style="margin-bottom: 8px;">Semua <b>${total} data riwayat antrean & log</b> pengiriman akan dihapus permanen dan cache antrean akan di-reset.</p>
+               <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 10px; font-size: 12px; color: #991b1b; text-align: left;">
+                   ⚠️ <b>Perhatian:</b> Tindakan ini tidak dapat dibatalkan. Log riwayat pengiriman sebelumnya tidak akan bisa dilihat lagi.
+               </div>`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#64748b',
+        confirmButtonText: 'Ya, Bersihkan Semua Log',
+        cancelButtonText: 'Batal'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            Swal.fire({
+                title: 'Membersihkan...',
+                text: 'Menghapus seluruh log & mereset cache...',
+                allowOutsideClick: false,
+                didOpen: () => { Swal.showLoading(); }
+            });
+
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '{{ route("admin.outbox.clear-all") }}';
+            form.innerHTML = `@csrf`;
+            document.body.appendChild(form);
+            form.submit();
+        }
+    });
+}
+
+function confirmDeleteSingleOutbox(id) {
+    Swal.fire({
+        title: `Hapus Log #${id}?`,
+        text: 'Baris log pengiriman ini akan dihapus permanen.',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#64748b',
+        confirmButtonText: 'Ya, Hapus',
+        cancelButtonText: 'Batal'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `{{ url('/admin/outbox') }}/${id}`;
+            form.innerHTML = `@csrf<input type="hidden" name="_method" value="DELETE">`;
+            document.body.appendChild(form);
+            form.submit();
+        }
     });
 }
 
@@ -2259,7 +2903,6 @@ function handleFileSelected(input) {
         document.getElementById('fileChosenText').textContent = 'File Terpilih: ' + input.files[0].name;
     }
 }
-
 
 /* Confirmation before manual broadcast */
 function confirmBroadcast(event, typeName) {
@@ -2291,7 +2934,7 @@ function confirmBroadcast(event, typeName) {
 
 /* Open Quick Broadcast Modal with live editable textarea */
 function openQuickBroadcastModal() {
-    const defaultMsg = @json($templateBroadcast ?? "Halo {name},\n\nPengumuman: mohon perhatian untuk seluruh pegawai.\n\n{kata}");
+    const defaultMsg = document.getElementById('defaultBroadcastTemplate')?.innerHTML || '';
     
     Swal.fire({
         title: 'Kirim Broadcast Cepat',
@@ -2347,7 +2990,14 @@ function openQuickBroadcastModal() {
 }
 
 /* Modal Kirim Pesan / Pengingat ke Satu Orang Pegawai */
-function openSendSingleModal(id, name, phone, panggilan) {
+function openSendSingleModal(idOrEl, name, phone, panggilan) {
+    let id = idOrEl;
+    if (typeof idOrEl === 'object' && idOrEl !== null && idOrEl.dataset) {
+        id = idOrEl.dataset.id;
+        name = idOrEl.dataset.name;
+        phone = idOrEl.dataset.phone;
+        panggilan = idOrEl.dataset.panggilan;
+    }
     const sapaanLengkap = (panggilan ? panggilan + ' ' : '') + name;
     
     Swal.fire({
@@ -2443,7 +3093,14 @@ function toggleCustomSingleBox(type) {
 }
 
 /* Edit Karyawan Modal */
-function editEmployee(id, name, phone, panggilan) {
+function editEmployee(idOrEl, name, phone, panggilan) {
+    let id = idOrEl;
+    if (typeof idOrEl === 'object' && idOrEl !== null && idOrEl.dataset) {
+        id = idOrEl.dataset.id;
+        name = idOrEl.dataset.name;
+        phone = idOrEl.dataset.phone;
+        panggilan = idOrEl.dataset.panggilan;
+    }
     const panggilanOptions = ['Yth.', 'Bapak', 'Ibu', 'Pak', 'Bu', 'Mas', 'Mbak', 'Sdr.', 'Sdri.'];
     const optionsHtml = panggilanOptions.map(opt => 
         `<option value="${opt}" ${opt === panggilan ? 'selected' : ''}>${opt}</option>`
@@ -2487,7 +3144,13 @@ function editEmployee(id, name, phone, panggilan) {
 }
 
 /* Hapus Karyawan Modal */
-function deleteEmployee(id, name) {
+function deleteEmployee(idOrEl, name) {
+    let id = idOrEl;
+    if (typeof idOrEl === 'object' && idOrEl !== null && idOrEl.dataset) {
+        id = idOrEl.dataset.id;
+        name = idOrEl.dataset.name;
+    }
+
     Swal.fire({
         title: 'Hapus Pegawai?',
         text: `Apakah Anda yakin ingin menghapus data "${name}"?`,
@@ -2526,7 +3189,7 @@ if (setDefaultsBtn) {
             confirmButtonText: 'Ya, Terapkan'
         }).then((res) => {
             if (res.isConfirmed) {
-                fetch('{{ route('admin.set-default-times') }}', {
+                fetch("{{ route('admin.set-default-times') }}", {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

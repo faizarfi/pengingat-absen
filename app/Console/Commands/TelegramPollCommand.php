@@ -42,12 +42,14 @@ class TelegramPollCommand extends Command
                     $updateId = $update['update_id'];
                     $offset = $updateId + 1;
 
-                    $msg = $update['message']['text'] ?? '';
-                    $from = $update['message']['from']['first_name'] ?? 'User';
-                    $chatId = $update['message']['chat']['id'] ?? '';
+                    $isCallback = isset($update['callback_query']);
+                    $msg = $update['message']['text'] ?? ($update['callback_query']['data'] ?? '');
+                    $from = $update['message']['from']['first_name'] ?? ($update['callback_query']['from']['first_name'] ?? 'User');
+                    $chatId = $update['message']['chat']['id'] ?? ($update['callback_query']['message']['chat']['id'] ?? '');
 
-                    if (!empty($msg)) {
-                        $this->line("[<info>" . date('H:i:s') . "</info>] Pesan dari {$from} (ID: {$chatId}): <comment>{$msg}</comment>");
+                    if (!empty($msg) || $isCallback) {
+                        $prefix = $isCallback ? 'Tombol: ' : 'Pesan: ';
+                        $this->line("[<info>" . date('H:i:s') . "</info>] {$prefix}{$msg} dari {$from} (ID: {$chatId})");
                         $controller->processUpdate($update, $telegram, $wa, $holiday);
                     }
                 }

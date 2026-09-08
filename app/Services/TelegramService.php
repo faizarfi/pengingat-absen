@@ -120,10 +120,67 @@ class TelegramService
         return [];
     }
 
+    public function answerCallbackQuery(string $callbackQueryId, string $text = '', bool $showAlert = false): bool
+    {
+        if (!$this->isConfigured()) return false;
+
+        try {
+            $payload = ['callback_query_id' => $callbackQueryId];
+            if (!empty($text)) {
+                $payload['text'] = $text;
+                $payload['show_alert'] = $showAlert;
+            }
+
+            $response = Http::withoutVerifying()
+                ->timeout(10)
+                ->post("{$this->baseUrl}/answerCallbackQuery", $payload);
+
+            return $response->successful();
+        } catch (\Exception $e) {
+            Log::error('TelegramService: Gagal answerCallbackQuery', ['error' => $e->getMessage()]);
+            return false;
+        }
+    }
+
+    public function editMessageText(string $chatId, int $messageId, string $text, ?array $replyMarkup = null): bool
+    {
+        if (!$this->isConfigured()) return false;
+
+        try {
+            $payload = [
+                'chat_id'    => $chatId,
+                'message_id' => $messageId,
+                'text'       => $text,
+                'parse_mode' => 'HTML',
+            ];
+
+            if ($replyMarkup) {
+                $payload['reply_markup'] = json_encode($replyMarkup);
+            }
+
+            $response = Http::withoutVerifying()
+                ->timeout(10)
+                ->post("{$this->baseUrl}/editMessageText", $payload);
+
+            if (!$response->successful()) {
+                Log::error('TelegramService editMessageText error: ' . $response->status() . ' - ' . $response->body());
+            }
+
+            return $response->successful();
+        } catch (\Exception $e) {
+            Log::error('TelegramService: Gagal editMessageText', ['error' => $e->getMessage()]);
+            return false;
+        }
+    }
+
     public function getAdminMenuKeyboard(): array
     {
         return [
             'keyboard' => [
+                [
+                    ['text' => '🎯 Pilih Pegawai'],
+                    ['text' => '📋 Daftar Pegawai'],
+                ],
                 [
                     ['text' => '🌅 Kirim Masuk'],
                     ['text' => '🌇 Kirim Pulang'],

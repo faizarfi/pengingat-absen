@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 use App\Jobs\SendWhatsAppJob;
 use App\Models\Employee;
@@ -175,7 +176,7 @@ class AdminController extends Controller
         return redirect()->back()->with('status', 'Karyawan baru berhasil ditambahkan.');
     }
 
-    public function updateEmployee(Request $request, $id)
+    public function updateEmployee(Request $request, int|string $id)
     {
         $employee = Employee::findOrFail($id);
         
@@ -192,12 +193,32 @@ class AdminController extends Controller
         return redirect()->back()->with('status', 'Karyawan berhasil diperbarui.');
     }
 
-    public function deleteEmployee($id)
+    public function deleteEmployee(int|string $id)
     {
         $employee = Employee::findOrFail($id);
         $employee->delete();
 
         return redirect()->back()->with('status', 'Karyawan berhasil dihapus.');
+    }
+
+    /**
+     * Hapus banyak pegawai sekaligus (bulk delete).
+     */
+    public function deleteSelectedEmployees(Request $request)
+    {
+        $request->validate([
+            'employee_ids'   => 'required|array|min:1',
+            'employee_ids.*' => 'integer|exists:employees,id',
+        ]);
+
+        /** @var array<int> $ids */
+        $ids = $request->input('employee_ids', []);
+        $count = Employee::whereIn('id', $ids, 'and', false)->delete();
+
+        Log::info("Bulk delete: {$count} pegawai dihapus", ['ids' => $ids]);
+
+        return redirect()->route('admin.dashboard')
+            ->with('status', "{$count} pegawai berhasil dihapus.");
     }
 
     public function importEmployees(Request $request)
@@ -214,7 +235,7 @@ class AdminController extends Controller
             $file = $request->file('employee_file');
             $path = $file->getRealPath();
 
-            \Log::info('Excel import started', [
+            Log::info('Excel import started', [
                 'filename' => $file->getClientOriginalName(),
                 'path' => $path,
                 'size' => $file->getSize(),
@@ -276,7 +297,7 @@ class AdminController extends Controller
                 $imported++;
             }
 
-            \Log::info('Excel import completed', [
+            Log::info('Excel import completed', [
                 'imported' => $imported,
                 'skipped' => $skipped,
             ]);
@@ -287,7 +308,7 @@ class AdminController extends Controller
 
             return redirect()->route('admin.dashboard')->with('status', "Import selesai: {$imported} baris berhasil, {$skipped} baris dilewati.");
         } catch (\Exception $e) {
-            \Log::error('Excel import failed', [
+            Log::error('Excel import failed', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
@@ -381,13 +402,19 @@ class AdminController extends Controller
             Setting::set('pre_reminder_minutes', $data['pre_reminder_minutes']);
         }
 
-        return redirect()->back()->with('status', 'Pengaturan berhasil diperbarui.');
+        return redirect()->back()->with('status', 'Pengaturan berhasil disimpan!');
     }
 
     public function sendNow(Request $request)
     {
         $wa = app(WhatsAppService::class);
-        $employees = Employee::where('is_active', true)->get();
+        $selectedIds = $request->input('employee_ids');
+        $query = Employee::where('is_active', '=', true, 'and');
+        $isFiltered = !empty($selectedIds) && is_array($selectedIds);
+        if ($isFiltered) {
+            $query->whereIn('id', $selectedIds);
+        }
+        $employees = $query->get();
         $kata = Setting::get('closing_word', 'Semangat kerja!');
         $orgName = Setting::get('organization_name', 'BPS Kabupaten Karanganyar');
         
@@ -409,17 +436,24 @@ class AdminController extends Controller
                 $wa->send($emp->id, $emp->phone_number, $text, 'manual');
                 $queued++;
             } catch (\Exception $e) {
-                \Log::error('sendNow failed', ['employee_id' => $emp->id, 'error' => $e->getMessage()]);
+                Log::error('sendNow failed', ['employee_id' => $emp->id, 'error' => $e->getMessage()]);
             }
         }
 
-        return redirect()->back()->with('status', "Broadcast berhasil dimasukkan ke antrean: {$queued}/{$employees->count()} karyawan.");
+        $targetMsg = $isFiltered ? "{$queued} pegawai terpilih" : "{$queued}/{$employees->count()} karyawan";
+        return redirect()->back()->with('status', "Broadcast berhasil dimasukkan ke antrean: {$targetMsg}.");
     }
 
     public function sendPreCheckinNow(Request $request)
     {
         $wa = app(WhatsAppService::class);
-        $employees = Employee::where('is_active', true)->get();
+        $selectedIds = $request->input('employee_ids');
+        $query = Employee::where('is_active', '=', true, 'and');
+        $isFiltered = !empty($selectedIds) && is_array($selectedIds);
+        if ($isFiltered) {
+            $query->whereIn('id', $selectedIds);
+        }
+        $employees = $query->get();
         $kata = Setting::get('closing_word', 'Semangat kerja!');
         $template = Setting::get('template_pre_checkin', "{name},\n\nIni adalah pengingat absen masuk.\nJam masuk kerja Anda adalah pukul {target_time} WIB. Tersisa waktu kurang lebih {minutes_left} menit.\n\nMohon segera lakukan absen masuk. Jangan lupa absen ya!\n\nTerima kasih atas perhatian Anda.\n\nHormat kami,\n{organization}");
         $checkIn = Setting::get('check_in_time', '07:30');
@@ -449,7 +483,7 @@ class AdminController extends Controller
 
             // If template doesn't include the {minutes_left} placeholder, append a fallback sentence
             if (strpos($template, '{minutes_left}') === false) {
-                $fallback = "Tersisa waktu kurang lebih {$minutesLeft} menit menuju jam masuk.";
+                $fallback = "Tersisa waktu kurang lebih {$minutesLeft} menit menuju jam masuk kerja.";
                 $text = trim($text) . "\n\n" . $fallback;
             }
 
@@ -475,17 +509,24 @@ class AdminController extends Controller
                 $wa->send($emp->id, $emp->phone_number, $text, 'pre_checkin');
                 $queued++;
             } catch (\Exception $e) {
-                \Log::error('sendPreCheckinNow failed', ['employee_id' => $emp->id, 'error' => $e->getMessage()]);
+                Log::error('sendPreCheckinNow failed', ['employee_id' => $emp->id, 'error' => $e->getMessage()]);
             }
         }
 
-        return redirect()->back()->with('status', "Pengingat masuk dimasukkan ke antrean: {$queued}/{$employees->count()} karyawan. Sisa menit: {$minutesLeftGlobal}");
+        $targetMsg = $isFiltered ? "{$queued} pegawai terpilih" : "{$queued}/{$employees->count()} karyawan";
+        return redirect()->back()->with('status', "Pengingat masuk dimasukkan ke antrean: {$targetMsg}. Sisa menit: {$minutesLeftGlobal}");
     }
 
     public function sendPreCheckoutNow(Request $request)
     {
         $wa = app(WhatsAppService::class);
-        $employees = Employee::where('is_active', true)->get();
+        $selectedIds = $request->input('employee_ids');
+        $query = Employee::where('is_active', '=', true, 'and');
+        $isFiltered = !empty($selectedIds) && is_array($selectedIds);
+        if ($isFiltered) {
+            $query->whereIn('id', $selectedIds);
+        }
+        $employees = $query->get();
         $kata = Setting::get('closing_word', 'Semangat kerja!');
         $template = Setting::get('template_pre_checkout', "{name},\n\nIni adalah pengingat absen pulang.\nJam pulang kerja Anda adalah pukul {target_time} WIB. Tersisa waktu kurang lebih {minutes_left} menit.\n\nMohon jangan lupa melakukan absen pulang sebelum meninggalkan kantor.\n\nTerima kasih atas dedikasi dan kerja keras Anda hari ini.\n\nHormat kami,\n{organization}");
         $isFriday = now()->isFriday();
@@ -540,14 +581,37 @@ class AdminController extends Controller
                 $wa->send($emp->id, $emp->phone_number, $text, 'pre_checkout');
                 $queued++;
             } catch (\Exception $e) {
-                \Log::error('sendPreCheckoutNow failed', ['employee_id' => $emp->id, 'error' => $e->getMessage()]);
+                Log::error('sendPreCheckoutNow failed', ['employee_id' => $emp->id, 'error' => $e->getMessage()]);
             }
         }
 
-        return redirect()->back()->with('status', "Pengingat pulang dimasukkan ke antrean: {$queued}/{$employees->count()} karyawan. Sisa menit: {$minutesLeftGlobal}");
+        $targetMsg = $isFiltered ? "{$queued} pegawai terpilih" : "{$queued}/{$employees->count()} karyawan";
+        return redirect()->back()->with('status', "Pengingat pulang dimasukkan ke antrean: {$targetMsg}. Sisa menit: {$minutesLeftGlobal}");
     }
 
-    public function sendSingleEmployee(Request $request, $id)
+    /**
+     * POST /admin/send-selected
+     * Kirim pesan (masuk/pulang/custom) ke daftar pegawai tertentu yang dipilih lewat checkbox.
+     */
+    public function sendSelectedEmployees(Request $request)
+    {
+        $request->validate([
+            'employee_ids' => 'required|array|min:1',
+            'type'         => 'required|in:pre_checkin,pre_checkout,custom',
+            'message'      => 'nullable|string',
+        ]);
+
+        $type = $request->input('type');
+        if ($type === 'pre_checkin') {
+            return $this->sendPreCheckinNow($request);
+        } elseif ($type === 'pre_checkout') {
+            return $this->sendPreCheckoutNow($request);
+        } else {
+            return $this->sendNow($request);
+        }
+    }
+
+    public function sendSingleEmployee(Request $request, int|string $id)
     {
         $emp = Employee::findOrFail($id);
         $type = $request->input('type', 'custom');
@@ -639,7 +703,7 @@ class AdminController extends Controller
             $wa->send($emp->id, $emp->phone_number, $text, $type);
             return redirect()->back()->with('status', "Pesan untuk {$namaLengkap} ({$emp->phone_number}) berhasil dimasukkan ke antrean Outbox!");
         } catch (\Exception $e) {
-            \Log::error('sendSingleEmployee failed', ['employee_id' => $emp->id, 'error' => $e->getMessage()]);
+            Log::error('sendSingleEmployee failed', ['employee_id' => $emp->id, 'error' => $e->getMessage()]);
             return redirect()->back()->with('error', "Gagal mengirim pesan: " . $e->getMessage());
         }
     }
@@ -681,7 +745,7 @@ class AdminController extends Controller
         return redirect()->back()->with('status', "Berhasil membatalkan {$updated} pesan yang sedang menunggu antrean.");
     }
 
-    public function retrySingleOutbox($id)
+    public function retrySingleOutbox(int|string $id)
     {
         $msg = WaOutbox::findOrFail($id);
         $msg->update([
@@ -693,6 +757,53 @@ class AdminController extends Controller
         ]);
 
         return redirect()->back()->with('status', "Pesan ID #{$id} berhasil dipindahkan kembali ke antrean.");
+    }
+
+    /**
+     * Hapus log outbox yang dipilih (bulk delete).
+     */
+    public function deleteSelectedOutbox(Request $request)
+    {
+        $request->validate([
+            'outbox_ids'   => 'required|array|min:1',
+            'outbox_ids.*' => 'integer|exists:wa_outbox,id',
+        ]);
+
+        /** @var array<int> $ids */
+        $ids = $request->input('outbox_ids', []);
+        $count = WaOutbox::whereIn('id', $ids, 'and', false)->delete();
+
+        Log::info("Outbox bulk delete: {$count} log outbox dihapus", ['ids' => $ids]);
+
+        return redirect()->back()->with('status', "{$count} riwayat antrean & log berhasil dihapus.");
+    }
+
+    /**
+     * Hapus satu baris log outbox.
+     */
+    public function deleteSingleOutbox(int|string $id)
+    {
+        $msg = WaOutbox::findOrFail($id);
+        $msg->delete();
+
+        return redirect()->back()->with('status', "Log antrean ID #{$id} berhasil dihapus.");
+    }
+
+    /**
+     * Bersihkan semua log outbox & reset cache aplikasi.
+     */
+    public function clearAllOutbox(Request $request)
+    {
+        $count = WaOutbox::count();
+        WaOutbox::query()->delete();
+
+        // Reset cache pengiriman batch dan status
+        \Illuminate\Support\Facades\Cache::forget('wa_batch_active');
+        \Illuminate\Support\Facades\Cache::forget('wa_batch_start');
+
+        Log::info("Outbox clear-all: {$count} log dibersihkan");
+
+        return redirect()->back()->with('status', "Berhasil membersihkan seluruh riwayat antrean ({$count} data) dan mereset cache.");
     }
 
     public function syncHolidays()

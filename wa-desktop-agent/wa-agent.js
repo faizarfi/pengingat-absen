@@ -73,6 +73,39 @@ const BATCH_SIZE = 3;
 const COOLDOWN_MIN = 60;
 const COOLDOWN_MAX = 120;
 
+// ── SAFETY: Daily Limit (max pesan per hari) ──
+const DAILY_LIMIT = parseInt(process.env.WA_DAILY_LIMIT || '100', 10);
+let dailySentCount = 0;
+let dailyLimitDate = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+
+function checkAndResetDailyLimit() {
+    const today = new Date().toISOString().split('T')[0];
+    if (today !== dailyLimitDate) {
+        logInfo(`[${timestamp()}] 📅 Hari baru — reset daily limit (kemarin: ${dailySentCount} pesan)`);
+        dailySentCount = 0;
+        dailyLimitDate = today;
+    }
+}
+
+function isDailyLimitReached() {
+    checkAndResetDailyLimit();
+    return dailySentCount >= DAILY_LIMIT;
+}
+
+// ── SAFETY: Business Hours Guard (hanya kirim di jam kerja) ──
+const BUSINESS_HOUR_START = parseInt(process.env.WA_HOUR_START || '6', 10);  // 06:00
+const BUSINESS_HOUR_END   = parseInt(process.env.WA_HOUR_END || '18', 10);   // 18:00
+
+function isBusinessHours() {
+    const hour = new Date().getHours();
+    return hour >= BUSINESS_HOUR_START && hour < BUSINESS_HOUR_END;
+}
+
+// ── SAFETY: Auto-Pause on Consecutive Failures ──
+const MAX_CONSECUTIVE_FAILURES = 3;
+const FAILURE_PAUSE_SECONDS = 300; // 5 menit
+let consecutiveFailures = 0;
+
 // ==============================================================================
 // LOGGING SYSTEM — Log ke file + console (rotasi harian)
 // ==============================================================================
@@ -257,6 +290,9 @@ const stats = {
     disconnects: 0,
     lastDisconnect: null,
     lastReconnect: null,
+    dailyLimitHits: 0,
+    outsideHoursSkips: 0,
+    autoPauses: 0,
 };
 
 // ==============================================================================
@@ -435,10 +471,13 @@ async function sendViaWhatsApp(phone, message) {
 // ==============================================================================
 async function startPolling() {
     logInfo('==================================================');
-    logInfo('🛡️  WA Desktop Agent v3.0 (Professional Background Mode)');
+    logInfo('🛡️  WA Desktop Agent v3.1 (Professional Background Mode + Safety)');
     logInfo(`🌐 Backend API   : ${API_BASE_URL}`);
     logInfo(`⏳ Jeda Acak      : ${DELAY_MIN} s.d. ${DELAY_MAX} detik per pesan`);
     logInfo(`☕ Cooldown Batch : Tiap ${BATCH_SIZE} pesan istirahat ${COOLDOWN_MIN}-${COOLDOWN_MAX} detik`);
+    logInfo(`📊 Daily Limit    : Max ${DAILY_LIMIT} pesan/hari`);
+    logInfo(`🕐 Jam Kerja      : ${BUSINESS_HOUR_START}:00 - ${BUSINESS_HOUR_END}:00`);
+    logInfo(`🛑 Auto-Pause     : ${MAX_CONSECUTIVE_FAILURES} gagal berturut = pause ${FAILURE_PAUSE_SECONDS/60} menit`);
     logInfo(`📝 Log File       : ${LOG_DIR}/`);
     logInfo('🔇 Mode           : BACKGROUND (tidak ada jendela terbuka)');
     logInfo('==================================================');
@@ -453,7 +492,7 @@ async function startPolling() {
         try {
             const now = Date.now() / 1000;
 
-            // Heartbeat setiap 30 detik (dikurangi dari 15 agar tidak terlalu sering)
+            // Heartbeat setiap 30 detik
             if (now - lastHeartbeat >= 30) {
                 await sendHeartbeat(isWhatsAppReady);
                 lastHeartbeat = now;
@@ -465,13 +504,65 @@ async function startPolling() {
                 continue;
             }
 
+            // ── SAFETY CHECK 1: Business Hours Guard ──
+            if (!isBusinessHours()) {
+                const hour = new Date().getHours();
+                if (stats.outsideHoursSkips % 60 === 0) { // Log setiap ~5 menit
+                    logInfo(`[${timestamp()}] 🌙 Di luar jam kerja (${hour}:00). Menunggu jam ${BUSINESS_HOUR_START}:00...`);
+                }
+                stats.outsideHoursSkips++;
+                await sleep(POLL_INTERVAL);
+                continue;
+            }
+
+            // ── SAFETY CHECK 2: Daily Limit ──
+            if (isDailyLimitReached()) {
+                if (stats.dailyLimitHits === 0) {
+                    logWarn(`[${timestamp()}] 🚫 DAILY LIMIT TERCAPAI! Sudah kirim ${dailySentCount}/${DAILY_LIMIT} pesan hari ini.`);
+                    logWarn(`[${timestamp()}] ⏸️ Pengiriman dihentikan sampai besok.`);
+                    notifyTelegram(
+                        `🚫 <b>DAILY LIMIT TERCAPAI</b>\n\n` +
+                        `📊 <b>Terkirim hari ini:</b> ${dailySentCount}/${DAILY_LIMIT} pesan\n` +
+                        `⏸️ <b>Status:</b> Pengiriman dihentikan\n` +
+                        `🔄 <b>Lanjut:</b> Otomatis besok pagi jam ${BUSINESS_HOUR_START}:00\n\n` +
+                        `💡 <i>Atur WA_DAILY_LIMIT di .env untuk mengubah limit.</i>`
+                    );
+                }
+                stats.dailyLimitHits++;
+                await sleep(60); // Cek ulang setiap 1 menit
+                continue;
+            }
+            stats.dailyLimitHits = 0; // Reset saat hari baru
+
+            // ── SAFETY CHECK 3: Auto-Pause on Consecutive Failures ──
+            if (consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
+                logWarn(`[${timestamp()}] 🛑 ${consecutiveFailures} kali gagal berturut-turut! Auto-pause ${FAILURE_PAUSE_SECONDS/60} menit...`);
+                stats.autoPauses++;
+                notifyTelegram(
+                    `🛑 <b>AUTO-PAUSE AKTIF</b>\n\n` +
+                    `❌ <b>Gagal berturut:</b> ${consecutiveFailures}x\n` +
+                    `⏸️ <b>Istirahat:</b> ${FAILURE_PAUSE_SECONDS/60} menit\n` +
+                    `📊 <b>Total auto-pause:</b> ${stats.autoPauses}x\n\n` +
+                    `💡 <i>Agent akan lanjut otomatis setelah istirahat.</i>`
+                );
+                await sleep(FAILURE_PAUSE_SECONDS);
+                consecutiveFailures = 0;
+                continue;
+            }
+
             // Ambil pesan pending dari Laravel API
             const messages = await getPendingMessages();
 
             if (messages.length > 0) {
-                logInfo(`[${timestamp()}] 📬 Ditemukan ${messages.length} pesan pending...`);
+                logInfo(`[${timestamp()}] 📬 Ditemukan ${messages.length} pesan pending... (hari ini: ${dailySentCount}/${DAILY_LIMIT})`);
 
                 for (const msg of messages) {
+                    // Cek lagi daily limit di tengah batch
+                    if (isDailyLimitReached()) {
+                        logWarn(`[${timestamp()}] 🚫 Daily limit tercapai di tengah batch. Stop.`);
+                        break;
+                    }
+
                     const { id: msgId, phone_number: phone, message: text } = msg;
 
                     // Tandai sedang diproses
@@ -483,6 +574,8 @@ async function startPolling() {
                     if (result.success) {
                         await markStatus(msgId, 'sent');
                         consecutiveSentCount++;
+                        dailySentCount++;
+                        consecutiveFailures = 0; // Reset failure counter
                     } else {
                         // Retry cerdas berdasarkan jenis error
                         let errorMsg = result.error || 'Gagal kirim via WhatsApp Web';
@@ -490,10 +583,14 @@ async function startPolling() {
                         if (result.errorType === 'INVALID_NUMBER') {
                             // Nomor tidak valid — langsung failed, jangan retry
                             errorMsg = `[NO RETRY] ${errorMsg}`;
+                            // Invalid number bukan "real failure", jangan hitung
                         } else if (result.errorType === 'RATE_LIMIT') {
                             // Rate limited — tunggu lebih lama
                             logWarn(`[${timestamp()}] 🚫 Rate limited! Istirahat 3 menit...`);
+                            consecutiveFailures++;
                             await sleep(180);
+                        } else {
+                            consecutiveFailures++;
                         }
                         
                         await markStatus(msgId, 'failed', errorMsg);
@@ -535,7 +632,7 @@ async function gracefulShutdown() {
     const uptimeStr = `${Math.floor(uptime/3600)}j ${Math.floor((uptime%3600)/60)}m ${uptime%60}d`;
 
     logInfo('\n🛑 Agent dihentikan. Menutup Chrome...');
-    logInfo(`📊 Statistik sesi: Terkirim=${stats.sent} Gagal=${stats.failed} NomorInvalid=${stats.invalidNumbers} Disconnect=${stats.disconnects} Uptime=${uptimeStr}`);
+    logInfo(`📊 Statistik sesi: Terkirim=${stats.sent} Gagal=${stats.failed} NomorInvalid=${stats.invalidNumbers} Disconnect=${stats.disconnects} DailyLimit=${stats.dailyLimitHits} AutoPause=${stats.autoPauses} Uptime=${uptimeStr}`);
     
     try {
         await client.destroy();

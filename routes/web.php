@@ -27,6 +27,7 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->controller(AdminCont
         Route::get('/export', 'exportEmployees')->name('export');
         Route::post('/import', 'importEmployees')->name('import');
         Route::post('/', 'storeEmployee')->name('store');
+        Route::post('/delete-selected', 'deleteSelectedEmployees')->name('delete-selected');
         Route::post('/{id}/send', 'sendSingleEmployee')->name('send-single');
         Route::put('/{id}', 'updateEmployee')->name('update');
         Route::delete('/{id}', 'deleteEmployee')->name('delete');
@@ -36,11 +37,15 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->controller(AdminCont
     Route::post('/send-now', 'sendNow')->name('send-now');
     Route::post('/send-pre-checkin', 'sendPreCheckinNow')->name('send-pre-checkin');
     Route::post('/send-pre-checkout', 'sendPreCheckoutNow')->name('send-pre-checkout');
+    Route::post('/send-selected', 'sendSelectedEmployees')->name('send-selected');
 
     // Outbox & Holiday Actions (POST)
     Route::post('/outbox/retry-failed', 'retryFailedOutbox')->name('outbox.retry-failed');
     Route::post('/outbox/cancel-pending', 'cancelPendingOutbox')->name('outbox.cancel-pending');
+    Route::post('/outbox/delete-selected', 'deleteSelectedOutbox')->name('outbox.delete-selected');
+    Route::post('/outbox/clear-all', 'clearAllOutbox')->name('outbox.clear-all');
     Route::post('/outbox/{id}/retry', 'retrySingleOutbox')->name('outbox.retry-single');
+    Route::delete('/outbox/{id}', 'deleteSingleOutbox')->name('outbox.delete-single');
     Route::post('/holidays/sync', 'syncHolidays')->name('holidays.sync');
 
     // Fallback GET redirects (mencegah MethodNotAllowed jika diakses lewat URL)
