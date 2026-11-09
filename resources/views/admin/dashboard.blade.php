@@ -2053,7 +2053,7 @@ body {
                         $pct = min(round(($sentCount / $totalEmp) * 100), 100);
                     @endphp
                     <div class="hero-progress-bar">
-                        <div class="hero-progress-fill" style="width: {{ $pct }}%"></div>
+                        <div class="hero-progress-fill" id="heroProgressFill" data-progress="{{ $pct }}"></div>
                     </div>
                     <div class="hero-progress-desc">
                         <span>{{ $pct }}% Selesai Terkirim</span>
@@ -3836,7 +3836,7 @@ function openChangePasswordModal() {
 
 /* Auto-refresh outbox secara otomatis jika sedang ada pengiriman aktif */
 (function initOutboxAutoRefresh() {
-    const activeQueue = {{ ($outboxStats['pending'] ?? 0) + ($outboxStats['processing'] ?? 0) }};
+    const activeQueue = parseInt("{{ ($outboxStats['pending'] ?? 0) + ($outboxStats['processing'] ?? 0) }}", 10) || 0;
     if (activeQueue > 0) {
         console.log('[Outbox Monitor] Ada ' + activeQueue + ' pesan dalam proses. Memperbarui status dalam 8 detik...');
         setTimeout(function() {
@@ -3939,9 +3939,14 @@ function updateLivePreview() {
     }
 }
 
-// Inisialisasi live preview saat halaman siap
+// Inisialisasi komponen saat halaman siap
 document.addEventListener('DOMContentLoaded', function() {
     updateLivePreview();
+    const heroFill = document.getElementById('heroProgressFill');
+    if (heroFill) {
+        const p = heroFill.getAttribute('data-progress') || 0;
+        heroFill.style.width = p + '%';
+    }
 });
 </script>
 
