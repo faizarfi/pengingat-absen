@@ -36,11 +36,17 @@ class SendWaReminder extends Command
         $lateCheckoutReminderTime = $checkOutTime->copy()->addMinutes(15)->format('H:i');
 
         $type = null;
-        if ($now === $preReminderTime) $type = 'pre_checkin';
-        if ($now === $lateReminderTime) $type = 'late_checkin_reminder';
-        if ($now === $checkIn) $type = 'checkin';
-        if ($now === $lateCheckoutReminderTime) $type = 'late_checkout_reminder';
-        if ($now === $checkOut) $type = 'checkout';
+        if ($now === $preReminderTime) {
+            $type = 'pre_checkin';
+        } elseif ($preReminderMinutes !== 15 && $now === $lateReminderTime) {
+            $type = 'late_checkin_reminder';
+        } elseif ($now === $checkIn) {
+            $type = 'checkin';
+        } elseif ($now === $checkOut) {
+            $type = 'checkout';
+        } elseif ($now === $lateCheckoutReminderTime) {
+            $type = 'late_checkout_reminder';
+        }
 
         if (!$type) {
             return 0;

@@ -1,236 +1,318 @@
-<p align="center">
-  <img src="public/images/bps-logo.svg" width="140" alt="Badan Pusat Statistik Logo" />
-</p>
+# BPS Smart Attendance Reminder v3.0
 
-<h1 align="center">⏰ BPS Smart Attendance Reminder v3.0</h1>
+Sistem Otomasi Pengingat Absensi Pegawai Terintegrasi WhatsApp Web Headless dan Telegram Remote Control.
 
-<p align="center">
-  <b>Sistem Otomasi Pengingat Absensi Pegawai Terintegrasi WhatsApp Web & Telegram Remote Control</b>
-</p>
-
-<p align="center">
-  <a href="https://laravel.com"><img src="https://img.shields.io/badge/Laravel-11.x-FF2D20?style=for-the-badge&logo=laravel&logoColor=white" alt="Laravel 11" /></a>
-  <a href="https://nodejs.org"><img src="https://img.shields.io/badge/Node.js-18%2B%20LTS-339933?style=for-the-badge&logo=nodedotjs&logoColor=white" alt="Node.js" /></a>
-  <a href="https://wwebjs.dev"><img src="https://img.shields.io/badge/WhatsApp_Web.js-v3.0%20Headless-25D366?style=for-the-badge&logo=whatsapp&logoColor=white" alt="WhatsApp" /></a>
-  <a href="https://core.telegram.org/bots"><img src="https://img.shields.io/badge/Telegram_Bot-Admin%20Remote-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white" alt="Telegram" /></a>
-  <a href="https://tailwindcss.com"><img src="https://img.shields.io/badge/Tailwind_CSS-v4-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white" alt="Tailwind CSS" /></a>
-  <img src="https://img.shields.io/badge/Engine-Anti--Ban%20Smart%20Jitter-orange?style=for-the-badge" alt="Anti-Ban Engine" />
-  <img src="https://img.shields.io/badge/License-MIT-blue?style=for-the-badge" alt="License MIT" />
-</p>
-
-<p align="center">
-  <a href="#-fitur-unggulan">Fitur Utama</a> •
-  <a href="#-arsitektur-sistem">Arsitektur</a> •
-  <a href="#-cara-menjalankan-1-klik">Cara Menjalankan</a> •
-  <a href="#-instalasi-cepat">Instalasi</a> •
-  <a href="#-buku-panduan-lengkap">Dokumentasi</a> •
-  <a href="#-tech-stack">Tech Stack</a>
-</p>
+[![Laravel](https://img.shields.io/badge/Laravel-11.x-FF2D20?style=flat-square&logo=laravel&logoColor=white)](https://laravel.com)
+[![Node.js](https://img.shields.io/badge/Node.js-18%2B%20LTS-339933?style=flat-square&logo=nodedotjs&logoColor=white)](https://nodejs.org)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
+[![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)](LICENSE)
 
 ---
 
-## 🌟 Mengapa Sistem Ini Berbeda?
+## Daftar Isi
 
-Aplikasi pengingat absensi konvensional sering kali memerlukan aplikasi pihak ketiga berbayar (API Gateway mahal) atau menggunakan automasi desktop yang mengganggu layar kerja komputer kantor.
-
-**BPS Smart Attendance Reminder v3.0** hadir dengan revolusi:
-- 🚫 **Tanpa Biaya Langganan Gateway**: Menggunakan engine WhatsApp Web Headless mandiri.
-- 🚫 **Tanpa Mengganggu Layar Komputer**: 100% berjalan di background tanpa jendela terbuka (*headless Chromium*).
-- 🛡️ **Anti-Ban Intelligent Jitter**: Menghindari pemblokiran nomor dengan mensimulasikan jeda alami manusia (20–40 detik acak) dan istirahat berkala (*batch cooldown*).
-- 📱 **Kendali Penuh dari HP**: Admin dapat memicu pengiriman absensi atau memantau status secara jarak jauh melalui **Bot Telegram Admin**.
-
----
-
-## ✨ Fitur Unggulan
-
-### 🤖 1. WhatsApp Web Background Agent v3.0
-- Berjalan sepenuhnya di latar belakang (*background service*).
-- Otomatis mendeteksi browser bawaan sistem (**Microsoft Edge** maupun **Google Chrome**).
-- **Persistent Session**: Scan QR cukup 1x saat pertama kali pasang, sesi tersimpan permanen.
-- **Auto Reconnect & Graceful Shutdown**: Otomatis tersambung kembali saat koneksi internet pulih.
-
-### 🛡️ 2. Perlindungan Anti-Ban Mutakhir
-- **Human-Like Jitter Delay**: Jeda acak 20 hingga 40 detik antar pengiriman pesan.
-- **Batch Cooldown Period**: Istirahat otomatis 1–2 menit setiap mengirim 3 pesan beruntun.
-- **Validasi Nomor Cerdas**: Otomatis mendeteksi nomor yang tidak terdaftar di WhatsApp dan menandai gagal tanpa menghentikan antrean.
-
-### 📱 3. Bot Telegram Admin (Remote Trigger)
-- **Tombol Cepat**: `🌅 Kirim Masuk`, `🌇 Kirim Pulang`, `📊 Cek Status`.
-- **Alert Notifikasi Otomatis**: Bot langsung mengirim pesan ke HP Admin jika koneksi WhatsApp terputus atau terjadi kegagalan.
-- **Laporan Rekap Realtime**: Menerima laporan selesai kirim beserta rekap jumlah pesan sukses/gagal.
-
-### 🎭 4. Generator Pantun Acak & Ramah
-- Setiap pegawai mendapatkan variasi pantun unik yang berbeda setiap harinya.
-- Mengubah pengingat absensi formal menjadi pesan sapaan yang hangat dan menyenangkan.
-
-### 📅 5. Sinkronisasi Hari Libur Nasional & Jam Kerja Dinamis
-- Otomatis terhubung dengan API resmi Hari Libur Nasional & Cuti Bersama Indonesia.
-- Sistem **otomatis libur (skip kirim)** saat tanggal merah tanpa perlu setting manual.
-- Dukungan jam kerja khusus (Senin–Kamis, Jumat, dan jam khusus Bulan Ramadhan).
-
-### 📊 6. Web Dashboard Manajemen Modern
-- Dibangun dengan **Laravel 11**, **Tailwind CSS v4**, dan **SweetAlert2**.
-- Manajemen pegawai lengkap dengan fitur **Import / Export CSV**.
-- **Live Outbox Monitor**: Memantau pesan yang sedang antre, diproses, maupun riwayat terkirim secara realtime.
+- [Deskripsi Sistem](#deskripsi-sistem)
+- [Fitur Utama](#fitur-utama)
+- [Arsitektur Sistem](#arsitektur-sistem)
+- [Mekanisme Anti-Ban dan Keamanan](#mekanisme-anti-ban-dan-keamanan)
+- [Prasyarat Sistem](#prasyarat-sistem)
+- [Panduan Instalasi](#panduan-instalasi)
+- [Petunjuk Pengoperasian](#petunjuk-pengoperasian)
+- [Struktur Direktori](#struktur-direktori)
+- [Pengujian Unit dan Fitur](#pengujian-unit-dan-fitur)
+- [Tech Stack](#tech-stack)
+- [Lisensi](#lisensi)
 
 ---
 
-## 🏛️ Arsitektur Sistem
+## Deskripsi Sistem
+
+BPS Smart Attendance Reminder v3.0 adalah aplikasi berbasis web dan service background yang dirancang untuk mengotomasi pengingat kehadiran dan kepulangan pegawai Badan Pusat Statistik (BPS). Sistem ini mengintegrasikan server backend Laravel 11 dengan WhatsApp Web Headless Agent berbasis Puppeteer dan remote control interaktif melalui Bot Telegram Admin.
+
+Sistem bekerja secara mandiri tanpa memerlukan biaya langganan API gateway berbayar pihak ketiga dan berjalan 100% di latar belakang (*headless*) tanpa mengganggu aktivitas tampilan layar kerja komputer kantor.
+
+---
+
+## Fitur Utama
+
+### 1. WhatsApp Web Background Agent v3.0
+- Berjalan penuh dalam mode headless tanpa membuka jendela antarmuka browser.
+- Mendukung browser bawaan Google Chrome maupun Microsoft Edge secara otomatis.
+- Penyimpanan sesi persisten (*Persistent LocalAuth Session*) sehingga pemindaian QR code hanya dilakukan satu kali saat instalasi awal.
+- Penanganan auto-reconnect dan recovery state secara otomatis saat koneksi jaringan mengalami gangguan.
+
+### 2. Perlindungan Anti-Ban Komprehensif
+- Human-Like Jitter Delay: Jeda dinamis antara 20 hingga 40 detik antar pesan untuk mensimulasikan perilaku pengetikan manual manusia.
+- Batch Cooldown: Periode istirahat terjadwal selama 60 hingga 120 detik setiap menyelesaikan pengiriman 3 pesan secara berurutan.
+- Daily Message Throttling: Pembatasan kuota pengiriman harian untuk mencegah pemblokiran nomor oleh sistem WhatsApp.
+- Business Hours Guard: Validasi jendela waktu operasional jam kerja kantor, dengan pengecualian otomatis untuk pesan berkategori manual dan broadcast langsung.
+
+### 3. Telegram Admin Bot Interaktif
+- Kendali jarak jauh penuh untuk memicu pengiriman pesan masuk dan pulang langsung dari perangkat seluler admin.
+- Pemilihan pegawai secara dinamis melalui inline keyboard di Telegram.
+- Pengiriman notifikasi alert seketika kepada admin apabila koneksi WhatsApp terputus atau terjadi kegagalan transmisi.
+- Rekapitulasi laporan realtime hasil pengiriman pesan.
+
+### 4. Sinkronisasi Hari Libur Nasional Otomatis
+- Terintegrasi langsung dengan API resmi Hari Libur Nasional dan Cuti Bersama Indonesia.
+- Penangguhan otomatis jadwal pengingat pada hari libur resmi dan akhir pekan tanpa memerlukan intervensi manual.
+- Dukungan konfigurasi jam kerja fleksibel (Senin-Kamis, Jumat, dan jadwal khusus Ramadan).
+
+### 5. Web Dashboard Manajemen Modern
+- Antarmuka berbasis Laravel 11, Tailwind CSS v4, dan SweetAlert2.
+- Manajemen data pegawai lengkap dengan validasi nomor telepon unik serta fitur Import dan Export data format CSV.
+- Pemantauan live outbox dan sinkronisasi status pengiriman riil dari database.
+- Proteksi brute-force login menggunakan rate limiter (5 percobaan per menit).
+- Fitur pembaruan kata sandi admin langsung dari antarmuka dashboard.
+
+---
+
+## Arsitektur Sistem
 
 ```mermaid
 flowchart TD
-    subgraph Client["📱 Akses Pengguna"]
-        AdminHP["👨‍💼 HP Admin (Telegram Bot)"]
-        Browser["💻 Web Browser Admin"]
+    subgraph Akses Pengguna
+        AdminTelegram["Perangkat Seluler Admin (Telegram Bot)"]
+        BrowserAdmin["Web Browser Admin (Dashboard)"]
     end
 
-    subgraph Backend["⚙️ Laravel 11 Backend"]
-        WebRoutes["Web & Auth Controller"]
-        Scheduler["⏰ Laravel Scheduler (Cron Job)"]
-        OutboxDB[("🗄️ Database Outbox & Employees")]
-        HolidaysAPI["🌐 Kalender Libur Nasional API"]
-        AgentAPI["REST API Endpoint (/api/agent/*)"]
+    subgraph Backend Laravel 11
+        AuthLimiter["Rate-Limited Auth Controller"]
+        AdminController["Admin Management Controller"]
+        SchedulerService["Laravel Scheduler & Commands"]
+        HolidaySync["Holiday API Client"]
+        AgentAPI["REST API Agent (/api/agent/*)"]
+        Database[("MySQL / MariaDB")]
     end
 
-    subgraph Agent["🤖 Background WA Agent v3.0"]
-        NodeRunner["Node.js Engine (wa-agent.js)"]
-        HeadlessBrowser["🌐 Headless Chromium (Edge/Chrome)"]
-        AntiBanEngine["🛡️ Anti-Ban Engine (Jeda 20-40s + Batch)"]
-        LocalSession[("💾 LocalAuth Session (.wwebjs_auth)")]
+    subgraph Service WhatsApp Agent
+        AgentCore["Node.js Runner (wa-agent.js)"]
+        AntiBanModule["Anti-Ban & Jitter Engine"]
+        HeadlessBrowser["Headless Chromium / Chrome Engine"]
+        AuthStorage[("LocalAuth Session Storage")]
     end
 
-    subgraph WhatsApp["📲 Jaringan WhatsApp"]
-        WAMeta["Cloud Server WhatsApp"]
-        Employees["👥 Handphone Pegawai BPS"]
+    subgraph Jaringan Eksternal
+        TelegramAPI["Telegram Bot API"]
+        WhatsAppNetwork["WhatsApp Web Infrastructure"]
+        PegawaiDevices["Perangkat Seluler Pegawai"]
     end
 
-    AdminHP <-->|Webhook / Polling| WebRoutes
-    Browser <-->|HTTP / HTTPS| WebRoutes
-    Scheduler -->|Cek Jam Kerja & Libur| OutboxDB
-    HolidaysAPI -.->|Sync Otomatis| Scheduler
-    AgentAPI <-->|Bearer Token HTTP| NodeRunner
-    NodeRunner --> AntiBanEngine
-    AntiBanEngine --> HeadlessBrowser
-    HeadlessBrowser <--> LocalSession
-    HeadlessBrowser <-->|WebSocket| WAMeta
-    WAMeta -->|Pesan Masuk/Pulang + Pantun| Employees
+    AdminTelegram <-->|Webhook / Polling| TelegramAPI
+    TelegramAPI <--> Backend Laravel 11
+    BrowserAdmin <-->|HTTP / HTTPS| AuthLimiter
+    AuthLimiter --> AdminController
+    AdminController <--> Database
+    SchedulerService <--> Database
+    HolidaySync -.-> SchedulerService
+    AgentAPI <-->|Bearer Token Auth| AgentCore
+    AgentCore --> AntiBanModule
+    AntiBanModule --> HeadlessBrowser
+    HeadlessBrowser <--> AuthStorage
+    HeadlessBrowser <-->|WebSocket Secure| WhatsAppNetwork
+    WhatsAppNetwork -->|Pesan Pengingat| PegawaiDevices
 ```
 
 ---
 
-## ⚡ Cara Menjalankan (1-Klik)
+## Mekanisme Anti-Ban dan Keamanan
 
-Untuk kemudahan penggunaan di komputer kantor, telah disediakan **Launcher Terpadu**:
-
-### Cukup Double-Click: 👉 **`START.bat`**
-
-Akan muncul menu interaktif di terminal:
-
-```text
-======================================================
-   PENGINGAT ABSENSI BPS - LAUNCHER UTAMA
-======================================================
-
-  [1] Jalankan Semua Layanan Lokal (Standar)
-      (Laravel + WA Agent + Bot Telegram + Scheduler)
-
-  [2] Jalankan Semua + Online Publik (Cloudflare Tunnel)
-      (Dapat diakses langsung dari HP luar kantor via HTTPS)
-
-  [3] Jalankan Hanya WA Agent (Background Mode)
-
-  [4] Jalankan Hanya Bot Telegram Admin
-
-  [5] Buka Dashboard Admin di Web Browser
-
-  [0] Keluar
-======================================================
-```
-
-> **Tips:** Jika ingin langsung menjalankan semua layanan tanpa membuka menu, Anda juga bisa langsung mengklik file **`START-ALL.bat`**.
+1. **Randomized Delivery Jitter**: Parameter jeda acak dikonfigurasi melalui variabel lingkungan `WA_DELAY_MIN` dan `WA_DELAY_MAX`.
+2. **Consecutive Failure Auto-Pause**: Sistem akan menghentikan sementara pengiriman selama 5 menit jika terjadi 3 kegagalan beruntun untuk memverifikasi kesehatan koneksi.
+3. **Phone Number Sanitization**: Setiap nomor telepon dinormalisasi ke format internasional standar (awalan 62) dan divalidasi keunikannya di tingkat basis data.
+4. **Token-Based Internal API Authentication**: Komunikasi antara Node.js agent dan backend Laravel diamankan menggunakan Bearer token pada header otorisasi.
+5. **Rate Limiting**: Endpoint autentikasi login dashboard dilindungi dengan limit maksimal 5 request per 60 detik per alamat IP.
 
 ---
 
-## 🚀 Instalasi Cepat (3 Langkah)
+## Prasyarat Sistem
 
-### 1. Clone Repositori & Persiapan Environment
-```powershell
+- **Sistem Operasi**: Windows 10/11, Windows Server, atau Linux (Ubuntu 20.04/22.04 LTS).
+- **PHP**: Versi 8.2 atau lebih baru (ekstensi: pdo, pdo_mysql, mbstring, openssl, curl, gd).
+- **Node.js**: Versi 18 LTS atau 20+ LTS.
+- **Database**: MySQL 8.0+ atau MariaDB 10.5+.
+- **Browser**: Google Chrome atau Microsoft Edge terinstal pada sistem host.
+- **Composer**: Versi 2.x.
+
+---
+
+## Panduan Instalasi
+
+### 1. Kloning Repositori
+```bash
 git clone https://github.com/faizarfi/pengingat-absen.git
 cd pengingat-absen
+```
+
+### 2. Konfigurasi Lingkungan
+Salin file konfigurasi contoh dan sesuaikan parameter koneksi:
+```bash
 copy .env.example .env
 ```
 
-### 2. Instalasi Dependensi
-```powershell
-# Dependensi PHP & Laravel
+Pastikan pengaturan berikut telah diisi pada file `.env`:
+```env
+APP_NAME="Pengingat Absensi BPS"
+APP_ENV=local
+APP_KEY=
+APP_DEBUG=true
+APP_URL=http://localhost:8000
+
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=pengingat_absen
+DB_USERNAME=root
+DB_PASSWORD=
+
+TELEGRAM_BOT_TOKEN=
+TELEGRAM_ADMIN_CHAT_ID=
+WA_AGENT_TOKEN=change-this-token-to-something-secure
+```
+
+### 3. Instalasi Dependensi Backend
+```bash
 composer install
 php artisan key:generate
-
-# Dependensi Frontend
-npm install
-npm run build
-
-# Dependensi WA Agent
-cd wa-desktop-agent
-npm install
-cd ..
-
-# Migrasi Database & Seeder Awal
 php artisan migrate --seed
 php artisan holidays:sync
 ```
 
-### 3. Tautkan Akun WhatsApp (Cukup 1x)
-```powershell
-.\START.bat
-# Pilih menu [3] untuk menjalankan WA Agent
+### 4. Instalasi Dependensi Frontend
+```bash
+npm install
+npm run build
 ```
-- Scan **QR Code** yang muncul di terminal melalui menu **Perangkat Tertaut (Linked Devices)** pada aplikasi WhatsApp di HP Anda.
-- Selesai! Sesi login Anda tersimpan aman dan tidak perlu scan lagi saat komputer dinyalakan kembali.
+
+### 5. Instalasi Dependensi WhatsApp Agent
+```bash
+cd wa-desktop-agent
+npm install
+cd ..
+```
 
 ---
 
-## 📚 Buku Panduan Lengkap
+## Petunjuk Pengoperasian
 
-Dokumentasi detail dan petunjuk operasional telah disusun di folder **`docs/`**:
+### Menjalankan Melalui Launcher Terpadu (Windows)
 
-| Dokumen | Deskripsi | Link |
+Jalankan skrip menu interaktif berikut:
+```cmd
+START.bat
+```
+
+Tersedia opsi menu sebagai berikut:
+- **Menu [1]**: Menjalankan seluruh layanan lokal (Laravel Server, WA Agent, Telegram Bot, dan Scheduler).
+- **Menu [2]**: Menjalankan seluruh layanan dengan eksposur HTTPS publik melalui Cloudflare Tunnel.
+- **Menu [3]**: Menjalankan hanya WA Desktop Agent.
+- **Menu [4]**: Menjalankan hanya Telegram Bot listener.
+- **Menu [5]**: Membuka dashboard administrator pada browser default.
+
+Alternatif langsung tanpa menu:
+```cmd
+START-ALL.bat
+```
+
+### Menjalankan Secara Manual Per Komponen
+
+1. **Server Aplikasi Laravel**:
+   ```bash
+   php artisan serve --port=8000
+   ```
+
+2. **WhatsApp Web Background Agent**:
+   ```bash
+   cd wa-desktop-agent
+   node wa-agent.js
+   ```
+
+3. **Telegram Bot Polling**:
+   ```bash
+   php artisan telegram:poll
+   ```
+
+4. **Laravel Task Scheduler**:
+   ```bash
+   php artisan schedule:work
+   ```
+
+### Autentikasi Awal WhatsApp
+1. Jalankan komponen WhatsApp Agent.
+2. Pindai kode QR ASCII yang ditampilkan pada jendela konsol menggunakan aplikasi WhatsApp ponsel melalui menu **Perangkat Tertaut (Linked Devices) > Tautkan Perangkat**.
+3. Setelah status menampilkan `Autentikasi berhasil`, sesi tersimpan secara lokal dan agen siap memproses antrean pesan.
+
+---
+
+## Struktur Direktori
+
+```text
+pengingat-absen/
+├── app/
+│   ├── Console/Commands/       # Perintah otomatis dan scheduler pengingat
+│   ├── Http/Controllers/       # Controller web, autentikasi, dan API internal
+│   ├── Models/                 # Model data Eloquent (Employee, Outbox, Schedule, dll.)
+│   └── Services/               # Logika bisnis Telegram dan WhatsApp helper
+├── config/                     # Konfigurasi aplikasi dan paket eksternal
+├── database/
+│   ├── migrations/             # Skema tabel database
+│   └── seeders/                # Data inisialisasi awal
+├── docs/                       # Panduan teknis tambahan dan template berkas
+├── resources/
+│   ├── css/                    # Pengaturan Tailwind CSS
+│   └── views/                  # Blade template dashboard administrator
+├── routes/                     # Definisi rute web dan API
+├── scripts/                    # Skrip batch peluncuran otomasi Windows
+├── tests/                      # Rangkaian pengujian unit dan fitur
+└── wa-desktop-agent/           # Service Node.js headless WhatsApp agent
+    ├── wa-agent.js             # Entrypoint utama WhatsApp runner
+    └── package.json            # Dependensi agen Node.js
+```
+
+---
+
+## Pengujian Unit dan Fitur
+
+Aplikasi dilengkapi dengan rangkaian automated test suite menggunakan PHPUnit. Untuk menjalankan seluruh pengujian:
+
+```bash
+php artisan test
+```
+
+Cakupan pengujian mencakup:
+- Keamanan autentikasi dan rate limiting pada endpoint login.
+- Integritas pembaruan kata sandi administrator.
+- Validasi pencegahan duplikasi data pegawai berdasarkan nomor telepon.
+- Sinkronisasi status keterkiriman outbox secara presisi pada dashboard.
+- Ekspor log transmisi pesan format CSV.
+- Pengujian fungsional interaksi tombol dan perintah bot Telegram.
+
+---
+
+## Tech Stack
+
+| Komponen | Teknologi | Keterangan |
 | :--- | :--- | :--- |
-| 💻 **Panduan PC Lain** | Panduan setup dari nol di PC / Laptop baru tanpa ribet. | [Baca Panduan](docs/PANDUAN_INSTALL_DI_PC_LAIN.md) |
-| ☁️ **Panduan Hosting VPS** | Arsitektur Hybrid (Anti-Ban) di server VPS Linux Ubuntu, Nginx, SSL, dan PM2. | [Baca Panduan](docs/PANDUAN_HOSTING_VPS_DAN_AGENT.md) |
-| 📊 **Template CSV Pegawai** | Format file CSV standar untuk import data pegawai secara massal. | [Unduh Template](docs/contoh-import-pegawai.csv) |
+| **Backend Framework** | Laravel 11 (PHP 8.2+) | REST API, command scheduler, authentication, queue handling |
+| **Automation Engine** | Node.js + whatsapp-web.js | WhatsApp Web headless interaction engine |
+| **Process Driver** | Puppeteer Core | Pengendali browser Chromium / Edge di latar belakang |
+| **Frontend Framework** | Blade + Tailwind CSS v4 | Antarmuka dashboard responsif |
+| **UI Components** | SweetAlert2 | Modal dialog dan konfirmasi interaktif |
+| **Database** | MySQL / MariaDB | Penyimpanan data pegawai, jadwal, log, dan antrean |
+| **Tunneling Service** | Cloudflare Tunnel | Aksesibilitas HTTPS jarak jauh tanpa konfigurasi port forwarding |
 
 ---
 
-## 💻 Tech Stack
+## Akses Dashboard Default
 
-| Layer | Teknologi | Kegunaan |
-| :--- | :--- | :--- |
-| **Backend Framework** | **Laravel 11 (PHP 8.2+)** | Core system, REST API, scheduler, queue, & auth |
-| **Automation Engine** | **Node.js + whatsapp-web.js** | Headless browser WhatsApp automation engine |
-| **Process Runner** | **Puppeteer Core** | Pengendali browser Chromium / Edge di background |
-| **Frontend & UI** | **Blade + Tailwind CSS v4** | Tampilan web dashboard responsif & modern |
-| **Interactive Alert** | **SweetAlert2** | Dialog konfirmasi & notifikasi interaktif |
-| **Database** | **MySQL / SQLite** | Penyimpanan data pegawai, jadwal, pantun & antrean |
-| **Tunneling** | **Cloudflare Tunnel** | Akses publik aman via HTTPS tanpa perlu IP Publik |
-| **Process Manager** | **PM2 Ecosystem** | Auto-restart & monitoring pada lingkungan produksi |
-
----
-
-## 🖥️ Akses Dashboard Default
-
-- **URL Lokal**: `http://localhost:8000/admin`
+- **URL Dashboard**: `http://localhost:8000/admin`
 - **Email Default**: `admin@example.com`
 - **Password Default**: `password`
 
-*(Disarankan untuk segera mengganti password default melalui menu pengaturan akun setelah login pertama kali).*
+*Catatan: Segera perbarui kata sandi default administrator melalui menu profil dashboard setelah login pertama kali.*
 
 ---
 
-## 📄 Lisensi & Kontribusi
+## Lisensi
 
-Proyek ini dikembangkan di bawah lisensi **[MIT](LICENSE)**. Terbuka untuk pengembangan dan kustomisasi sesuai dengan kebutuhan satuan kerja dan instansi Anda.
-
-<p align="center">
-  Dibuat dengan ❤️ untuk kemudahan dan efisiensi operasional BPS.
-</p>
+Proyek ini didistribusikan di bawah lisensi [MIT](LICENSE).

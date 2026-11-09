@@ -12,7 +12,7 @@ Route::post('/webhook/fonnte', [WebhookController::class, 'handleFonnte'])->name
 // Auth Routes
 Route::controller(AuthController::class)->group(function () {
     Route::get('/login', 'showLogin')->name('login');
-    Route::post('/login', 'login');
+    Route::post('/login', 'login')->middleware('throttle:5,1');
     Route::post('/logout', 'logout')->name('logout');
 });
 
@@ -21,6 +21,7 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->controller(AdminCont
     Route::get('/', 'index')->name('dashboard');
     Route::post('/settings', 'updateSetting')->name('settings.update');
     Route::post('/set-default-times', 'setDefaultTimes')->name('set-default-times');
+    Route::post('/profile/password', 'updatePassword')->name('profile.password');
 
     // Employees
     Route::prefix('employees')->name('employees.')->group(function () {
@@ -39,7 +40,8 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->controller(AdminCont
     Route::post('/send-pre-checkout', 'sendPreCheckoutNow')->name('send-pre-checkout');
     Route::post('/send-selected', 'sendSelectedEmployees')->name('send-selected');
 
-    // Outbox & Holiday Actions (POST)
+    // Outbox & Holiday Actions (POST & GET)
+    Route::get('/outbox/export', 'exportOutbox')->name('outbox.export');
     Route::post('/outbox/retry-failed', 'retryFailedOutbox')->name('outbox.retry-failed');
     Route::post('/outbox/cancel-pending', 'cancelPendingOutbox')->name('outbox.cancel-pending');
     Route::post('/outbox/delete-selected', 'deleteSelectedOutbox')->name('outbox.delete-selected');

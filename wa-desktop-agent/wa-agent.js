@@ -327,6 +327,7 @@ const client = new Client({
     authStrategy: new LocalAuth({
         dataPath: '.wwebjs_auth',
     }),
+    authTimeoutMs: 60000,
     puppeteer: {
         headless: true,
         ...(browserExecutable ? { executablePath: browserExecutable } : {}),
@@ -336,12 +337,17 @@ const client = new Client({
             '--disable-gpu',
             '--disable-dev-shm-usage',
             '--disable-extensions',
+            '--no-first-run',
         ],
     },
 });
 
 let isWhatsAppReady = false;
 let pollingStarted = false;
+
+client.on('loading_screen', (percent, message) => {
+    logInfo(`[${timestamp()}] ⏳ Memuat WhatsApp Web: ${percent}% - ${message}`);
+});
 
 client.on('qr', (qr) => {
     logInfo('\n==================================================');
@@ -504,15 +510,40 @@ async function startPolling() {
                 continue;
             }
 
-            // ── SAFETY CHECK 1: Business Hours Guard ──
+            // Ambil pesan pending dari Laravel API
+            let messages = await getPendingMessages();
+
+            // ── SAFETY CHECK 1: Business Hours Guard (Filter automated reminders) ──
             if (!isBusinessHours()) {
-                const hour = new Date().getHours();
-                if (stats.outsideHoursSkips % 60 === 0) { // Log setiap ~5 menit
-                    logInfo(`[${timestamp()}] 🌙 Di luar jam kerja (${hour}:00). Menunggu jam ${BUSINESS_HOUR_START}:00...`);
+                if (messages.length > 0) {
+                    const originalCount = messages.length;
+                    // Hanya izinkan pesan manual / broadcast / kustom di luar jam kerja
+                    messages = messages.filter(msg => ['manual', 'broadcast', 'custom'].includes(msg.type));
+                    const skippedCount = originalCount - messages.length;
+
+                    if (skippedCount > 0) {
+                        const hour = new Date().getHours();
+                        if (stats.outsideHoursSkips % 60 === 0) {
+                            logInfo(`[${timestamp()}] 🌙 Di luar jam kerja (${hour}:00). Menunda ${skippedCount} pengingat otomatis sampai jam ${BUSINESS_HOUR_START}:00.`);
+                        }
+                        stats.outsideHoursSkips++;
+                    }
+
+                    if (messages.length === 0) {
+                        await sleep(POLL_INTERVAL);
+                        continue;
+                    } else {
+                        logInfo(`[${timestamp()}] ⚡ Memproses ${messages.length} pesan manual/broadcast di luar jam kerja atas permintaan admin.`);
+                    }
+                } else {
+                    const hour = new Date().getHours();
+                    if (stats.outsideHoursSkips % 60 === 0) {
+                        logInfo(`[${timestamp()}] 🌙 Di luar jam kerja (${hour}:00). Menunggu jam ${BUSINESS_HOUR_START}:00...`);
+                    }
+                    stats.outsideHoursSkips++;
+                    await sleep(POLL_INTERVAL);
+                    continue;
                 }
-                stats.outsideHoursSkips++;
-                await sleep(POLL_INTERVAL);
-                continue;
             }
 
             // ── SAFETY CHECK 2: Daily Limit ──
@@ -549,9 +580,6 @@ async function startPolling() {
                 consecutiveFailures = 0;
                 continue;
             }
-
-            // Ambil pesan pending dari Laravel API
-            const messages = await getPendingMessages();
 
             if (messages.length > 0) {
                 logInfo(`[${timestamp()}] 📬 Ditemukan ${messages.length} pesan pending... (hari ini: ${dailySentCount}/${DAILY_LIMIT})`);
@@ -660,4 +688,7 @@ logInfo('   100% background. Auto-reconnect. Smart retry.');
 logInfo('==================================================');
 logInfo(`[${timestamp()}] Memulai koneksi WhatsApp Web...`);
 
-client.initialize();
+client.initialize().catch(err => {
+    logError(`[${timestamp()}] ❌ Gagal inisialisasi WhatsApp: ${err.message}`);
+    logInfo('💡 Tips: Jika terjadi timeout atau sesi terhenti, hapus folder .wwebjs_auth/ lalu jalankan ulang.');
+});

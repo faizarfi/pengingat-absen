@@ -1508,25 +1508,34 @@ body {
 
             <span class="nav-category">Export & Laporan</span>
             <a href="{{ url('/admin/employees/export') }}" class="nav-link">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                Export Excel (.csv)
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                Export Pegawai (.csv)
+            </a>
+            <a href="{{ route('admin.outbox.export') }}" class="nav-link" title="Unduh rekap seluruh riwayat antrean & log pengiriman WhatsApp">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                Rekap Log Outbox (.csv)
             </a>
         </nav>
 
         <div class="sidebar-user">
-            <div class="user-profile">
+            <div class="user-profile" style="cursor: pointer;" onclick="openChangePasswordModal()" title="Klik untuk ganti password">
                 <div class="user-avatar">A</div>
                 <div class="user-details">
                     <strong>Admin BPS</strong>
-                    <span>Super Administrator</span>
+                    <span>Super Admin 🔑</span>
                 </div>
             </div>
-            <form method="POST" action="{{ route('logout') }}" style="margin:0">
-                @csrf
-                <button type="submit" class="btn btn-sm btn-danger-soft" title="Keluar dari sistem">
-                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+            <div style="display: flex; gap: 4px; align-items: center;">
+                <button type="button" onclick="openChangePasswordModal()" class="btn btn-sm btn-primary-soft" title="Ganti Password Akun Admin">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
                 </button>
-            </form>
+                <form method="POST" action="{{ route('logout') }}" style="margin:0">
+                    @csrf
+                    <button type="submit" class="btn btn-sm btn-danger-soft" title="Keluar dari sistem">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                    </button>
+                </form>
+            </div>
         </div>
     </aside>
 
@@ -1738,6 +1747,12 @@ body {
                                     Total: {{ $outboxMessages->total() }}
                                 </span>
                             @endif
+                            @if(($outboxStats['pending'] ?? 0) > 0 || ($outboxStats['processing'] ?? 0) > 0)
+                                <span id="liveQueueBadge" style="font-size: 11px; font-weight: 700; background: #ecfeff; color: #0891b2; border: 1px solid #a5f3fc; padding: 2px 10px; border-radius: 999px; display: inline-flex; align-items: center; gap: 5px;">
+                                    <span class="pulse-dot" style="background: #06b6d4; width: 7px; height: 7px; border-radius: 50%; box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.25);"></span>
+                                    Mengirim {{ ($outboxStats['pending'] ?? 0) + ($outboxStats['processing'] ?? 0) }} pesan...
+                                </span>
+                            @endif
                         </h3>
                         <p>Menampilkan riwayat dan status proses pengiriman pesan terbaru (5 pesan per halaman).</p>
                     </div>
@@ -1756,6 +1771,11 @@ body {
                                 Bersihkan Semua Log
                             </button>
                         @endif
+
+                        <a href="{{ route('admin.outbox.export') }}" class="btn btn-sm btn-primary-soft" style="display: inline-flex; align-items: center; gap: 5px;" title="Unduh seluruh rekap riwayat pengiriman ke file CSV / Excel">
+                            <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                            Unduh Rekap (.csv)
+                        </a>
 
                         <button type="button" onclick="location.reload()" class="btn btn-sm btn-secondary" title="Refresh data">
                             <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
@@ -2043,9 +2063,21 @@ body {
                                             <p>
                                                 <span style="font-family: monospace;">{{ $emp->phone_number }}</span>
                                                 @if($status)
-                                                    <span class="badge {{ $status['variant'] === 'success' ? 'badge-success' : ($status['variant'] === 'warning' ? 'badge-warning' : 'badge-danger') }}">
+                                                    @php
+                                                        $badgeClass = match($status['variant']) {
+                                                            'success' => 'badge-success',
+                                                            'warning' => 'badge-warning',
+                                                            'info'    => 'badge-info',
+                                                            'danger'  => 'badge-danger',
+                                                            default   => 'badge-neutral',
+                                                        };
+                                                    @endphp
+                                                    <span class="badge {{ $badgeClass }}" title="{{ $status['detail'] ?? '' }}">
                                                         <span class="badge-dot"></span>
                                                         {{ $status['label'] }}
+                                                        @if(!empty($status['detail']) && $status['variant'] === 'success')
+                                                            <small style="opacity: 0.8; font-size: 10px; margin-left: 3px;">({{ $status['detail'] }})</small>
+                                                        @endif
                                                     </span>
                                                 @else
                                                     <span class="badge badge-neutral">Siap</span>
@@ -3201,6 +3233,88 @@ if (setDefaultsBtn) {
         });
     });
 }
+/* Modal Ganti Password Admin */
+function openChangePasswordModal() {
+    Swal.fire({
+        title: 'Ganti Password Admin',
+        html: `
+            <div style="text-align: left; padding: 6px 0;">
+                <p style="font-size: 12px; color: #64748b; margin: 0 0 14px;">
+                    Demi keamanan akun sistem, gunakan kombinasi minimal 8 karakter dengan huruf dan angka.
+                </p>
+                <label style="font-size: 12px; font-weight: 700; color: #0f172a; display: block; margin-bottom: 4px;">Password Saat Ini:</label>
+                <input type="password" id="currentPasswordInput" class="form-control" style="width: 100%; margin: 0 0 12px; padding: 10px 12px; font-size: 13px; border-radius: 8px; border: 1px solid #cbd5e1; box-sizing: border-box;" placeholder="Masukkan password saat ini...">
+                
+                <label style="font-size: 12px; font-weight: 700; color: #0f172a; display: block; margin-bottom: 4px;">Password Baru (Min. 8 Karakter):</label>
+                <input type="password" id="newPasswordInput" class="form-control" style="width: 100%; margin: 0 0 12px; padding: 10px 12px; font-size: 13px; border-radius: 8px; border: 1px solid #cbd5e1; box-sizing: border-box;" placeholder="Masukkan password baru...">
+                
+                <label style="font-size: 12px; font-weight: 700; color: #0f172a; display: block; margin-bottom: 4px;">Konfirmasi Password Baru:</label>
+                <input type="password" id="confirmPasswordInput" class="form-control" style="width: 100%; margin: 0; padding: 10px 12px; font-size: 13px; border-radius: 8px; border: 1px solid #cbd5e1; box-sizing: border-box;" placeholder="Ulangi password baru...">
+            </div>
+        `,
+        width: '460px',
+        showCancelButton: true,
+        confirmButtonColor: '#2563eb',
+        cancelButtonColor: '#64748b',
+        confirmButtonText: 'Simpan Password Baru',
+        cancelButtonText: 'Batal',
+        preConfirm: () => {
+            const currentPass = document.getElementById('currentPasswordInput').value;
+            const newPass = document.getElementById('newPasswordInput').value;
+            const confirmPass = document.getElementById('confirmPasswordInput').value;
+
+            if (!currentPass) {
+                Swal.showValidationMessage('Password saat ini wajib diisi!');
+                return false;
+            }
+            if (!newPass || newPass.length < 8) {
+                Swal.showValidationMessage('Password baru minimal harus 8 karakter!');
+                return false;
+            }
+            if (newPass !== confirmPass) {
+                Swal.showValidationMessage('Konfirmasi password baru tidak cocok!');
+                return false;
+            }
+
+            return {
+                current_password: currentPass,
+                new_password: newPass,
+                new_password_confirmation: confirmPass
+            };
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            Swal.fire({
+                title: 'Menyimpan password...',
+                allowOutsideClick: false,
+                didOpen: () => { Swal.showLoading(); }
+            });
+
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '{{ route("admin.profile.password") }}';
+            form.innerHTML = `
+                @csrf
+                <input type="hidden" name="current_password" value="${result.value.current_password}">
+                <input type="hidden" name="new_password" value="${result.value.new_password}">
+                <input type="hidden" name="new_password_confirmation" value="${result.value.new_password_confirmation}">
+            `;
+            document.body.appendChild(form);
+            form.submit();
+        }
+    });
+}
+
+/* Auto-refresh outbox secara otomatis jika sedang ada pengiriman aktif */
+(function initOutboxAutoRefresh() {
+    const activeQueue = {{ ($outboxStats['pending'] ?? 0) + ($outboxStats['processing'] ?? 0) }};
+    if (activeQueue > 0) {
+        console.log('[Outbox Monitor] Ada ' + activeQueue + ' pesan dalam proses. Memperbarui status dalam 8 detik...');
+        setTimeout(function() {
+            location.reload();
+        }, 8000);
+    }
+})();
 </script>
 
 @endsection

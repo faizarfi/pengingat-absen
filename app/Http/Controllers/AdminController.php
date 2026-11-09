@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Carbon\Carbon;
 use App\Jobs\SendWhatsAppJob;
 use App\Models\Employee;
@@ -19,54 +21,91 @@ class AdminController extends Controller
     public function index()
     {
         $employees = Employee::all();
-        $latestLogs = [];
+        $employeeStatuses = [];
+        $now = now();
 
         if ($employees->isNotEmpty()) {
+            $employeeIds = $employees->pluck('id')->all();
+
+            // 1. Ambil status outbox terbaru hari ini (Modern WA Desktop Agent v3.0)
+            $latestOutbox = WaOutbox::whereIn('employee_id', $employeeIds)
+                ->whereDate('created_at', Carbon::today())
+                ->orderByDesc('id')
+                ->get()
+                ->unique('employee_id')
+                ->keyBy('employee_id');
+
+            // 2. Fallback ambil wa_logs lama jika outbox kosong
             $latestLogs = DB::table('wa_logs')
-                ->whereIn('employee_id', $employees->pluck('id')->all())
+                ->whereIn('employee_id', $employeeIds)
+                ->whereDate('created_at', Carbon::today())
                 ->orderByDesc('created_at')
                 ->get()
                 ->unique('employee_id')
                 ->keyBy('employee_id');
-        }
 
-        $employeeStatuses = [];
-        $now = now();
+            foreach ($employees as $emp) {
+                $outbox = $latestOutbox[$emp->id] ?? null;
 
-        foreach ($employees as $emp) {
-            $log = $latestLogs[$emp->id] ?? null;
-
-            if ($log) {
-                $logStatus = property_exists($log, 'status') ? $log->status : null;
-
-                if ($logStatus === null) {
-                    if (property_exists($log, 'sent_at') && $log->sent_at !== null) {
-                        $logStatus = 'sent';
-                    } elseif (property_exists($log, 'scheduled_at') && $log->scheduled_at !== null) {
-                        $logStatus = 'pending';
+                if ($outbox) {
+                    if ($outbox->status === WaOutbox::STATUS_SENT) {
+                        $employeeStatuses[$emp->id] = [
+                            'label' => 'Sudah terkirim',
+                            'variant' => 'success',
+                            'detail' => $outbox->sent_at ? Carbon::parse($outbox->sent_at)->format('H:i:s') : null,
+                        ];
+                    } elseif ($outbox->status === WaOutbox::STATUS_PROCESSING) {
+                        $employeeStatuses[$emp->id] = [
+                            'label' => 'Sedang dikirim',
+                            'variant' => 'info',
+                            'detail' => 'Proses WA...',
+                        ];
+                    } elseif (in_array($outbox->status, [WaOutbox::STATUS_PENDING, WaOutbox::STATUS_RETRY])) {
+                        $scheduled = $outbox->scheduled_at ? Carbon::parse($outbox->scheduled_at) : null;
+                        $remain = $scheduled ? max(0, $scheduled->diffInSeconds($now, false)) : null;
+                        $employeeStatuses[$emp->id] = [
+                            'label' => 'Menunggu antrean',
+                            'variant' => 'warning',
+                            'detail' => $remain !== null ? "{$remain} detik" : 'Antrean...',
+                        ];
+                    } elseif ($outbox->status === WaOutbox::STATUS_FAILED) {
+                        $employeeStatuses[$emp->id] = [
+                            'label' => 'Gagal kirim',
+                            'variant' => 'danger',
+                            'detail' => $outbox->last_error ? Str::limit($outbox->last_error, 25) : 'Error',
+                        ];
+                    } elseif ($outbox->status === WaOutbox::STATUS_CANCELLED) {
+                        $employeeStatuses[$emp->id] = [
+                            'label' => 'Dibatalkan',
+                            'variant' => 'neutral',
+                            'detail' => 'Batal',
+                        ];
                     }
-                }
+                } elseif (isset($latestLogs[$emp->id])) {
+                    $log = $latestLogs[$emp->id];
+                    $logStatus = $log->status ?? ($log->sent_at ? 'sent' : ($log->scheduled_at ? 'pending' : null));
 
-                if ($logStatus === 'sent') {
-                    $employeeStatuses[$emp->id] = [
-                        'label' => 'Sudah terkirim',
-                        'variant' => 'success',
-                        'detail' => property_exists($log, 'sent_at') && $log->sent_at ? \Illuminate\Support\Carbon::parse($log->sent_at)->format('H:i:s') : null,
-                    ];
-                } elseif ($logStatus === 'pending') {
-                    $scheduled = property_exists($log, 'scheduled_at') && $log->scheduled_at ? \Illuminate\Support\Carbon::parse($log->scheduled_at) : null;
-                    $remain = $scheduled ? max(0, $scheduled->diffInSeconds($now, false)) : null;
-                    $employeeStatuses[$emp->id] = [
-                        'label' => 'Menunggu antrean',
-                        'variant' => 'warning',
-                        'detail' => $remain !== null ? "{$remain} detik" : 'Menunggu...',
-                    ];
-                } elseif ($logStatus === 'failed') {
-                    $employeeStatuses[$emp->id] = [
-                        'label' => 'Gagal kirim',
-                        'variant' => 'danger',
-                        'detail' => property_exists($log, 'sent_at') && $log->sent_at ? \Illuminate\Support\Carbon::parse($log->sent_at)->format('H:i:s') : null,
-                    ];
+                    if ($logStatus === 'sent') {
+                        $employeeStatuses[$emp->id] = [
+                            'label' => 'Sudah terkirim',
+                            'variant' => 'success',
+                            'detail' => $log->sent_at ? Carbon::parse($log->sent_at)->format('H:i:s') : null,
+                        ];
+                    } elseif ($logStatus === 'pending') {
+                        $scheduled = $log->scheduled_at ? Carbon::parse($log->scheduled_at) : null;
+                        $remain = $scheduled ? max(0, $scheduled->diffInSeconds($now, false)) : null;
+                        $employeeStatuses[$emp->id] = [
+                            'label' => 'Menunggu antrean',
+                            'variant' => 'warning',
+                            'detail' => $remain !== null ? "{$remain} detik" : 'Menunggu...',
+                        ];
+                    } elseif ($logStatus === 'failed') {
+                        $employeeStatuses[$emp->id] = [
+                            'label' => 'Gagal kirim',
+                            'variant' => 'danger',
+                            'detail' => 'Gagal',
+                        ];
+                    }
                 }
             }
         }
@@ -87,10 +126,13 @@ class AdminController extends Controller
         $templateBroadcast = Setting::get('template_broadcast', "Halo {name},\n\nPengumuman: mohon perhatian untuk seluruh pegawai.\n\n{kata}");
 
         $totalActive = $employees->where('is_active', true)->count();
-        $totalSentToday = DB::table('wa_logs')
-            ->whereDate('created_at', Carbon::today())
-            ->where('status', 'sent')
-            ->count();
+        $totalSentToday = WaOutbox::where('status', WaOutbox::STATUS_SENT)->today()->count();
+        if ($totalSentToday === 0) {
+            $totalSentToday = DB::table('wa_logs')
+                ->whereDate('created_at', Carbon::today())
+                ->where('status', 'sent')
+                ->count();
+        }
 
         // ── Agent Monitoring ──
         $agent = WaAgentHeartbeat::where('agent_name', 'default')->first();
@@ -165,12 +207,22 @@ class AdminController extends Controller
     public function storeEmployee(Request $request)
     {
         $data = $request->validate([
-            'name' => 'required|string',
+            'name' => 'required|string|max:255',
             'panggilan' => 'nullable|string|max:50',
             'phone_number' => 'required|string',
         ]);
 
+        $phone = preg_replace('/[^0-9+]/', '', $data['phone_number']);
+        if (strpos($phone, '0') === 0) {
+            $phone = substr($phone, 1);
+        }
+        $data['phone_number'] = $phone;
         $data['panggilan'] = $data['panggilan'] ?? 'Yth.';
+
+        if (Employee::where('phone_number', $phone)->exists()) {
+            return redirect()->back()->with('error', "Nomor WhatsApp (62{$phone}) sudah terdaftar untuk pegawai lain.");
+        }
+
         Employee::create($data + ['is_active' => true]);
 
         return redirect()->back()->with('status', 'Karyawan baru berhasil ditambahkan.');
@@ -181,13 +233,23 @@ class AdminController extends Controller
         $employee = Employee::findOrFail($id);
         
         $data = $request->validate([
-            'name' => 'required|string',
+            'name' => 'required|string|max:255',
             'panggilan' => 'nullable|string|max:50',
             'phone_number' => 'required|string',
             'is_active' => 'boolean',
         ]);
 
+        $phone = preg_replace('/[^0-9+]/', '', $data['phone_number']);
+        if (strpos($phone, '0') === 0) {
+            $phone = substr($phone, 1);
+        }
+        $data['phone_number'] = $phone;
         $data['panggilan'] = $data['panggilan'] ?? 'Yth.';
+
+        if (Employee::where('phone_number', $phone)->where('id', '!=', $employee->id)->exists()) {
+            return redirect()->back()->with('error', "Nomor WhatsApp (62{$phone}) sudah digunakan pegawai lain.");
+        }
+
         $employee->update($data);
 
         return redirect()->back()->with('status', 'Karyawan berhasil diperbarui.');
@@ -287,6 +349,12 @@ class AdminController extends Controller
                     $phone = substr($phone, 1);
                 }
 
+                // Cek nomor duplikat agar tidak tertimpa atau dobel kirim
+                if (Employee::where('phone_number', $phone)->exists()) {
+                    $skipped++;
+                    continue;
+                }
+
                 Employee::create([
                     'name' => $name,
                     'panggilan' => $panggilan !== '' ? $panggilan : 'Yth.',
@@ -353,6 +421,89 @@ class AdminController extends Controller
                 }
 
                 fputcsv($handle, [$i, $employee->name, $displayPhone, $employee->panggilan ?? 'Yth.']);
+                $i++;
+            }
+
+            fclose($handle);
+        };
+
+        return response()->streamDownload($callback, $filename, $headers);
+    }
+
+    public function exportOutbox(Request $request)
+    {
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+
+        $query = WaOutbox::with('employee')->orderBy('id', 'desc');
+
+        if ($startDate) {
+            $query->whereDate('created_at', '>=', $startDate);
+        }
+        if ($endDate) {
+            $query->whereDate('created_at', '<=', $endDate);
+        }
+
+        $records = $query->limit(5000)->get();
+
+        $filename = 'rekap-outbox-wa-' . now()->format('Ymd-His') . '.csv';
+        $headers = [
+            'Content-Type' => 'text/csv; charset=utf-8',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        ];
+
+        $callback = function () use ($records) {
+            $handle = fopen('php://output', 'w');
+            fwrite($handle, "\xEF\xBB\xBF"); // UTF-8 BOM
+
+            fputcsv($handle, [
+                'No',
+                'ID Outbox',
+                'Waktu Dibuat',
+                'Nama Pegawai',
+                'Nomor WhatsApp',
+                'Jenis Pesan',
+                'Status',
+                'Waktu Terkirim',
+                'Keterangan / Error',
+            ]);
+
+            $i = 1;
+            foreach ($records as $item) {
+                $typeLabel = match($item->type) {
+                    'pre_checkin' => 'Pengingat Absen Masuk',
+                    'pre_checkout' => 'Pengingat Absen Pulang',
+                    'checkin' => 'Absen Masuk (On-time)',
+                    'checkout' => 'Absen Pulang (On-time)',
+                    'manual' => 'Broadcast / Manual',
+                    'custom' => 'Pesan Khusus',
+                    default => ucfirst($item->type),
+                };
+
+                $statusLabel = match($item->status) {
+                    WaOutbox::STATUS_SENT => 'Terkirim',
+                    WaOutbox::STATUS_PENDING => 'Menunggu Antrean',
+                    WaOutbox::STATUS_PROCESSING => 'Sedang Diproses',
+                    WaOutbox::STATUS_FAILED => 'Gagal',
+                    WaOutbox::STATUS_RETRY => 'Coba Ulang',
+                    WaOutbox::STATUS_CANCELLED => 'Dibatalkan',
+                    default => ucfirst($item->status),
+                };
+
+                $phone = (string) $item->phone_number;
+                $displayPhone = str_starts_with($phone, '0') || str_starts_with($phone, '+') ? $phone : '0' . $phone;
+
+                fputcsv($handle, [
+                    $i,
+                    $item->id,
+                    $item->created_at ? $item->created_at->format('Y-m-d H:i:s') : '-',
+                    $item->employee ? ($item->employee->panggilan . ' ' . $item->employee->name) : 'Tidak Diketahui',
+                    $displayPhone,
+                    $typeLabel,
+                    $statusLabel,
+                    $item->sent_at ? $item->sent_at->format('Y-m-d H:i:s') : '-',
+                    $item->last_error ?: '-',
+                ]);
                 $i++;
             }
 
@@ -810,5 +961,29 @@ class AdminController extends Controller
     {
         $count = app(\App\Services\HolidayService::class)->syncNationalHolidays(date('Y'));
         return redirect()->back()->with('status', "Berhasil sinkronisasi {$count} hari libur nasional tahun " . date('Y') . ".");
+    }
+
+    /**
+     * Ganti password akun admin yang sedang login.
+     */
+    public function updatePassword(Request $request)
+    {
+        $request->validate([
+            'current_password' => 'required|current_password',
+            'new_password'     => 'required|string|min:8|confirmed',
+        ], [
+            'current_password.current_password' => 'Password saat ini yang Anda masukkan salah.',
+            'new_password.min'                  => 'Password baru minimal harus 8 karakter.',
+            'new_password.confirmed'            => 'Konfirmasi password baru tidak sesuai.',
+        ]);
+
+        /** @var \App\Models\User $user */
+        $user = $request->user();
+        $user->password = Hash::make($request->input('new_password'));
+        $user->save();
+
+        Log::info('Admin password changed successfully', ['user_id' => $user->id]);
+
+        return redirect()->back()->with('status', 'Password admin berhasil diperbarui!');
     }
 }
