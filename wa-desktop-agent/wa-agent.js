@@ -428,7 +428,23 @@ client.on('disconnected', (reason) => {
 });
 
 // ==============================================================================
-// KIRIM PESAN — DENGAN RETRY CERDAS
+// ANTI-BAN: INJEKSI ZERO-WIDTH KARAKTER (ANTI-HASH FINGERPRINTING)
+// ==============================================================================
+function injectZeroWidthEntropy(text) {
+    if (!text || typeof text !== 'string' || text.length < 5) return text;
+    const zeroWidthChars = ['\u200B', '\u200C', '\u200D', '\uFEFF'];
+    let modified = text;
+    // Sisipkan 2 karakter invisible di posisi acak sehingga hash kriptografis selalu unik
+    for (let i = 0; i < 2; i++) {
+        const randChar = zeroWidthChars[Math.floor(Math.random() * zeroWidthChars.length)];
+        const insertPos = Math.floor(Math.random() * (modified.length - 4)) + 2;
+        modified = modified.slice(0, insertPos) + randChar + modified.slice(insertPos);
+    }
+    return modified;
+}
+
+// ==============================================================================
+// KIRIM PESAN — DENGAN SIMULASI MENGETIK & RETRY CERDAS
 // ==============================================================================
 async function sendViaWhatsApp(phone, message) {
     const cleanPhone = normalizePhone(phone);
@@ -449,8 +465,29 @@ async function sendViaWhatsApp(phone, message) {
             };
         }
 
+        // ── ANTI-BAN 1: Simulasi Buka Chat & Status "Sedang Mengetik..." ──
+        let chat = null;
+        try {
+            chat = await client.getChatById(chatId);
+            if (chat) {
+                try { await chat.sendSeen(); } catch { /* ignore */ }
+                try { await chat.sendStateTyping(); } catch { /* ignore */ }
+            }
+        } catch { /* ignore */ }
+
+        // Jeda mengetik alami (2.0 s.d. 4.5 detik proporsional dengan panjang pesan)
+        const typingDurationSeconds = Math.min(Math.max((message.length || 50) * 0.015, 2.0), 4.5);
+        await sleep(typingDurationSeconds);
+
+        if (chat) {
+            try { await chat.clearState(); } catch { /* ignore */ }
+        }
+
+        // ── ANTI-BAN 2: Injeksi Entropi Zero-Width (Unik Hash Tiap Pesan) ──
+        const finalizedMessage = injectZeroWidthEntropy(message);
+
         // Kirim pesan langsung — tanpa membuka jendela apapun
-        await client.sendMessage(chatId, message);
+        await client.sendMessage(chatId, finalizedMessage);
         stats.sent++;
         logInfo(`[${timestamp()}] ✅ Pesan terkirim ke ${cleanPhone} (background)`);
         return { success: true };
