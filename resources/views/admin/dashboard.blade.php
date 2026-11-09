@@ -382,16 +382,87 @@ body {
     position: relative;
     border-radius: var(--radius-xl);
     background: linear-gradient(130deg, #091223 0%, #0f244a 45%, #183870 80%, #1e40af 100%);
-    padding: 34px 40px;
+    padding: 32px 38px;
     color: #ffffff;
     overflow: hidden;
     margin-bottom: 24px;
     box-shadow: 0 20px 45px -10px rgba(15, 36, 74, 0.35);
     display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 32px;
+    grid-template-columns: 1fr auto auto;
+    gap: 28px;
     align-items: center;
     border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* 3D Officer Visual Styling */
+.hero-visual-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.hero-officer-card {
+    position: relative;
+    width: 175px;
+    height: 175px;
+    border-radius: 20px;
+    overflow: hidden;
+    background: rgba(15, 23, 42, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.45), 0 0 25px rgba(59, 130, 246, 0.25);
+    animation: floatingOfficer 5s ease-in-out infinite;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hero-officer-card:hover {
+    transform: translateY(-6px) scale(1.03);
+    box-shadow: 0 20px 35px -5px rgba(0, 0, 0, 0.55), 0 0 35px rgba(56, 189, 248, 0.4);
+}
+
+.hero-officer-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    border-radius: 20px;
+}
+
+.hero-badge-float {
+    position: absolute;
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(15, 23, 42, 0.88);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 999px;
+    padding: 4px 10px;
+    font-size: 10px;
+    font-weight: 700;
+    color: #e2e8f0;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.badge-float-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #10b981;
+    box-shadow: 0 0 6px #10b981;
+}
+
+@keyframes floatingOfficer {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-8px);
+    }
 }
 
 .hero-banner::before {
@@ -1767,6 +1838,8 @@ body {
 }
 
 @media (max-width: 1200px) {
+    .hero-banner { grid-template-columns: 1fr auto; }
+    .hero-visual-center { display: none; }
     .stats-grid { grid-template-columns: repeat(2, 1fr); }
     .section-grid { grid-template-columns: 1fr; }
     .calendar-wrapper { grid-template-columns: 1fr; }
@@ -1952,6 +2025,17 @@ body {
                         <div class="hero-pill-item">
                             <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                             Driver: <strong>{{ strtoupper($waDriver ?? 'DESKTOP') }}</strong>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- ILUSTRASI 3D KARAKTER RESMI PEGAWAI BPS --}}
+                <div class="hero-visual-center">
+                    <div class="hero-officer-card" title="Sistem Otomasi Presensi Digital BPS">
+                        <img src="{{ asset('images/bps-hero-officer.jpg') }}" alt="Pegawai BPS" class="hero-officer-img">
+                        <div class="hero-badge-float">
+                            <span class="badge-float-dot"></span>
+                            <span>Presensi Digital Aktif</span>
                         </div>
                     </div>
                 </div>
