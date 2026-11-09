@@ -71,12 +71,12 @@ Sistem bekerja secara mandiri tanpa memerlukan biaya langganan API gateway berba
 
 ```mermaid
 flowchart TD
-    subgraph Akses Pengguna
+    subgraph Client["Akses Pengguna"]
         AdminTelegram["Perangkat Seluler Admin (Telegram Bot)"]
         BrowserAdmin["Web Browser Admin (Dashboard)"]
     end
 
-    subgraph Backend Laravel 11
+    subgraph Backend["Backend Laravel 11"]
         AuthLimiter["Rate-Limited Auth Controller"]
         AdminController["Admin Management Controller"]
         SchedulerService["Laravel Scheduler & Commands"]
@@ -85,21 +85,21 @@ flowchart TD
         Database[("MySQL / MariaDB")]
     end
 
-    subgraph Service WhatsApp Agent
+    subgraph Agent["Service WhatsApp Agent"]
         AgentCore["Node.js Runner (wa-agent.js)"]
         AntiBanModule["Anti-Ban & Jitter Engine"]
         HeadlessBrowser["Headless Chromium / Chrome Engine"]
         AuthStorage[("LocalAuth Session Storage")]
     end
 
-    subgraph Jaringan Eksternal
+    subgraph External["Jaringan Eksternal"]
         TelegramAPI["Telegram Bot API"]
         WhatsAppNetwork["WhatsApp Web Infrastructure"]
         PegawaiDevices["Perangkat Seluler Pegawai"]
     end
 
     AdminTelegram <-->|Webhook / Polling| TelegramAPI
-    TelegramAPI <--> Backend Laravel 11
+    TelegramAPI <-->|Picu Pengiriman / Notifikasi| AdminController
     BrowserAdmin <-->|HTTP / HTTPS| AuthLimiter
     AuthLimiter --> AdminController
     AdminController <--> Database
