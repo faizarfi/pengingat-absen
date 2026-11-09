@@ -1391,17 +1391,365 @@ body {
     color: var(--primary);
 }
 
-/* Variable Tag Helper */
+/* Variable Tag Helper — Interactive Click-to-Insert */
 .var-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 6px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 11px;
+    font-weight: 700;
+    color: #1d4ed8;
+    margin: 2px 3px 2px 0;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    user-select: none;
+}
+
+.var-pill:hover {
+    background: #2563eb;
+    color: #ffffff;
+    border-color: #1d4ed8;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(37, 99, 235, 0.25);
+}
+
+.var-pill:active {
+    transform: translateY(0);
+}
+
+/* Sticky Topbar Agent Status Pill */
+.agent-topbar-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 13px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    user-select: none;
+    transition: all 0.2s ease;
+}
+
+.agent-pill-online {
+    background: #ecfdf5;
+    color: #065f46;
+    border: 1px solid #a7f3d0;
+}
+
+.agent-pill-offline {
+    background: #fef2f2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+
+.agent-ping-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
     display: inline-block;
-    padding: 2px 6px;
-    background: #f1f5f9;
-    border: 1px solid #e2e8f0;
-    border-radius: 4px;
-    font-family: monospace;
+    position: relative;
+}
+
+.dot-online {
+    background: #10b981;
+    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);
+    animation: ping-pulse 2s infinite;
+}
+
+.dot-offline {
+    background: #ef4444;
+}
+
+@keyframes ping-pulse {
+    0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5); }
+    70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+/* Hero Activity Summary (Replacing Double Clock) */
+.hero-metric-box {
+    background: rgba(15, 23, 42, 0.45);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: var(--radius-lg);
+    padding: 20px 24px;
+    min-width: 270px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.hero-metric-label {
     font-size: 10px;
-    color: #475569;
-    margin: 2px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    color: #93c5fd;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+}
+
+.hero-metric-main {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    margin-bottom: 12px;
+}
+
+.hero-metric-number {
+    font-size: 32px;
+    font-weight: 800;
+    color: #ffffff;
+    line-height: 1;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.hero-metric-total {
+    font-size: 13px;
+    font-weight: 600;
+    color: #cbd5e1;
+}
+
+.hero-progress-bar {
+    width: 100%;
+    height: 7px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 999px;
+    overflow: hidden;
+    margin-bottom: 6px;
+}
+
+.hero-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #38bdf8, #4ade80);
+    border-radius: 999px;
+    transition: width 0.6s ease;
+}
+
+.hero-progress-desc {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    font-weight: 600;
+    color: #cbd5e1;
+}
+
+/* Employee Row Action Dropdown */
+.emp-actions-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    position: relative;
+}
+
+.btn-icon-only {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-sm);
+    color: var(--text-muted);
+}
+
+.btn-icon-only:hover {
+    color: var(--navy-dark);
+    background: var(--surface-alt);
+}
+
+.action-dropdown-wrap {
+    position: relative;
+}
+
+.action-dropdown-menu {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: calc(100% + 4px);
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.15), 0 8px 10px -6px rgba(15, 23, 42, 0.1);
+    min-width: 175px;
+    padding: 6px;
+    z-index: 100;
+}
+
+.action-dropdown-wrap.open .action-dropdown-menu {
+    display: block;
+    animation: dropdownFadeIn 0.15s ease-out;
+}
+
+@keyframes dropdownFadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 8px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #334155;
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+    text-align: left;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.15s ease;
+}
+
+.dropdown-item:hover {
+    background: #f1f5f9;
+    color: #0f172a;
+}
+
+.dropdown-item.text-danger {
+    color: #dc2626;
+}
+
+.dropdown-item.text-danger:hover {
+    background: #fef2f2;
+    color: #b91c1c;
+}
+
+.dropdown-divider {
+    height: 1px;
+    background: #f1f5f9;
+    margin: 4px 0;
+}
+
+/* Template Grid Layout & Live WhatsApp Chat Preview */
+.template-grid-layout {
+    display: grid;
+    grid-template-columns: 1.25fr 1fr;
+    gap: 24px;
+    align-items: start;
+}
+
+@media (max-width: 1024px) {
+    .template-grid-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+.wa-preview-container {
+    background: #efeae2;
+    background-image: radial-gradient(#d1d7db 0.75px, transparent 0.75px);
+    background-size: 16px 16px;
+    border-radius: 16px;
+    border: 1px solid #d1d7db;
+    overflow: hidden;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+}
+
+.wa-preview-header {
+    background: #005c4b;
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #ffffff;
+}
+
+.wa-preview-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: #128c7e;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 13px;
+    color: #ffffff;
+    letter-spacing: -0.02em;
+}
+
+.wa-preview-user {
+    line-height: 1.25;
+}
+
+.wa-preview-user strong {
+    font-size: 13px;
+    display: block;
+    color: #ffffff;
+}
+
+.wa-preview-user span {
+    font-size: 11px;
+    color: #e0f2fe;
+    opacity: 0.9;
+}
+
+.wa-preview-body {
+    padding: 20px 14px;
+    min-height: 260px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+}
+
+.wa-chat-bubble {
+    background: #d9fdd3;
+    border-radius: 8px 8px 2px 8px;
+    padding: 10px 12px 6px;
+    max-width: 92%;
+    margin-left: auto;
+    box-shadow: 0 1px 1px rgba(11, 20, 26, 0.13);
+    position: relative;
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: #111b21;
+    word-break: break-word;
+    white-space: pre-wrap;
+}
+
+.wa-chat-meta {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 4px;
+    margin-top: 4px;
+    font-size: 10px;
+    color: #667781;
+}
+
+.wa-preview-switcher {
+    display: flex;
+    gap: 4px;
+    padding: 8px 10px;
+    background: #f0f2f5;
+    border-bottom: 1px solid #e9edef;
+}
+
+.wa-switcher-btn {
+    flex: 1;
+    padding: 6px 8px;
+    font-size: 11px;
+    font-weight: 700;
+    border: none;
+    background: transparent;
+    color: #54656f;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.wa-switcher-btn.active {
+    background: #ffffff;
+    color: #008069;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
 /* ==========================================================================
@@ -1555,6 +1903,11 @@ body {
             </div>
 
             <div class="header-right">
+                <div class="agent-topbar-pill {{ ($agentStatus ?? 'offline') === 'online' ? 'agent-pill-online' : 'agent-pill-offline' }}" title="Status koneksi WhatsApp Desktop Agent ke Server">
+                    <span class="agent-ping-dot {{ ($agentStatus ?? 'offline') === 'online' ? 'dot-online' : 'dot-offline' }}"></span>
+                    <span class="agent-pill-text">{{ ($agentStatus ?? 'offline') === 'online' ? 'Agent Online' : 'Agent Offline' }}</span>
+                </div>
+
                 <div class="live-badge">
                     <span class="pulse-dot"></span>
                     <span class="clock-text" id="topClock">00:00:00</span>
@@ -1603,10 +1956,25 @@ body {
                     </div>
                 </div>
 
-                <div class="hero-clock-box">
-                    <div class="hero-clock-label">WAKTU INDONESIA BARAT (WIB)</div>
-                    <div class="hero-clock-time" id="heroClock">00:00:00</div>
-                    <div class="hero-clock-date" id="heroDate">Memuat tanggal...</div>
+                {{-- STATISTIK RINGKAS HARI INI (PENGGANTI DOUBLE CLOCK) --}}
+                <div class="hero-metric-box">
+                    <div class="hero-metric-label">PROGRES PENGIRIMAN HARI INI</div>
+                    <div class="hero-metric-main">
+                        <span class="hero-metric-number">{{ ($outboxStats['sent_today'] ?? 0) + ($totalSentToday ?? 0) }}</span>
+                        <span class="hero-metric-total">/ {{ count($employees) }} Pegawai</span>
+                    </div>
+                    @php
+                        $totalEmp = max(count($employees), 1);
+                        $sentCount = ($outboxStats['sent_today'] ?? 0) + ($totalSentToday ?? 0);
+                        $pct = min(round(($sentCount / $totalEmp) * 100), 100);
+                    @endphp
+                    <div class="hero-progress-bar">
+                        <div class="hero-progress-fill" style="width: {{ $pct }}%"></div>
+                    </div>
+                    <div class="hero-progress-desc">
+                        <span>{{ $pct }}% Selesai Terkirim</span>
+                        <span>{{ $outboxStats['pending'] ?? 0 }} Antrean Pending</span>
+                    </div>
                 </div>
             </div>
 
@@ -2085,10 +2453,10 @@ body {
                                             </p>
                                         </div>
                                     </div>
-                                    <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+                                    <div class="emp-actions-group">
                                         <button type="button" 
                                             class="btn btn-sm btn-primary" 
-                                            style="padding: 5px 10px; font-size: 11px;" 
+                                            style="padding: 5px 11px; font-size: 11px; font-weight: 700;" 
                                             title="Kirim Notifikasi Langsung ke Pegawai ini"
                                             data-id="{{ $emp->id }}" 
                                             data-name="{{ $emp->name }}" 
@@ -2098,23 +2466,35 @@ body {
                                             <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
                                             Kirim
                                         </button>
-                                        <a href="https://wa.me/62{{ ltrim($emp->phone_number, '0') }}" target="_blank" class="btn btn-sm btn-primary-soft" title="Chat via WhatsApp">
-                                            WA
-                                        </a>
-                                        <button type="button" class="btn btn-sm btn-secondary" 
-                                            data-id="{{ $emp->id }}" 
-                                            data-name="{{ $emp->name }}" 
-                                            data-phone="{{ $emp->phone_number }}" 
-                                            data-panggilan="{{ $emp->panggilan ?? 'Yth.' }}"
-                                            onclick="editEmployee(this)">
-                                            Edit
-                                        </button>
-                                        <button type="button" class="btn btn-sm btn-danger-soft" 
-                                            data-id="{{ $emp->id }}" 
-                                            data-name="{{ $emp->name }}"
-                                            onclick="deleteEmployee(this)">
-                                            Hapus
-                                        </button>
+
+                                        <div class="action-dropdown-wrap">
+                                            <button type="button" class="btn btn-sm btn-secondary btn-icon-only" onclick="toggleEmpDropdown(this, event)" title="Opsi lainnya">
+                                                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/></svg>
+                                            </button>
+                                            <div class="action-dropdown-menu">
+                                                <a href="https://wa.me/62{{ ltrim($emp->phone_number, '0') }}" target="_blank" class="dropdown-item">
+                                                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+                                                    Chat WhatsApp
+                                                </a>
+                                                <button type="button" class="dropdown-item" 
+                                                    data-id="{{ $emp->id }}" 
+                                                    data-name="{{ $emp->name }}" 
+                                                    data-phone="{{ $emp->phone_number }}" 
+                                                    data-panggilan="{{ $emp->panggilan ?? 'Yth.' }}"
+                                                    onclick="editEmployee(this)">
+                                                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                                    Edit Data
+                                                </button>
+                                                <div class="dropdown-divider"></div>
+                                                <button type="button" class="dropdown-item text-danger" 
+                                                    data-id="{{ $emp->id }}" 
+                                                    data-name="{{ $emp->name }}"
+                                                    onclick="deleteEmployee(this)">
+                                                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                                    Hapus Pegawai
+                                                </button>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             @empty
@@ -2122,6 +2502,13 @@ body {
                                     <p>Belum ada data pegawai. Silakan tambah atau import data baru.</p>
                                 </div>
                             @endforelse
+
+                            {{-- Empty State Pencarian Realtime --}}
+                            <div id="emptySearchState" style="display: none; text-align: center; padding: 36px 16px; color: var(--text-muted);">
+                                <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin: 0 auto 8px; opacity: 0.4;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                <p style="font-weight: 700; font-size: 13px; margin: 0 0 4px; color: var(--navy-dark);">Pegawai Tidak Ditemukan</p>
+                                <span style="font-size: 11px;">Tidak ada kontak yang cocok dengan kata kunci pencarian.</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -2216,80 +2603,131 @@ body {
                 </div>
 
                 <div class="card-body">
-                    <form method="POST" action="{{ route('admin.settings.update') }}">
+                    <form method="POST" action="{{ route('admin.settings.update') }}" id="settingsForm">
                         @csrf
 
-                        <div class="form-row" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); margin-bottom: 20px;">
-                            <div class="form-group">
-                                <label class="form-label">Jam Masuk Kerja (Pagi)</label>
-                                <input type="time" name="check_in_time" class="form-control" value="{{ $checkIn }}" required>
-                                <small style="font-size:10px; color:var(--text-subtle); display:block; margin-top:3px;">Senin s/d Jumat</small>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Jam Pulang (Senin - Kamis)</label>
-                                <input type="time" name="check_out_time" class="form-control" value="{{ $checkOut }}" required>
-                                <small style="font-size:10px; color:var(--text-subtle); display:block; margin-top:3px;">Hari kerja reguler</small>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Jam Pulang (Khusus Jumat)</label>
-                                <input type="time" name="check_out_time_friday" class="form-control" value="{{ $checkOutFriday ?? '16:30' }}" required>
-                                <small style="font-size:10px; color:var(--primary); font-weight:700; display:block; margin-top:3px;">Khusus hari Jumat</small>
-                            </div>
-                        </div>
+                        <div class="template-grid-layout">
+                            {{-- KOLOM KIRI: FORM PENGATURAN & TEMPLATE --}}
+                            <div class="template-form-col">
+                                <div class="form-row" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); margin-bottom: 20px;">
+                                    <div class="form-group">
+                                        <label class="form-label">Jam Masuk Kerja (Pagi)</label>
+                                        <input type="time" name="check_in_time" class="form-control" value="{{ $checkIn }}" required onchange="updateLivePreview()">
+                                        <small style="font-size:10px; color:var(--text-subtle); display:block; margin-top:3px;">Senin s/d Jumat</small>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Jam Pulang (Senin - Kamis)</label>
+                                        <input type="time" name="check_out_time" class="form-control" value="{{ $checkOut }}" required onchange="updateLivePreview()">
+                                        <small style="font-size:10px; color:var(--text-subtle); display:block; margin-top:3px;">Hari kerja reguler</small>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Jam Pulang (Khusus Jumat)</label>
+                                        <input type="time" name="check_out_time_friday" class="form-control" value="{{ $checkOutFriday ?? '16:30' }}" required onchange="updateLivePreview()">
+                                        <small style="font-size:10px; color:var(--primary); font-weight:700; display:block; margin-top:3px;">Khusus hari Jumat</small>
+                                    </div>
+                                </div>
 
-                        <div class="form-row" style="margin-bottom: 20px;">
-                            <div class="form-group">
-                                <label class="form-label">Nama Instansi / Kantor</label>
-                                <input type="text" name="organization_name" class="form-control" value="{{ $organization ?? 'BPS Kabupaten Karanganyar' }}">
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Pengingat Lebih Awal (Menit Sebelum Jam Masuk/Pulang)</label>
-                                <input type="number" name="pre_reminder_minutes" class="form-control" value="{{ $preReminderMinutes ?? 30 }}" min="1" max="120">
-                            </div>
-                        </div>
+                                <div class="form-row" style="margin-bottom: 20px;">
+                                    <div class="form-group">
+                                        <label class="form-label">Nama Instansi / Kantor</label>
+                                        <input type="text" name="organization_name" class="form-control" value="{{ $organization ?? 'BPS Kabupaten Karanganyar' }}" oninput="updateLivePreview()">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Pengingat Lebih Awal (Menit)</label>
+                                        <input type="number" name="pre_reminder_minutes" class="form-control" value="{{ $preReminderMinutes ?? 30 }}" min="1" max="120" oninput="updateLivePreview()">
+                                    </div>
+                                </div>
 
-                        <div class="form-group">
-                            <label class="form-label">Template Pengingat Absen Masuk</label>
-                            <textarea name="template_pre_checkin" class="form-control" rows="4">{{ $templatePreCheckin }}</textarea>
-                            <div style="margin-top: 6px;">
-                                <span class="var-pill">{name}</span>
-                                <span class="var-pill">{target_time}</span>
-                                <span class="var-pill">{minutes_left}</span>
-                                <span class="var-pill">{organization}</span>
+                                <div class="form-group">
+                                    <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px;">
+                                        <label class="form-label" style="margin: 0;">Template Pengingat Absen Masuk</label>
+                                        <small style="font-size: 10px; color: var(--primary); font-weight: 700;">Klik tag untuk menyisipkan variabel</small>
+                                    </div>
+                                    <textarea name="template_pre_checkin" class="form-control" rows="4" oninput="updateLivePreview()">{{ $templatePreCheckin }}</textarea>
+                                    <div style="margin-top: 6px;">
+                                        <button type="button" class="var-pill" onclick="insertVariable('template_pre_checkin', '{name}')" title="Klik untuk menyisipkan variabel {name}">+ {name}</button>
+                                        <button type="button" class="var-pill" onclick="insertVariable('template_pre_checkin', '{target_time}')" title="Klik untuk menyisipkan variabel {target_time}">+ {target_time}</button>
+                                        <button type="button" class="var-pill" onclick="insertVariable('template_pre_checkin', '{minutes_left}')" title="Klik untuk menyisipkan variabel {minutes_left}">+ {minutes_left}</button>
+                                        <button type="button" class="var-pill" onclick="insertVariable('template_pre_checkin', '{organization}')" title="Klik untuk menyisipkan variabel {organization}">+ {organization}</button>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px;">
+                                        <label class="form-label" style="margin: 0;">Template Pengingat Absen Pulang</label>
+                                        <small style="font-size: 10px; color: var(--primary); font-weight: 700;">Klik tag untuk menyisipkan variabel</small>
+                                    </div>
+                                    <textarea name="template_pre_checkout" class="form-control" rows="4" oninput="updateLivePreview()">{{ $templatePreCheckout }}</textarea>
+                                    <div style="margin-top: 6px;">
+                                        <button type="button" class="var-pill" onclick="insertVariable('template_pre_checkout', '{name}')" title="Klik untuk menyisipkan variabel {name}">+ {name}</button>
+                                        <button type="button" class="var-pill" onclick="insertVariable('template_pre_checkout', '{target_time}')" title="Klik untuk menyisipkan variabel {target_time}">+ {target_time}</button>
+                                        <button type="button" class="var-pill" onclick="insertVariable('template_pre_checkout', '{minutes_left}')" title="Klik untuk menyisipkan variabel {minutes_left}">+ {minutes_left}</button>
+                                        <button type="button" class="var-pill" onclick="insertVariable('template_pre_checkout', '{organization}')" title="Klik untuk menyisipkan variabel {organization}">+ {organization}</button>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px;">
+                                        <label class="form-label" style="margin: 0;">Template Broadcast Cepat</label>
+                                        <small style="font-size: 10px; color: var(--primary); font-weight: 700;">Klik tag untuk menyisipkan variabel</small>
+                                    </div>
+                                    <textarea name="template_broadcast" class="form-control" rows="3" oninput="updateLivePreview()">{{ $templateBroadcast ?? "Halo {name},\n\nPengumuman: mohon perhatian untuk seluruh pegawai.\n\n{kata}" }}</textarea>
+                                    <div style="margin-top: 6px;">
+                                        <button type="button" class="var-pill" onclick="insertVariable('template_broadcast', '{name}')" title="Klik untuk menyisipkan variabel {name}">+ {name}</button>
+                                        <button type="button" class="var-pill" onclick="insertVariable('template_broadcast', '{organization}')" title="Klik untuk menyisipkan variabel {organization}">+ {organization}</button>
+                                        <button type="button" class="var-pill" onclick="insertVariable('template_broadcast', '{kata}')" title="Klik untuk menyisipkan variabel {kata}">+ {kata}</button>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">Kalimat Penutup / Salam</label>
+                                    <input type="text" name="closing_word" class="form-control" value="{{ $kata ?? 'Semangat kerja!' }}" oninput="updateLivePreview()">
+                                </div>
+
+                                <div style="margin-top: 24px;">
+                                    <button type="submit" class="btn btn-primary" style="width: 100%;">
+                                        <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                        Simpan Semua Pengaturan
+                                    </button>
+                                </div>
                             </div>
-                        </div>
 
-                        <div class="form-group">
-                            <label class="form-label">Template Pengingat Absen Pulang</label>
-                            <textarea name="template_pre_checkout" class="form-control" rows="4">{{ $templatePreCheckout }}</textarea>
-                            <div style="margin-top: 6px;">
-                                <span class="var-pill">{name}</span>
-                                <span class="var-pill">{target_time}</span>
-                                <span class="var-pill">{minutes_left}</span>
-                                <span class="var-pill">{organization}</span>
+                            {{-- KOLOM KANAN: LIVE PRATINJAU WHATSAPP (MOCKUP REALTIME) --}}
+                            <div class="template-preview-col" style="position: sticky; top: 90px;">
+                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                                    <label class="form-label" style="margin: 0; font-weight: 800; color: #0f172a;">
+                                        Pratinjau Pesan WhatsApp
+                                    </label>
+                                    <span style="font-size: 10px; font-weight: 700; background: #e0f2fe; color: #0284c7; padding: 2px 8px; border-radius: 4px;">Live Preview</span>
+                                </div>
+
+                                <div class="wa-preview-container">
+                                    <div class="wa-preview-switcher">
+                                        <button type="button" class="wa-switcher-btn active" data-type="pre_checkin" onclick="switchPreviewTab('pre_checkin')">Absen Masuk</button>
+                                        <button type="button" class="wa-switcher-btn" data-type="pre_checkout" onclick="switchPreviewTab('pre_checkout')">Absen Pulang</button>
+                                        <button type="button" class="wa-switcher-btn" data-type="broadcast" onclick="switchPreviewTab('broadcast')">Broadcast</button>
+                                    </div>
+                                    <div class="wa-preview-header">
+                                        <div class="wa-preview-avatar">WA</div>
+                                        <div class="wa-preview-user">
+                                            <strong>BPS Notifikasi</strong>
+                                            <span>online</span>
+                                        </div>
+                                    </div>
+                                    <div class="wa-preview-body">
+                                        <div class="wa-chat-bubble">
+                                            <div id="waPreviewText">Memuat pratinjau pesan...</div>
+                                            <div class="wa-chat-meta">
+                                                <span id="waPreviewTime">07:00</span>
+                                                <svg width="15" height="11" viewBox="0 0 16 11" fill="none"><path d="M11.07 0.93L4.93 7.07L2.43 4.57L1.5 5.5L4.93 8.93L12 1.86L11.07 0.93ZM15.07 0.93L8.93 7.07L7.97 6.11L7.03 7.05L8.93 8.93L16 1.86L15.07 0.93Z" fill="#53bdeb"/></svg>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <small style="display: block; font-size: 11px; color: var(--text-muted); margin-top: 8px; line-height: 1.4;">
+                                    Tampilan di atas merefleksikan format pesan yang diterima oleh pegawai di aplikasi WhatsApp secara realtime.
+                                </small>
                             </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label class="form-label">Template Broadcast Cepat (Default)</label>
-                            <textarea name="template_broadcast" class="form-control" rows="3">{{ $templateBroadcast ?? "Halo {name},\n\nPengumuman: mohon perhatian untuk seluruh pegawai.\n\n{kata}" }}</textarea>
-                            <div style="margin-top: 6px;">
-                                <span class="var-pill">{name}</span>
-                                <span class="var-pill">{organization}</span>
-                                <span class="var-pill">{kata}</span>
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label class="form-label">Kalimat Penutup / Salam</label>
-                            <input type="text" name="closing_word" class="form-control" value="{{ $kata ?? 'Semangat kerja!' }}">
-                        </div>
-
-                        <div style="text-align: right; margin-top: 24px;">
-                            <button type="submit" class="btn btn-primary">
-                                <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                                Simpan Semua Pengaturan
-                            </button>
                         </div>
                     </form>
                 </div>
@@ -2492,6 +2930,7 @@ if (searchInput) {
     searchInput.addEventListener('input', function(e) {
         const query = e.target.value.toLowerCase().trim();
         const rows = document.querySelectorAll('.employee-row');
+        let visibleCount = 0;
 
         rows.forEach(row => {
             const name = row.getAttribute('data-name') || '';
@@ -2499,10 +2938,16 @@ if (searchInput) {
 
             if (name.includes(query) || phone.includes(query)) {
                 row.style.display = 'flex';
+                visibleCount++;
             } else {
                 row.style.display = 'none';
             }
         });
+
+        const emptySearch = document.getElementById('emptySearchState');
+        if (emptySearch) {
+            emptySearch.style.display = (visibleCount === 0 && rows.length > 0) ? 'block' : 'none';
+        }
 
         handleEmpCheckChange();
     });
@@ -3315,6 +3760,105 @@ function openChangePasswordModal() {
         }, 8000);
     }
 })();
+
+/* ==========================================================================
+   UI/UX IMPROVEMENTS: ACTION DROPDOWN, VARIABLE INSERTION, & LIVE PREVIEW
+   ========================================================================== */
+
+/* Toggle Dropdown Menu [ ⋮ ] pada Baris Pegawai */
+function toggleEmpDropdown(button, event) {
+    event.stopPropagation();
+    const wrap = button.closest('.action-dropdown-wrap');
+    if (!wrap) return;
+    const wasOpen = wrap.classList.contains('open');
+
+    // Tutup semua dropdown lain yang sedang terbuka
+    document.querySelectorAll('.action-dropdown-wrap.open').forEach(el => el.classList.remove('open'));
+
+    if (!wasOpen) {
+        wrap.classList.add('open');
+    }
+}
+
+// Tutup dropdown otomatis jika user mengklik di luar menu
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('.action-dropdown-wrap')) {
+        document.querySelectorAll('.action-dropdown-wrap.open').forEach(el => el.classList.remove('open'));
+    }
+});
+
+/* Click-to-Insert Template Variable Pill */
+function insertVariable(textareaName, variableTag) {
+    const textarea = document.querySelector(`textarea[name="${textareaName}"]`);
+    if (!textarea) return;
+
+    const startPos = textarea.selectionStart;
+    const endPos = textarea.selectionEnd;
+    const value = textarea.value;
+
+    textarea.value = value.substring(0, startPos) + variableTag + value.substring(endPos, value.length);
+    textarea.focus();
+    textarea.selectionStart = startPos + variableTag.length;
+    textarea.selectionEnd = startPos + variableTag.length;
+
+    updateLivePreview();
+}
+
+/* WhatsApp Live Chat Preview System */
+let activePreviewType = 'pre_checkin';
+
+function switchPreviewTab(type) {
+    activePreviewType = type;
+    document.querySelectorAll('.wa-switcher-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-type') === type);
+    });
+    updateLivePreview();
+}
+
+function updateLivePreview() {
+    let textareaName = 'template_pre_checkin';
+    let targetTime = document.querySelector('input[name="check_in_time"]')?.value || '07:30';
+    if (activePreviewType === 'pre_checkout') {
+        textareaName = 'template_pre_checkout';
+        targetTime = document.querySelector('input[name="check_out_time"]')?.value || '16:00';
+    } else if (activePreviewType === 'broadcast') {
+        textareaName = 'template_broadcast';
+    }
+
+    const textareaEl = document.querySelector(`textarea[name="${textareaName}"]`);
+    const templateVal = textareaEl ? textareaEl.value : '';
+    const org = document.querySelector('input[name="organization_name"]')?.value || 'BPS Kabupaten Karanganyar';
+    const minutes = document.querySelector('input[name="pre_reminder_minutes"]')?.value || '30';
+    const closing = document.querySelector('input[name="closing_word"]')?.value || 'Semangat kerja!';
+
+    let rendered = templateVal
+        .replace(/{name}/g, 'Budi Santoso, S.Stat.')
+        .replace(/{target_time}/g, targetTime)
+        .replace(/{minutes_left}/g, minutes)
+        .replace(/{organization}/g, org)
+        .replace(/{kata}/g, closing);
+
+    // Tambahkan contoh pantun ramah jika preview pengingat absensi
+    if (activePreviewType !== 'broadcast' && !rendered.includes('Pantun')) {
+        rendered += '\n\nPergi ke pasar membeli durian,\nJangan lupa beli buah manggis.\nAyo kawan kita presensi harian,\nBekerja giat dengan senyum manis.';
+    }
+
+    const previewEl = document.getElementById('waPreviewText');
+    if (previewEl) {
+        previewEl.textContent = rendered;
+    }
+
+    const timeEl = document.getElementById('waPreviewTime');
+    if (timeEl) {
+        const now = new Date();
+        timeEl.textContent = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+    }
+}
+
+// Inisialisasi live preview saat halaman siap
+document.addEventListener('DOMContentLoaded', function() {
+    updateLivePreview();
+});
 </script>
 
 @endsection
