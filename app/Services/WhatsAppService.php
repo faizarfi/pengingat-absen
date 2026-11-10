@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\WaOutbox;
+use App\Models\Setting;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -28,7 +29,17 @@ class WhatsAppService
             ];
         }
 
-        // Legacy: kirim langsung via API provider
+        // Legacy: kirim langsung via API provider (selesaikan {minutes_left} bila ada)
+        if (str_contains($message, '{minutes_left}')) {
+            $isFriday = now()->isFriday();
+            $targetTimeStr = ($type === 'pre_checkout')
+                ? ($isFriday ? Setting::get('check_out_time_friday', '16:30') : Setting::get('check_out_time', '16:00'))
+                : Setting::get('check_in_time', '07:30');
+            $target = \Carbon\Carbon::createFromTimeString($targetTimeStr);
+            $minutesLeft = (int) max(0, ceil(($target->timestamp - now()->timestamp) / 60));
+            $message = str_replace('{minutes_left}', (string) $minutesLeft, $message);
+        }
+
         $result = $this->sendMessage($phone, $message);
         $result['driver'] = 'api';
         return $result;

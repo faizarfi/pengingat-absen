@@ -386,10 +386,14 @@ class TelegramWebhookController extends Controller
             $panggilan = $emp->panggilan ?? 'Yth.';
             $namaLengkap = $panggilan . ' ' . $emp->name;
             $text = str_replace(
-                ['{name}', '{kata}', '{minutes_left}', '{target_time}', '{organization}'],
-                [$namaLengkap, $kata, $minutesLeft, $targetToday->format('H:i'), Setting::get('organization_name', 'BPS Kabupaten Karanganyar')],
+                ['{name}', '{kata}', '{target_time}', '{organization}'],
+                [$namaLengkap, $kata, $targetToday->format('H:i'), Setting::get('organization_name', 'BPS Kabupaten Karanganyar')],
                 $template
             );
+
+            if (strpos($text, '{minutes_left}') === false) {
+                $text = trim($text) . "\n\nTersisa waktu kurang lebih {minutes_left} menit menuju jam masuk kerja.";
+            }
 
             // Pantun acak
             $pantun = DB::table('pantuns')->where('type', 'masuk')->inRandomOrder()->value('text');
@@ -456,10 +460,14 @@ class TelegramWebhookController extends Controller
             $panggilan = $emp->panggilan ?? 'Yth.';
             $namaLengkap = $panggilan . ' ' . $emp->name;
             $text = str_replace(
-                ['{name}', '{kata}', '{minutes_left}', '{target_time}', '{organization}'],
-                [$namaLengkap, $kata, $minutesLeft, $targetToday->format('H:i'), Setting::get('organization_name', 'BPS Kabupaten Karanganyar')],
+                ['{name}', '{kata}', '{target_time}', '{organization}'],
+                [$namaLengkap, $kata, $targetToday->format('H:i'), Setting::get('organization_name', 'BPS Kabupaten Karanganyar')],
                 $template
             );
+
+            if (strpos($text, '{minutes_left}') === false) {
+                $text = trim($text) . "\n\nTersisa waktu kurang lebih {minutes_left} menit menuju jam pulang kerja.";
+            }
 
             // Pantun acak
             $pantun = DB::table('pantuns')->where('type', 'pulang')->inRandomOrder()->value('text');

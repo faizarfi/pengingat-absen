@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\WaOutbox;
 use App\Models\WaAgentHeartbeat;
+use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
@@ -23,6 +24,20 @@ class AgentApiController extends Controller
             ->orderBy('id', 'asc')
             ->limit(min($limit, 50))
             ->get(['id', 'employee_id', 'phone_number', 'message', 'type', 'status', 'attempts', 'scheduled_at']);
+
+        $checkIn = Setting::get('check_in_time', '07:30');
+        $isFriday = now()->isFriday();
+        $checkOut = $isFriday ? Setting::get('check_out_time_friday', '16:30') : Setting::get('check_out_time', '16:00');
+
+        $messages->each(function ($msg) use ($checkIn, $checkOut) {
+            if ($msg->type === 'pre_checkin') {
+                $msg->target_time = $checkIn;
+            } elseif ($msg->type === 'pre_checkout') {
+                $msg->target_time = $checkOut;
+            } else {
+                $msg->target_time = null;
+            }
+        });
 
         return response()->json([
             'success' => true,
@@ -61,12 +76,16 @@ class AgentApiController extends Controller
      * POST /api/agent/messages/{id}/sent
      * Tandai pesan berhasil terkirim.
      */
-    public function markSent(int $id, \App\Services\WhatsAppService $waService): JsonResponse
+    public function markSent(Request $request, int $id, \App\Services\WhatsAppService $waService): JsonResponse
     {
         $outbox = WaOutbox::find($id);
 
         if (!$outbox) {
             return response()->json(['success' => false, 'error' => 'Message not found'], 404);
+        }
+
+        if ($request->has('final_message')) {
+            $outbox->message = $request->input('final_message');
         }
 
         $outbox->markSent();

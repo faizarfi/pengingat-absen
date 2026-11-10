@@ -149,13 +149,13 @@ class WebhookController extends Controller
             $panggilan = $emp->panggilan ?? 'Yth.';
             $namaLengkap = $panggilan . ' ' . $emp->name;
             $text = str_replace(
-                ['{name}', '{kata}', '{minutes_left}', '{target_time}', '{organization}'],
-                [$namaLengkap, $kata, $minutesLeft, $targetToday->format('H:i'), $orgName],
+                ['{name}', '{kata}', '{target_time}', '{organization}'],
+                [$namaLengkap, $kata, $targetToday->format('H:i'), $orgName],
                 $template
             );
 
-            if (!str_contains($template, '{minutes_left}')) {
-                $text .= "\n\nTersisa waktu kurang lebih {$minutesLeft} menit.";
+            if (!str_contains($text, '{minutes_left}')) {
+                $text .= "\n\nTersisa waktu kurang lebih {minutes_left} menit.";
             }
 
             if ($pantun) {

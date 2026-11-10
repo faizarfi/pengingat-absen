@@ -623,18 +623,18 @@ class AdminController extends Controller
 
             $minutesLeft = (int) max(0, $now->diffInMinutes($targetToday));
 
-            // Prepare message and replace placeholders
+            // Prepare message and replace placeholders (keep {minutes_left} dynamic)
             $panggilan = $emp->panggilan ?? 'Yth.';
             $namaLengkap = $panggilan . ' ' . $emp->name;
             $text = str_replace(
-                ['{name}', '{kata}', '{minutes_left}', '{target_time}', '{organization}'],
-                [$namaLengkap, $kata, $minutesLeft, $targetToday->format('H:i'), Setting::get('organization_name', 'BPS Kabupaten Karanganyar')],
+                ['{name}', '{kata}', '{target_time}', '{organization}'],
+                [$namaLengkap, $kata, $targetToday->format('H:i'), Setting::get('organization_name', 'BPS Kabupaten Karanganyar')],
                 $template
             );
 
             // If template doesn't include the {minutes_left} placeholder, append a fallback sentence
-            if (strpos($template, '{minutes_left}') === false) {
-                $fallback = "Tersisa waktu kurang lebih {$minutesLeft} menit menuju jam masuk kerja.";
+            if (strpos($text, '{minutes_left}') === false) {
+                $fallback = "Tersisa waktu kurang lebih {minutes_left} menit menuju jam masuk kerja.";
                 $text = trim($text) . "\n\n" . $fallback;
             }
 
@@ -700,13 +700,13 @@ class AdminController extends Controller
             $panggilan = $emp->panggilan ?? 'Yth.';
             $namaLengkap = $panggilan . ' ' . $emp->name;
             $text = str_replace(
-                ['{name}', '{kata}', '{minutes_left}', '{target_time}', '{organization}'],
-                [$namaLengkap, $kata, $minutesLeft, $targetToday->format('H:i'), Setting::get('organization_name', 'BPS Kabupaten Karanganyar')],
+                ['{name}', '{kata}', '{target_time}', '{organization}'],
+                [$namaLengkap, $kata, $targetToday->format('H:i'), Setting::get('organization_name', 'BPS Kabupaten Karanganyar')],
                 $template
             );
 
-            if (strpos($template, '{minutes_left}') === false) {
-                $fallback = "Tersisa waktu kurang lebih {$minutesLeft} menit menuju jam penyelesaian tugas hari ini.";
+            if (strpos($text, '{minutes_left}') === false) {
+                $fallback = "Tersisa waktu kurang lebih {minutes_left} menit menuju jam penyelesaian tugas hari ini.";
                 $text = trim($text) . "\n\n" . $fallback;
             }
 
@@ -783,13 +783,13 @@ class AdminController extends Controller
             $minutesLeft = (int) max(0, $now->diffInMinutes($targetToday));
 
             $text = str_replace(
-                ['{name}', '{kata}', '{minutes_left}', '{target_time}', '{organization}'],
-                [$namaLengkap, $kata, $minutesLeft, $targetToday->format('H:i'), $org],
+                ['{name}', '{kata}', '{target_time}', '{organization}'],
+                [$namaLengkap, $kata, $targetToday->format('H:i'), $org],
                 $template
             );
 
-            if (strpos($template, '{minutes_left}') === false) {
-                $text = trim($text) . "\n\nTersisa waktu kurang lebih {$minutesLeft} menit menuju jam masuk.";
+            if (strpos($text, '{minutes_left}') === false) {
+                $text = trim($text) . "\n\nTersisa waktu kurang lebih {minutes_left} menit menuju jam masuk.";
             }
 
             $pantun = DB::table('pantuns')->where('type', 'masuk')->inRandomOrder()->value('text');
@@ -817,13 +817,13 @@ class AdminController extends Controller
             $minutesLeft = (int) max(0, $now->diffInMinutes($targetToday));
 
             $text = str_replace(
-                ['{name}', '{kata}', '{minutes_left}', '{target_time}', '{organization}'],
-                [$namaLengkap, $kata, $minutesLeft, $targetToday->format('H:i'), $org],
+                ['{name}', '{kata}', '{target_time}', '{organization}'],
+                [$namaLengkap, $kata, $targetToday->format('H:i'), $org],
                 $template
             );
 
-            if (strpos($template, '{minutes_left}') === false) {
-                $text = trim($text) . "\n\nTersisa waktu kurang lebih {$minutesLeft} menit menuju jam penyelesaian tugas hari ini.";
+            if (strpos($text, '{minutes_left}') === false) {
+                $text = trim($text) . "\n\nTersisa waktu kurang lebih {minutes_left} menit menuju jam penyelesaian tugas hari ini.";
             }
 
             $pantun = DB::table('pantuns')->where('type', 'pulang')->inRandomOrder()->value('text');

@@ -155,4 +155,65 @@ class AdminSecurityAndSyncTest extends TestCase
         $response->assertHeader('Content-Type', 'text/csv; charset=utf-8');
         $this->assertStringContainsString('Ahmad Pegawai', $response->streamedContent());
     }
+
+    public function test_pre_checkout_preserves_dynamic_minutes_placeholder_in_outbox(): void
+    {
+        $admin = User::first() ?? User::factory()->create();
+
+        $emp = Employee::create([
+            'name' => 'Rina Dinamis',
+            'panggilan' => 'Ibu',
+            'phone_number' => '81211112222',
+            'is_active' => true,
+        ]);
+
+        $response = $this->actingAs($admin)->post('/admin/send-pre-checkout', [
+            'employee_ids' => [$emp->id],
+        ]);
+
+        $response->assertSessionHas('status');
+
+        $outbox = WaOutbox::where('employee_id', $emp->id)->where('type', 'pre_checkout')->latest()->first();
+        $this->assertNotNull($outbox);
+        // Pastikan variabel {minutes_left} tetap dipertahankan agar dihitung real-time saat pesan dikirim oleh agent
+        $this->assertStringContainsString('{minutes_left}', $outbox->message);
+    }
+
+    public function test_agent_api_provides_target_time_and_saves_final_message(): void
+    {
+        config(['whatsapp.agent_token' => 'test-agent-token']);
+        $headers = ['Authorization' => 'Bearer test-agent-token'];
+
+        $emp = Employee::first() ?? Employee::create([
+            'name' => 'Bambang Agent',
+            'phone_number' => '81233334444',
+            'is_active' => true,
+        ]);
+
+        $outbox = WaOutbox::create([
+            'employee_id' => $emp->id,
+            'phone_number' => '6281233334444',
+            'message' => 'Jam pulang kerja Anda pukul 16:00 WIB. Tersisa waktu kurang lebih {minutes_left} menit.',
+            'type' => 'pre_checkout',
+            'status' => WaOutbox::STATUS_PENDING,
+        ]);
+
+        // 1. Cek GET /api/agent/messages
+        $res = $this->getJson('/api/agent/messages?limit=10', $headers);
+        $res->assertStatus(200);
+        $data = collect($res->json('data'))->firstWhere('id', $outbox->id);
+        $this->assertNotNull($data);
+        $this->assertNotEmpty($data['target_time']);
+
+        // 2. Cek POST /api/agent/messages/{id}/sent dengan final_message
+        $sentText = 'Jam pulang kerja Anda pukul 16:00 WIB. Tersisa waktu kurang lebih 5 menit.';
+        $sentRes = $this->postJson("/api/agent/messages/{$outbox->id}/sent", [
+            'final_message' => $sentText,
+        ], $headers);
+        $sentRes->assertStatus(200);
+
+        $outbox->refresh();
+        $this->assertEquals(WaOutbox::STATUS_SENT, $outbox->status);
+        $this->assertEquals($sentText, $outbox->message);
+    }
 }

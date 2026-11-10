@@ -260,8 +260,13 @@ async function getPendingMessages() {
     return [];
 }
 
-async function markStatus(msgId, status, error = '') {
-    const data = status === 'failed' ? { error } : null;
+async function markStatus(msgId, status, payload = null) {
+    let data = null;
+    if (typeof payload === 'string') {
+        data = status === 'failed' ? { error: payload } : null;
+    } else if (payload && typeof payload === 'object') {
+        data = payload;
+    }
     await httpRequest(`${API_BASE_URL}/api/agent/messages/${msgId}/${status}`, 'POST', data);
 }
 
@@ -426,6 +431,84 @@ client.on('disconnected', (reason) => {
         }
     }, 30000);
 });
+
+// ==============================================================================
+// REALTIME DYNAMIC TIME RESOLVER (SISA WAKTU REALTIME SAAT PESAN TERKIRIM)
+// ==============================================================================
+function resolveDynamicTimePlaceholders(text, type = 'manual', explicitTargetTime = null) {
+    if (!text || typeof text !== 'string') return text;
+
+    // Cek apakah pesan berkaitan dengan waktu pengingat absen
+    const hasMinutesPlaceholder = text.includes('{minutes_left}');
+    const hasRelativePattern = /(?:Tersisa waktu kurang lebih|tersisa)\s*(?:\{minutes_left\}|\d+)\s*(?:menit|mnt)/i.test(text);
+
+    if (!hasMinutesPlaceholder && !hasRelativePattern && !['pre_checkin', 'pre_checkout'].includes(type)) {
+        return text;
+    }
+
+    // 1. Tentukan target time (H:i)
+    let targetTimeStr = explicitTargetTime;
+    if (!targetTimeStr) {
+        // Coba ekstrak dari teks: "pukul 16:00" atau "jam 16:00" atau "Jam pulang: 16:00"
+        const timeMatch = text.match(/(?:pukul|jam\s*pulang|jam\s*masuk|jam)\s*:?\s*([0-2]?\d[:.][0-5]\d)/i);
+        if (timeMatch) {
+            targetTimeStr = timeMatch[1].replace('.', ':');
+        } else {
+            // Default berdasarkan tipe
+            const isFriday = new Date().getDay() === 5;
+            if (type === 'pre_checkout') {
+                targetTimeStr = isFriday ? '16:30' : '16:00';
+            } else if (type === 'pre_checkin') {
+                targetTimeStr = '07:30';
+            }
+        }
+    }
+
+    if (!targetTimeStr) {
+        return text.replace(/{minutes_left}/g, '0');
+    }
+
+    // 2. Hitung selisih waktu detik ini vs targetTime
+    const now = new Date();
+    const parts = targetTimeStr.split(/[:.]/).map(n => parseInt(n, 10));
+    const targetHour = parts[0] || 0;
+    const targetMinute = parts[1] || 0;
+    const targetDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), targetHour, targetMinute, 0);
+
+    const diffMs = targetDate.getTime() - now.getTime();
+    const minutesLeft = Math.ceil(diffMs / 60000); // Dibulatkan ke atas agar 14m 20d terhitung 15 menit
+
+    const isCheckout = type === 'pre_checkout' || /pulang/i.test(text);
+
+    let result = text;
+
+    if (minutesLeft > 1) {
+        // Contoh: Tersisa waktu kurang lebih 5 menit
+        result = result.replace(/Tersisa waktu kurang lebih\s*(\{minutes_left\}|\d+)\s*menit/gi, `Tersisa waktu kurang lebih ${minutesLeft} menit`);
+        result = result.replace(/tersisa\s*(\{minutes_left\}|\d+)\s*mnt/gi, `tersisa ${minutesLeft} mnt`);
+        result = result.replace(/{minutes_left}/g, String(minutesLeft));
+    } else if (minutesLeft === 1) {
+        // Contoh: Tersisa waktu kurang lebih 1 menit
+        result = result.replace(/Tersisa waktu kurang lebih\s*(\{minutes_left\}|\d+)\s*menit/gi, 'Tersisa waktu kurang lebih 1 menit');
+        result = result.replace(/tersisa\s*(\{minutes_left\}|\d+)\s*mnt/gi, 'tersisa 1 mnt');
+        result = result.replace(/{minutes_left}/g, '1');
+    } else {
+        // minutesLeft <= 0: Waktu target telah tiba atau telah lewat saat giliran pesan ini dikirim
+        const arrivalPhrase = isCheckout 
+            ? 'Waktu jam pulang telah tiba.'
+            : 'Waktu jam masuk kerja telah tiba.';
+
+        if (/Tersisa waktu kurang lebih\s*(\{minutes_left\}|\d+)\s*menit[\.]?/i.test(result)) {
+            result = result.replace(/Tersisa waktu kurang lebih\s*(\{minutes_left\}|\d+)\s*menit[\.]?/gi, arrivalPhrase);
+        } else if (/\(tersisa\s*(\{minutes_left\}|\d+)\s*mnt\)/i.test(result)) {
+            result = result.replace(/\(tersisa\s*(\{minutes_left\}|\d+)\s*mnt\)/gi, `(${isCheckout ? 'waktu pulang telah tiba' : 'waktu masuk telah tiba'})`);
+        } else {
+            result = result.replace(/{minutes_left}/g, '0');
+        }
+    }
+
+    return result;
+}
 
 // ==============================================================================
 // ANTI-BAN: INJEKSI ZERO-WIDTH KARAKTER (ANTI-HASH FINGERPRINTING)
@@ -628,16 +711,19 @@ async function startPolling() {
                         break;
                     }
 
-                    const { id: msgId, phone_number: phone, message: text } = msg;
+                    const { id: msgId, phone_number: phone, message: rawText, type: msgType, target_time: targetTime } = msg;
 
                     // Tandai sedang diproses
                     await markStatus(msgId, 'processing');
+
+                    // Hitung dan selesaikan sisa waktu {minutes_left} secara real-time pada detik ini
+                    const text = resolveDynamicTimePlaceholders(rawText, msgType, targetTime);
 
                     // Kirim pesan via WhatsApp Web (background)
                     const result = await sendViaWhatsApp(phone, text);
 
                     if (result.success) {
-                        await markStatus(msgId, 'sent');
+                        await markStatus(msgId, 'sent', { final_message: text });
                         consecutiveSentCount++;
                         dailySentCount++;
                         consecutiveFailures = 0; // Reset failure counter
