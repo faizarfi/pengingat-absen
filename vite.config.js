@@ -12,7 +12,13 @@ export default defineConfig({
     ],
     server: {
         watch: {
-            ignored: ['**/storage/framework/views/**', '**/wa-desktop-agent/**'],
+            ignored: [
+                '**/storage/framework/views/**',
+                '**/wa-desktop-agent/**',
+                '**/.wwebjs_auth/**',
+                '**/.wwebjs_cache/**',
+                '**/.git/**',
+            ],
         },
     },
 });
