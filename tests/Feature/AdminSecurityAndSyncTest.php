@@ -216,4 +216,113 @@ class AdminSecurityAndSyncTest extends TestCase
         $this->assertEquals(WaOutbox::STATUS_SENT, $outbox->status);
         $this->assertEquals($sentText, $outbox->message);
     }
+
+    public function test_no_retry_error_marks_outbox_failed_immediately(): void
+    {
+        $emp = Employee::first() ?? Employee::create([
+            'name' => 'Nomor Salah',
+            'phone_number' => '81200001111',
+            'is_active' => true,
+        ]);
+
+        $outbox = WaOutbox::create([
+            'employee_id' => $emp->id,
+            'phone_number' => '6281200001111',
+            'message' => 'Test',
+            'type' => 'manual',
+            'status' => WaOutbox::STATUS_PROCESSING,
+            'attempts' => 0,
+        ]);
+
+        $outbox->markFailed('[NO RETRY] Nomor tidak terdaftar di WhatsApp');
+        $outbox->refresh();
+
+        $this->assertEquals(WaOutbox::STATUS_FAILED, $outbox->status);
+        $this->assertEquals(1, $outbox->attempts);
+    }
+
+    public function test_recover_stuck_processing_only_resets_stale_items(): void
+    {
+        $emp = Employee::first() ?? Employee::create([
+            'name' => 'Stuck Test',
+            'phone_number' => '81200002222',
+            'is_active' => true,
+        ]);
+
+        $stale = WaOutbox::create([
+            'employee_id' => $emp->id,
+            'phone_number' => '6281200002222',
+            'message' => 'Stale',
+            'type' => 'manual',
+            'status' => WaOutbox::STATUS_PROCESSING,
+            'processing_at' => now()->subMinutes(10),
+        ]);
+
+        $fresh = WaOutbox::create([
+            'employee_id' => $emp->id,
+            'phone_number' => '6281200002222',
+            'message' => 'Fresh',
+            'type' => 'manual',
+            'status' => WaOutbox::STATUS_PROCESSING,
+            'processing_at' => now()->subMinutes(1),
+        ]);
+
+        $recovered = WaOutbox::recoverStuckProcessing(5);
+
+        $stale->refresh();
+        $fresh->refresh();
+
+        $this->assertGreaterThanOrEqual(1, $recovered);
+        $this->assertEquals(WaOutbox::STATUS_RETRY, $stale->status);
+        $this->assertEquals(WaOutbox::STATUS_PROCESSING, $fresh->status);
+    }
+
+    public function test_double_click_pre_checkout_prevents_duplicate_outbox(): void
+    {
+        $admin = User::first() ?? User::factory()->create();
+
+        $emp = Employee::create([
+            'name' => 'Anto Anti Dobel',
+            'panggilan' => 'Bapak',
+            'phone_number' => '81255556666',
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($admin)->post('/admin/send-pre-checkout', [
+            'employee_ids' => [$emp->id],
+        ])->assertSessionHas('status');
+
+        $second = $this->actingAs($admin)->post('/admin/send-pre-checkout', [
+            'employee_ids' => [$emp->id],
+        ]);
+        $second->assertSessionHas('error');
+
+        $count = WaOutbox::where('employee_id', $emp->id)->where('type', 'pre_checkout')->count();
+        $this->assertEquals(1, $count);
+    }
+
+    public function test_scheduler_build_message_replaces_target_time_and_supports_pre_checkout(): void
+    {
+        $emp = Employee::first() ?? Employee::create([
+            'name' => 'Dewi Scheduler',
+            'panggilan' => 'Ibu',
+            'phone_number' => '81277778888',
+            'is_active' => true,
+        ]);
+
+        $cmd = new class extends \App\Console\Commands\SendWaReminder {
+            public function exposeBuildMessage(Employee $e, string $t): string
+            {
+                return $this->buildMessage($e, $t);
+            }
+        };
+
+        $msgCheckin = $cmd->exposeBuildMessage($emp, 'pre_checkin');
+        $this->assertStringNotContainsString('{target_time}', $msgCheckin);
+        $this->assertStringNotContainsString('{name}', $msgCheckin);
+
+        $msgCheckout = $cmd->exposeBuildMessage($emp, 'pre_checkout');
+        $this->assertStringNotContainsString('{target_time}', $msgCheckout);
+        $this->assertStringContainsString('{minutes_left}', $msgCheckout);
+    }
 }

@@ -15,8 +15,14 @@ class AgentApiController extends Controller
      * GET /api/agent/messages
      * Ambil pesan pending yang siap dikirim.
      */
-    public function getMessages(Request $request): JsonResponse
+    public function getMessages(Request $request, \App\Services\WhatsAppService $waService): JsonResponse
     {
+        $recovered = WaOutbox::recoverStuckProcessing(5);
+        if ($recovered > 0) {
+            Log::warning('Agent: recovered stuck processing messages', ['count' => $recovered]);
+            $waService->checkAndSendBatchCompletionReport();
+        }
+
         $limit = (int) $request->input('limit', 10);
 
         $messages = WaOutbox::readyToSend()

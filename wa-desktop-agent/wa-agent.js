@@ -332,7 +332,7 @@ function findBrowserPath() {
 const browserExecutable = findBrowserPath();
 const client = new Client({
     authStrategy: new LocalAuth({
-        dataPath: '.wwebjs_auth',
+        dataPath: path.join(__dirname, '..', '.wwebjs_auth'),
     }),
     authTimeoutMs: 60000,
     puppeteer: {

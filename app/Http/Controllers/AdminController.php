@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Hash;
@@ -572,9 +573,20 @@ class AdminController extends Controller
         // Use custom message from request if submitted, otherwise fallback to template setting
         $customMessage = $request->input('message') ?: Setting::get('template_broadcast', "Halo {name},\n\nPengumuman: mohon perhatian untuk seluruh pegawai.\n\n{kata}");
 
+        $guardKey = 'wa_click_manual_' . md5($customMessage . '|' . implode(',', $employees->pluck('id')->all()));
+        if (!$this->acquireClickGuard($guardKey, 15)) {
+            return redirect()->back()->with('error', 'Permintaan broadcast yang sama baru saja diproses. Mohon tunggu 15 detik sebelum mengirim ulang.');
+        }
+
         $queued = 0;
+        $skipped = 0;
 
         foreach ($employees->shuffle() as $emp) {
+            if ($this->hasPendingOrRecentOutbox($emp->id, 'manual', 0)) {
+                $skipped++;
+                continue;
+            }
+
             $panggilan = $emp->panggilan ?? 'Yth.';
             $namaLengkap = $panggilan . ' ' . $emp->name;
             $text = str_replace(
@@ -591,8 +603,13 @@ class AdminController extends Controller
             }
         }
 
+        if ($queued === 0 && $skipped > 0) {
+            return redirect()->back()->with('error', "Tidak ada broadcast baru ditambahkan ({$skipped} pegawai masih memiliki antrean pesan aktif).");
+        }
+
         $targetMsg = $isFiltered ? "{$queued} pegawai terpilih" : "{$queued}/{$employees->count()} karyawan";
-        return redirect()->back()->with('status', "Broadcast berhasil dimasukkan ke antrean: {$targetMsg}.");
+        $skipNote = $skipped > 0 ? " ({$skipped} dilewati karena masih dalam antrean)" : '';
+        return redirect()->back()->with('status', "Broadcast berhasil dimasukkan ke antrean: {$targetMsg}{$skipNote}.");
     }
 
     public function sendPreCheckinNow(Request $request)
@@ -616,8 +633,19 @@ class AdminController extends Controller
         $targetTodayGlobal = (clone $target)->setDate($nowGlobal->year, $nowGlobal->month, $nowGlobal->day);
         $minutesLeftGlobal = (int) max(0, ceil(($targetTodayGlobal->getTimestamp() - $nowGlobal->getTimestamp()) / 60));
 
+        $guardKey = 'wa_click_pre_checkin_' . md5(implode(',', $employees->pluck('id')->all()));
+        if (!$this->acquireClickGuard($guardKey, 15)) {
+            return redirect()->back()->with('error', 'Pengingat masuk baru saja diproses. Mohon tunggu 15 detik sebelum mengirim ulang.');
+        }
+
         $queued = 0;
+        $skipped = 0;
         foreach ($employees->shuffle() as $emp) {
+            if ($this->hasPendingOrRecentOutbox($emp->id, 'pre_checkin', 10)) {
+                $skipped++;
+                continue;
+            }
+
             $now = Carbon::now();
             $targetToday = $target->setDate($now->year, $now->month, $now->day);
 
@@ -664,8 +692,13 @@ class AdminController extends Controller
             }
         }
 
+        if ($queued === 0 && $skipped > 0) {
+            return redirect()->back()->with('error', "Tidak ada antrean baru ditambahkan ({$skipped} pegawai sudah ada di antrean atau baru saja menerima pengingat masuk).");
+        }
+
         $targetMsg = $isFiltered ? "{$queued} pegawai terpilih" : "{$queued}/{$employees->count()} karyawan";
-        return redirect()->back()->with('status', "Pengingat masuk dimasukkan ke antrean: {$targetMsg}. Sisa menit: {$minutesLeftGlobal}");
+        $skipNote = $skipped > 0 ? " ({$skipped} dilewati karena sudah diproses)" : '';
+        return redirect()->back()->with('status', "Pengingat masuk dimasukkan ke antrean: {$targetMsg}{$skipNote}. Sisa menit: {$minutesLeftGlobal}");
     }
 
     public function sendPreCheckoutNow(Request $request)
@@ -690,8 +723,19 @@ class AdminController extends Controller
         $targetTodayGlobal = (clone $target)->setDate($nowGlobal->year, $nowGlobal->month, $nowGlobal->day);
         $minutesLeftGlobal = (int) max(0, ceil(($targetTodayGlobal->getTimestamp() - $nowGlobal->getTimestamp()) / 60));
 
+        $guardKey = 'wa_click_pre_checkout_' . md5(implode(',', $employees->pluck('id')->all()));
+        if (!$this->acquireClickGuard($guardKey, 15)) {
+            return redirect()->back()->with('error', 'Pengingat pulang baru saja diproses. Mohon tunggu 15 detik sebelum mengirim ulang.');
+        }
+
         $queued = 0;
+        $skipped = 0;
         foreach ($employees->shuffle() as $emp) {
+            if ($this->hasPendingOrRecentOutbox($emp->id, 'pre_checkout', 10)) {
+                $skipped++;
+                continue;
+            }
+
             $now = Carbon::now();
             $targetToday = $target->setDate($now->year, $now->month, $now->day);
 
@@ -736,8 +780,13 @@ class AdminController extends Controller
             }
         }
 
+        if ($queued === 0 && $skipped > 0) {
+            return redirect()->back()->with('error', "Tidak ada antrean baru ditambahkan ({$skipped} pegawai sudah ada di antrean atau baru saja menerima pengingat pulang).");
+        }
+
         $targetMsg = $isFiltered ? "{$queued} pegawai terpilih" : "{$queued}/{$employees->count()} karyawan";
-        return redirect()->back()->with('status', "Pengingat pulang dimasukkan ke antrean: {$targetMsg}. Sisa menit: {$minutesLeftGlobal}");
+        $skipNote = $skipped > 0 ? " ({$skipped} dilewati karena sudah diproses)" : '';
+        return redirect()->back()->with('status', "Pengingat pulang dimasukkan ke antrean: {$targetMsg}{$skipNote}. Sisa menit: {$minutesLeftGlobal}");
     }
 
     /**
@@ -767,6 +816,12 @@ class AdminController extends Controller
         $emp = Employee::findOrFail($id);
         $type = $request->input('type', 'custom');
         $customMessage = $request->input('message');
+
+        $guardKey = 'wa_click_single_' . $emp->id . '_' . md5($type . '|' . ($customMessage ?? ''));
+        if (!$this->acquireClickGuard($guardKey, 5)) {
+            return redirect()->back()->with('error', "Pesan untuk {$emp->name} baru saja dimasukkan ke antrean. Tunggu sebentar.");
+        }
+
         $wa = app(WhatsAppService::class);
 
         $panggilan = $emp->panggilan ?? 'Yth.';
@@ -985,5 +1040,37 @@ class AdminController extends Controller
         Log::info('Admin password changed successfully', ['user_id' => $user->id]);
 
         return redirect()->back()->with('status', 'Password admin berhasil diperbarui!');
+    }
+
+    /**
+     * Cegah pengiriman ganda akibat klik tombol beruntun dalam hitungan detik.
+     */
+    private function acquireClickGuard(string $key, int $seconds = 15): bool
+    {
+        return Cache::add($key, true, $seconds);
+    }
+
+    /**
+     * Periksa apakah pegawai sudah memiliki antrean aktif (atau baru saja dikirimi tipe yang sama).
+     */
+    private function hasPendingOrRecentOutbox(int $employeeId, string $type, int $recentMinutes = 10): bool
+    {
+        return WaOutbox::where('employee_id', $employeeId)
+            ->where('type', $type)
+            ->where(function ($q) use ($recentMinutes) {
+                $q->whereIn('status', [
+                    WaOutbox::STATUS_PENDING,
+                    WaOutbox::STATUS_PROCESSING,
+                    WaOutbox::STATUS_RETRY,
+                ]);
+
+                if ($recentMinutes > 0) {
+                    $q->orWhere(function ($sq) use ($recentMinutes) {
+                        $sq->where('status', WaOutbox::STATUS_SENT)
+                           ->where('sent_at', '>=', now()->subMinutes($recentMinutes));
+                    });
+                }
+            })
+            ->exists();
     }
 }

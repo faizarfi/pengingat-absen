@@ -102,13 +102,38 @@ class WaOutbox extends Model
     {
         $maxRetry = (int) config('whatsapp.max_retry', 3);
         $newAttempts = $this->attempts + 1;
+        $isNoRetry = str_starts_with($error, '[NO RETRY]');
 
         $this->update([
-            'status'     => $newAttempts >= $maxRetry ? self::STATUS_FAILED : self::STATUS_RETRY,
+            'status'     => ($isNoRetry || $newAttempts >= $maxRetry) ? self::STATUS_FAILED : self::STATUS_RETRY,
             'attempts'   => $newAttempts,
             'last_error' => $error,
         ]);
         return $this;
+    }
+
+    /**
+     * Pulihkan antrean yang tersangkut di status processing akibat agent berhenti mendadak.
+     */
+    public static function recoverStuckProcessing(int $timeoutMinutes = 5): int
+    {
+        $cutoff = now()->subMinutes($timeoutMinutes);
+
+        $stuckItems = static::where('status', self::STATUS_PROCESSING)
+            ->where(function ($q) use ($cutoff) {
+                $q->where('processing_at', '<=', $cutoff)
+                  ->orWhere(function ($sq) use ($cutoff) {
+                      $sq->whereNull('processing_at')
+                         ->where('updated_at', '<=', $cutoff);
+                  });
+            })
+            ->get();
+
+        foreach ($stuckItems as $item) {
+            $item->markFailed('Agent timeout: pengiriman terhenti saat status processing');
+        }
+
+        return $stuckItems->count();
     }
 
     public function markCancelled(): self

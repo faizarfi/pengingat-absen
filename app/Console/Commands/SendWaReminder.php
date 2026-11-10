@@ -31,8 +31,9 @@ class SendWaReminder extends Command
         // Calculate late reminder time (15 menit sebelum jam absen - masih waktu untuk absen)
         $lateReminderTime = $checkInTime->copy()->subMinutes(15)->format('H:i');
 
-        // Calculate late checkout reminder time (15 menit setelah jam pulang - pengingat terlambat pulang)
+        // Calculate late checkout reminder time & pre-checkout reminder time
         $checkOutTime = \Carbon\Carbon::createFromFormat('H:i', $checkOut);
+        $preCheckoutTime = $checkOutTime->copy()->subMinutes($preReminderMinutes)->format('H:i');
         $lateCheckoutReminderTime = $checkOutTime->copy()->addMinutes(15)->format('H:i');
 
         $type = null;
@@ -42,6 +43,8 @@ class SendWaReminder extends Command
             $type = 'late_checkin_reminder';
         } elseif ($now === $checkIn) {
             $type = 'checkin';
+        } elseif ($preReminderMinutes > 0 && $now === $preCheckoutTime) {
+            $type = 'pre_checkout';
         } elseif ($now === $checkOut) {
             $type = 'checkout';
         } elseif ($now === $lateCheckoutReminderTime) {
@@ -111,25 +114,31 @@ class SendWaReminder extends Command
         $panggilan = $emp->panggilan ?? 'Yth.';
         $namaLengkap = $panggilan . ' ' . $emp->name;
 
+        $isFriday = now()->isFriday();
+        $checkIn = Setting::get('check_in_time', '07:30');
+        $checkOut = $isFriday ? Setting::get('check_out_time_friday', '16:30') : Setting::get('check_out_time', '16:00');
+        $preReminderMinutes = (int) Setting::get('pre_reminder_minutes', 30);
+
         // Determine type from current time if not provided
         if (!$type) {
             $now = now()->format('H:i');
-            $isFriday = now()->isFriday();
-            $checkIn = Setting::get('check_in_time', '07:30');
-            $checkOut = $isFriday ? Setting::get('check_out_time_friday', '16:30') : Setting::get('check_out_time', '16:00');
-            $preReminderMinutes = (int) Setting::get('pre_reminder_minutes', 30);
             $checkInTime = \Carbon\Carbon::createFromFormat('H:i', $checkIn);
             $preReminderTime = $checkInTime->copy()->subMinutes($preReminderMinutes)->format('H:i');
             $lateReminderTime = $checkInTime->copy()->subMinutes(15)->format('H:i');
             $checkOutTime = \Carbon\Carbon::createFromFormat('H:i', $checkOut);
+            $preCheckoutTime = $checkOutTime->copy()->subMinutes($preReminderMinutes)->format('H:i');
             $lateCheckoutReminderTime = $checkOutTime->copy()->addMinutes(15)->format('H:i');
 
             if ($now === $preReminderTime) $type = 'pre_checkin';
             if ($now === $lateReminderTime) $type = 'late_checkin_reminder';
             if ($now === $checkIn) $type = 'checkin';
+            if ($preReminderMinutes > 0 && $now === $preCheckoutTime) $type = 'pre_checkout';
             if ($now === $lateCheckoutReminderTime) $type = 'late_checkout_reminder';
             if ($now === $checkOut) $type = 'checkout';
         }
+
+        $isCheckinType = in_array($type, ['pre_checkin', 'late_checkin_reminder', 'checkin'], true);
+        $targetTimeStr = $isCheckinType ? $checkIn : $checkOut;
 
         // Formal and polite templates
         if ($type === 'pre_checkin') {
@@ -137,10 +146,23 @@ class SendWaReminder extends Command
                 'template_pre_checkin_formal',
                 "Dengan hormat,\n\n" .
                 "{name},\n\n" .
-                "Kami dari {organization_name} ingin mengingatkan bahwa dalam 30 menit lagi adalah waktu untuk absensi pagi. " .
+                "Kami dari {organization_name} ingin mengingatkan bahwa jam masuk kerja Anda adalah pukul {target_time} WIB. Tersisa waktu kurang lebih {minutes_left} menit. " .
                 "Mohon untuk segera melakukan absensi tepat waktu.\n\n" .
                 "{pantun}\n\n" .
                 "{kata}"
+            );
+        } elseif ($type === 'pre_checkout') {
+            $template = Setting::get(
+                'template_pre_checkout_formal',
+                Setting::get(
+                    'template_pre_checkout',
+                    "Dengan hormat,\n\n" .
+                    "{name},\n\n" .
+                    "Ini adalah pengingat absen pulang.\nJam pulang kerja Anda adalah pukul {target_time} WIB. Tersisa waktu kurang lebih {minutes_left} menit.\n\n" .
+                    "Mohon jangan lupa melakukan absen pulang sebelum meninggalkan kantor.\n\n" .
+                    "{pantun}\n\n" .
+                    "{kata}"
+                )
             );
         } elseif ($type === 'late_checkin_reminder') {
             $template = Setting::get(
@@ -187,26 +209,26 @@ class SendWaReminder extends Command
         $pantun = $this->generatePantunFormal();
 
         $message = str_replace(
-            ['{name}', '{kata}', '{pantun}', '{organization_name}'],
-            [$namaLengkap, $kata, $pantun, $organizationName],
+            ['{name}', '{kata}', '{pantun}', '{organization_name}', '{organization}', '{target_time}'],
+            [$namaLengkap, $kata, $pantun, $organizationName, $organizationName, $targetTimeStr],
             $template
         );
 
         return $message;
     }
 
-    protected function generatePantunFormal()
+    protected function generatePantunFormal(): string
     {
         $pantuns = [
             // Pantun yang lebih sopan dan profesional
-            'Bekerja dengan sungguh-sungguh,\nAkan membawa hasil yang maksimal.',
-            'Tepat waktu adalah prioritas,\nMenjaga kepercayaan organisasi.',
-            'Absen yang teratur dan rapi,\nTanda profesional dalam bekerja.',
-            'Kehadiran penuh setiap hari,\nBentuk komitmen terhadap tugas.',
-            'Tanggung jawab adalah kunci,\nUntuk mencapai kesuksesan bersama.',
-            'Disiplin dalam setiap langkah,\nMenciptakan lingkungan kerja yang baik.',
-            'Kehadiran membentuk prestasi,\nBersama membangun organisasi maju.',
-            'Kerja sama yang solid dan kuat,\nMewujudkan visi institusi kami.',
+            "Bekerja dengan sungguh-sungguh,\nAkan membawa hasil yang maksimal.",
+            "Tepat waktu adalah prioritas,\nMenjaga kepercayaan organisasi.",
+            "Absen yang teratur dan rapi,\nTanda profesional dalam bekerja.",
+            "Kehadiran penuh setiap hari,\nBentuk komitmen terhadap tugas.",
+            "Tanggung jawab adalah kunci,\nUntuk mencapai kesuksesan bersama.",
+            "Disiplin dalam setiap langkah,\nMenciptakan lingkungan kerja yang baik.",
+            "Kehadiran membentuk prestasi,\nBersama membangun organisasi maju.",
+            "Kerja sama yang solid dan kuat,\nMewujudkan visi institusi kami.",
         ];
 
         return $pantuns[array_rand($pantuns)];
