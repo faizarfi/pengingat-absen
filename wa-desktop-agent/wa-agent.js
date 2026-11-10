@@ -63,18 +63,19 @@ const AGENT_TOKEN = process.env.WA_AGENT_TOKEN || 'change-this-token-to-somethin
 const AGENT_NAME = 'default';
 
 const POLL_INTERVAL = 5;         // Detik — interval polling saat tidak ada antrean
+const FETCH_LIMIT = 10;          // Jumlah pesan diambil per siklus polling
 
-// Jeda Acak Antar Pesan (Anti-Ban) — 20-40 detik lebih aman untuk 50+ kontak
-const DELAY_MIN = parseInt(process.env.WA_DELAY_MIN || '20', 10);
-const DELAY_MAX = parseInt(process.env.WA_DELAY_MAX || '40', 10);
+// Jeda Acak Antar Pesan (Anti-Ban "Sweet Spot") — optimal untuk kontak internal kantor
+const DELAY_MIN = parseInt(process.env.WA_DELAY_MIN || '10', 10);
+const DELAY_MAX = parseInt(process.env.WA_DELAY_MAX || '18', 10);
 
-// Batch Cooldown — batch kecil (3 pesan) + istirahat lebih lama
-const BATCH_SIZE = 3;
-const COOLDOWN_MIN = 60;
-const COOLDOWN_MAX = 120;
+// Batch Cooldown — istirahat sejenak tiap batch pesan agar pola kirim tetap alami
+const BATCH_SIZE = parseInt(process.env.WA_BATCH_SIZE || '10', 10);
+const COOLDOWN_MIN = parseInt(process.env.WA_COOLDOWN_MIN || '35', 10);
+const COOLDOWN_MAX = parseInt(process.env.WA_COOLDOWN_MAX || '55', 10);
 
-// ── SAFETY: Daily Limit (max pesan per hari) ──
-const DAILY_LIMIT = parseInt(process.env.WA_DAILY_LIMIT || '100', 10);
+// ── SAFETY: Daily Limit (max pesan per hari, 0 = unlimited) ──
+const DAILY_LIMIT = parseInt(process.env.WA_DAILY_LIMIT || '200', 10);
 let dailySentCount = 0;
 let dailyLimitDate = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
 
@@ -89,6 +90,7 @@ function checkAndResetDailyLimit() {
 
 function isDailyLimitReached() {
     checkAndResetDailyLimit();
+    if (DAILY_LIMIT <= 0) return false; // 0 = unlimited
     return dailySentCount >= DAILY_LIMIT;
 }
 
@@ -253,7 +255,7 @@ async function sendHeartbeat(whatsappReady) {
 }
 
 async function getPendingMessages() {
-    const res = await httpRequest(`${API_BASE_URL}/api/agent/messages?limit=10`, 'GET');
+    const res = await httpRequest(`${API_BASE_URL}/api/agent/messages?limit=${FETCH_LIMIT}`, 'GET');
     if (res && res.success) {
         return res.data || [];
     }
@@ -558,8 +560,8 @@ async function sendViaWhatsApp(phone, message) {
             }
         } catch { /* ignore */ }
 
-        // Jeda mengetik alami (2.0 s.d. 4.5 detik proporsional dengan panjang pesan)
-        const typingDurationSeconds = Math.min(Math.max((message.length || 50) * 0.015, 2.0), 4.5);
+        // Jeda mengetik alami (1.8 s.d. 3.5 detik proporsional dengan panjang pesan)
+        const typingDurationSeconds = Math.min(Math.max((message.length || 50) * 0.012, 1.8), 3.5);
         await sleep(typingDurationSeconds);
 
         if (chat) {
@@ -596,12 +598,13 @@ async function sendViaWhatsApp(phone, message) {
 // MAIN POLLING LOOP
 // ==============================================================================
 async function startPolling() {
+    const dailyLimitLabel = DAILY_LIMIT <= 0 ? 'Unlimited' : `Max ${DAILY_LIMIT} pesan/hari`;
     logInfo('==================================================');
-    logInfo('🛡️  WA Desktop Agent v3.1 (Professional Background Mode + Safety)');
+    logInfo('🛡️  WA Desktop Agent v3.2 (Optimized Anti-Ban + Realtime)');
     logInfo(`🌐 Backend API   : ${API_BASE_URL}`);
     logInfo(`⏳ Jeda Acak      : ${DELAY_MIN} s.d. ${DELAY_MAX} detik per pesan`);
     logInfo(`☕ Cooldown Batch : Tiap ${BATCH_SIZE} pesan istirahat ${COOLDOWN_MIN}-${COOLDOWN_MAX} detik`);
-    logInfo(`📊 Daily Limit    : Max ${DAILY_LIMIT} pesan/hari`);
+    logInfo(`📊 Daily Limit    : ${dailyLimitLabel}`);
     logInfo(`🕐 Jam Kerja      : ${BUSINESS_HOUR_START}:00 - ${BUSINESS_HOUR_END}:00`);
     logInfo(`🛑 Auto-Pause     : ${MAX_CONSECUTIVE_FAILURES} gagal berturut = pause ${FAILURE_PAUSE_SECONDS/60} menit`);
     logInfo(`📝 Log File       : ${LOG_DIR}/`);
@@ -702,9 +705,12 @@ async function startPolling() {
             }
 
             if (messages.length > 0) {
-                logInfo(`[${timestamp()}] 📬 Ditemukan ${messages.length} pesan pending... (hari ini: ${dailySentCount}/${DAILY_LIMIT})`);
+                const limitStr = DAILY_LIMIT <= 0 ? '∞' : DAILY_LIMIT;
+                logInfo(`[${timestamp()}] 📬 Ditemukan ${messages.length} pesan pending... (hari ini: ${dailySentCount}/${limitStr})`);
 
-                for (const msg of messages) {
+                for (let i = 0; i < messages.length; i++) {
+                    const msg = messages[i];
+
                     // Cek lagi daily limit di tengah batch
                     if (isDailyLimitReached()) {
                         logWarn(`[${timestamp()}] 🚫 Daily limit tercapai di tengah batch. Stop.`);
@@ -747,8 +753,15 @@ async function startPolling() {
                         await markStatus(msgId, 'failed', errorMsg);
                     }
 
+                    // Cek apakah ini pesan terakhir dari sisa antrean (tidak perlu menunggu sia-sia setelah selesai)
+                    const isEndOfQueue = (i === messages.length - 1 && messages.length < FETCH_LIMIT);
+                    if (isEndOfQueue) {
+                        consecutiveSentCount = 0;
+                        continue;
+                    }
+
                     // Batch cooldown
-                    if (consecutiveSentCount >= BATCH_SIZE) {
+                    if (BATCH_SIZE > 0 && consecutiveSentCount >= BATCH_SIZE) {
                         const cooldown = randomInt(COOLDOWN_MIN, COOLDOWN_MAX);
                         logInfo(`[${timestamp()}] ☕ Sudah kirim ${consecutiveSentCount} pesan. Istirahat ${cooldown} detik...`);
                         await sleep(cooldown);

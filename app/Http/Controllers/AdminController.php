@@ -574,7 +574,7 @@ class AdminController extends Controller
 
         $queued = 0;
 
-        foreach ($employees as $emp) {
+        foreach ($employees->shuffle() as $emp) {
             $panggilan = $emp->panggilan ?? 'Yth.';
             $namaLengkap = $panggilan . ' ' . $emp->name;
             $text = str_replace(
@@ -617,7 +617,7 @@ class AdminController extends Controller
         $minutesLeftGlobal = (int) max(0, ceil(($targetTodayGlobal->getTimestamp() - $nowGlobal->getTimestamp()) / 60));
 
         $queued = 0;
-        foreach ($employees as $emp) {
+        foreach ($employees->shuffle() as $emp) {
             $now = Carbon::now();
             $targetToday = $target->setDate($now->year, $now->month, $now->day);
 
@@ -691,7 +691,7 @@ class AdminController extends Controller
         $minutesLeftGlobal = (int) max(0, ceil(($targetTodayGlobal->getTimestamp() - $nowGlobal->getTimestamp()) / 60));
 
         $queued = 0;
-        foreach ($employees as $emp) {
+        foreach ($employees->shuffle() as $emp) {
             $now = Carbon::now();
             $targetToday = $target->setDate($now->year, $now->month, $now->day);
 

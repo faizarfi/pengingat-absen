@@ -62,7 +62,7 @@ class SendWaReminder extends Command
             return 0;
         }
 
-        $employees = Employee::where('is_active', true)->get();
+        $employees = Employee::where('is_active', true)->get()->shuffle();
         $queued = 0;
 
         foreach ($employees as $emp) {

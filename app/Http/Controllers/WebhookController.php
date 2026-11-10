@@ -145,7 +145,7 @@ class WebhookController extends Controller
         $pantun = $pantun ? str_replace('\\n', PHP_EOL, $pantun) : null;
         $sent = 0;
 
-        foreach ($employees as $emp) {
+        foreach ($employees->shuffle() as $emp) {
             $panggilan = $emp->panggilan ?? 'Yth.';
             $namaLengkap = $panggilan . ' ' . $emp->name;
             $text = str_replace(
