@@ -7,7 +7,11 @@ use Illuminate\Database\Eloquent\Model;
 /**
  * App\Models\Employee
  *
- * @mixin \Illuminate\Database\Eloquent\Builder
+ * @property int $id
+ * @property string $name
+ * @property string|null $panggilan
+ * @property string $phone_number
+ * @property bool $is_active
  */
 class Employee extends Model
 {

@@ -104,7 +104,7 @@ class SendWaReminder extends Command
         return 0;
     }
 
-    protected function buildMessage($emp, ?string $type = null)
+    protected function buildMessage(Employee $emp, ?string $type = null): string
     {
         $organizationName = Setting::get('organization_name', 'BPS Karanganyar');
         $kata = Setting::get('closing_word', 'Hormat kami, ' . $organizationName);
