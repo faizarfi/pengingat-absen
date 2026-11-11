@@ -20,13 +20,9 @@ module.exports = {
         merge_logs: true,
         log_date_format: 'YYYY-MM-DD HH:mm:ss',
         
-        // Environment
+        // Environment (parameter WA_API_URL, WA_AGENT_TOKEN, dan WA_DELAY_* otomatis dibaca dari .env)
         env: {
             NODE_ENV: 'production',
-            WA_API_URL: 'http://localhost:8000',
-            WA_AGENT_TOKEN: 'change-this-token-to-something-secure',
-            WA_DELAY_MIN: '20',
-            WA_DELAY_MAX: '40',
         },
     }],
 };

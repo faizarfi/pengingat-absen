@@ -8,9 +8,11 @@ Panduan komprehensif ini menjelaskan cara men-deploy sistem **Pengingat Absensi 
 
 Ada 2 model arsitektur yang dapat Anda pilih sesuai dengan kebutuhan dan infrastruktur kantor:
 
-### 🌟 Model 1: Arsitektur Hybrid (Sangat Direkomendasikan ⭐⭐⭐⭐⭐)
+### 🌟 Model 1: Arsitektur Hybrid — Cloud / Shared Hosting + Agent di PC Kantor (Sangat Direkomendasikan ⭐⭐⭐⭐⭐)
 
-> **Web & Scheduler di VPS Cloud, Pengirim WA di PC Kantor / Rumah**
+> **Web & Scheduler di Shared Hosting (cPanel) atau VPS Cloud, Pengirim WA di PC Kantor / Rumah**
+
+> 💡 **Penting untuk Pengguna Shared Hosting (cPanel):** Shared hosting PHP biasa tidak dapat menjalankan browser Chrome/Chromium headless untuk `whatsapp-web.js`. Karena itu, **Model Hybrid adalah satu-satunya cara agar sistem berjalan lancar di Shared Hosting**: cukup upload Laravel + pasang Cron Job di cPanel, lalu jalankan `wa-agent.js` dari PC kantor yang terhubung internet.
 
 ```text
 ┌─────────────────────────────────────────────────────────────────────────┐
@@ -252,30 +254,47 @@ sudo certbot --nginx -d absen.kantoranda.go.id
 
 ---
 
-## 💻 HUBUNGKAN WA AGENT DI PC KANTOR KE SERVER VPS (Model Hybrid)
+## 💻 HUBUNGKAN WA AGENT DI PC KANTOR KE SERVER HOSTING / VPS (Model Hybrid)
 
-Jika Anda menggunakan **Model Hybrid (Paling Direkomendasikan)**:
+Jika Anda menggunakan **Model Hybrid (Shared Hosting cPanel atau VPS)**:
 
-1. Di komputer kantor (Windows), buka folder `pengingat-absen`.
-2. Buka file `.env` di PC kantor (atau buat file `.env` di dalam folder `wa-desktop-agent`):
-   ```env
-   WA_API_URL=https://absen.kantoranda.go.id
-   WA_AGENT_TOKEN=BuatTokenRahasiaKuatDisini998877
-   ```
-   *(Pastikan `WA_AGENT_TOKEN` nilainya **persis sama** dengan yang ada di server VPS).*
-3. Jalankan pengirim WA di PC kantor:
+1. **Siapkan Hosting / Server Web:**
+   * Upload aplikasi Laravel & jalankan migrasi database (`php artisan migrate --seed`).
+   * Atur `.env` di server hosting (`APP_URL=https://absen.kantoranda.go.id` dan buat token acak kuat untuk `WA_AGENT_TOKEN`).
+   * Pasang **Cron Job 1 Menit** di cPanel atau Linux crontab agar jadwal pengingat berjalan otomatis:
+     ```bash
+     * * * * * php /path/ke/pengingat-absen/artisan schedule:run >> /dev/null 2>&1
+     ```
+2. **Konfigurasi di PC Kantor (Windows):**
+   * Buka folder `pengingat-absen` di PC kantor (minimal folder `wa-desktop-agent`).
+   * Edit `.env` di root atau buat `wa-desktop-agent/.env` dengan URL hosting dan token yang **persis sama** dengan server:
+     ```env
+     WA_API_URL=https://absen.kantoranda.go.id
+     WA_AGENT_TOKEN=BuatTokenRahasiaKuatDisini998877
+
+     # Tuning Anti-Ban Optimal (41 pegawai selesai dalam ~12-14 menit)
+     WA_DAILY_LIMIT=200
+     WA_DELAY_MIN=10
+     WA_DELAY_MAX=18
+     WA_BATCH_SIZE=10
+     WA_COOLDOWN_MIN=35
+     WA_COOLDOWN_MAX=55
+     ```
+3. **Nyalakan Pengirim WA di PC Kantor:**
    ```powershell
-   .\run-agent.bat
+   .\scripts\run-agent.bat
    ```
-4. Agen otomatis tersambung ke server VPS!
-   - Di terminal akan muncul: `❤️ Heartbeat sent OK (Agent Online — Background Mode)`.
-   - Di web dashboard VPS, status agen akan langsung berubah menjadi **"Online"** dengan indikator hijau.
+   *(Atau jalankan `node wa-desktop-agent/wa-agent.js` atau pilih Menu `[3]` di `START.bat`).*
+4. **Hubungkan & Scan QR Langsung dari Dashboard Hosting:**
+   - Di terminal akan muncul: `❤️ Heartbeat OK (state: qr)` atau `(state: ready)`.
+   - Buka browser menuju `https://absen.kantoranda.go.id/admin` $\rightarrow$ klik menu **Koneksi WhatsApp** di sidebar.
+   - Scan QR Code langsung dari layar dashboard (atau gunakan tombol **Putus & Ganti Nomor** kapan saja bila ingin mengganti nomor WA pengirim tanpa menyentuh terminal).
 
 ---
 
 ## 🐧 JIKA MEMILIH MENJALANKAN WA AGENT DI VPS LINUX (Model Full VPS)
 
-Jika Anda ingin menjalankan `wa-agent.js` langsung di dalam server VPS Linux tanpa menyalakan PC kantor:
+Jika Anda menyewa **VPS Ubuntu** dan ingin menjalankan `wa-agent.js` langsung di dalam server VPS Linux 24 jam nonstop tanpa menyalakan PC kantor:
 
 ### 1. Install Chromium & Dependensi GUI Headless di Ubuntu
 ```bash
@@ -288,22 +307,14 @@ sudo apt install -y chromium-browser \
 sudo npm install -g pm2
 ```
 
-### 3. Install Dependensi Agent
+### 3. Install Dependensi Agent & Pastikan Token Sesuai
 ```bash
 cd /var/www/pengingat-absen/wa-desktop-agent
 npm install
 ```
+Pastikan `.env` root (atau `wa-desktop-agent/.env`) sudah memiliki `WA_API_URL` (misal `https://absen.kantoranda.go.id` atau `http://127.0.0.1`) dan `WA_AGENT_TOKEN` yang sama persis.
 
-### 4. Scan QR WhatsApp Pertama Kali via Terminal SSH
-Jalankan sementara untuk scan QR:
-```bash
-node wa-agent.js
-```
-- Terminal SSH akan menampilkan QR Code dalam format karakter ASCII.
-- Buka WhatsApp di HP -> **Perangkat Tertaut** -> Scan QR tersebut.
-- Setelah muncul `✅ WhatsApp siap digunakan!`, tekan `Ctrl + C` untuk berhenti.
-
-### 5. Jalankan Agen 24 Jam Nonstop Menggunakan PM2
+### 4. Jalankan Agen 24 Jam Nonstop Menggunakan PM2
 Masuk ke root project dan jalankan file ecosystem:
 ```bash
 cd /var/www/pengingat-absen
@@ -311,6 +322,11 @@ pm2 start ecosystem.config.js
 pm2 save
 pm2 startup
 ```
+
+### 5. Scan QR & Kelola Nomor WA Langsung via Web Dashboard
+* Anda tidak perlu scan QR ASCII lewat terminal SSH — langsung buka `https://absen.kantoranda.go.id/admin` di browser.
+* Masuk ke menu **Koneksi WhatsApp** di sidebar: QR Code akan tampil otomatis saat sesi belum tertaut.
+* Untuk memutus sesi atau mengganti nomor WhatsApp di kemudian hari, cukup klik tombol **Putus & Ganti Nomor** di dashboard.
 
 > **Perintah Berguna PM2 di VPS:**
 > - Cek status agen: `pm2 status`
@@ -328,5 +344,5 @@ pm2 startup
    ```bash
    mysqldump -u user_absen -p pengingat_absen > /backup/db_absen_$(date +\%F).sql
    ```
-3. **Folder Sesi WhatsApp**: Folder `wa-desktop-agent/.wwebjs_auth` berisi sesi login WhatsApp Anda. Pastikan folder ini terdaftar di `.gitignore` agar tidak bocor ke Git repository publik.
-4. **Log Retention**: Agen v3.0 otomatis membersihkan file log yang umurnya lebih dari 30 hari di folder `logs/`, sehingga tidak membebani ruang penyimpanan harddisk server.
+3. **Folder Sesi WhatsApp**: Folder `.wwebjs_auth` di root project berisi sesi login WhatsApp Anda. Pastikan folder ini terdaftar di `.gitignore` agar tidak bocor ke Git repository publik.
+4. **Log Retention**: Agen otomatis membersihkan file log yang umurnya lebih dari 30 hari di folder `wa-desktop-agent/logs/`, sehingga tidak membebani ruang penyimpanan harddisk server.
