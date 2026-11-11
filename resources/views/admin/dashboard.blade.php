@@ -1543,6 +1543,175 @@ body {
     100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
 }
 
+.agent-pill-waiting {
+    background: #fffbeb;
+    color: #92400e;
+    border: 1px solid #fde68a;
+}
+
+.dot-waiting {
+    background: #f59e0b;
+    box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.25);
+    animation: ping-pulse 2s infinite;
+}
+
+/* WhatsApp Connection & QR Control Panel */
+.wa-connect-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 20px 24px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow-card);
+    transition: all 0.25s ease;
+}
+
+.wa-connect-compact {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    flex-wrap: wrap;
+}
+
+.wa-connect-identity {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 240px;
+}
+
+.wa-brand-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 20px;
+}
+
+.wa-brand-icon.is-ready {
+    background: #ecfdf5;
+    color: #059669;
+    border: 1px solid #a7f3d0;
+}
+
+.wa-brand-icon.is-qr {
+    background: #fffbeb;
+    color: #d97706;
+    border: 1px solid #fde68a;
+}
+
+.wa-brand-icon.is-offline {
+    background: #fef2f2;
+    color: #dc2626;
+    border: 1px solid #fecaca;
+}
+
+.wa-connect-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.wa-qr-grid {
+    display: grid;
+    grid-template-columns: 1.25fr auto;
+    gap: 24px;
+    align-items: center;
+    margin-top: 18px;
+    padding-top: 18px;
+    border-top: 1px dashed var(--border);
+}
+
+@media (max-width: 820px) {
+    .wa-qr-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.wa-qr-steps {
+    margin: 0;
+    padding-left: 18px;
+    color: var(--text-muted);
+    font-size: 13px;
+    line-height: 1.75;
+}
+
+.wa-qr-steps strong {
+    color: var(--text-main);
+}
+
+.wa-qr-box {
+    background: #ffffff;
+    border: 2px solid #e2e8f0;
+    border-radius: 18px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 248px;
+    min-height: 248px;
+    box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08);
+    position: relative;
+}
+
+.wa-qr-box img {
+    width: 220px;
+    height: 220px;
+    display: block;
+    border-radius: 10px;
+}
+
+.wa-spinner {
+    width: 36px;
+    height: 36px;
+    border: 3px solid #e2e8f0;
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: wa-spin 0.85s linear infinite;
+}
+
+@keyframes wa-spin {
+    to { transform: rotate(360deg); }
+}
+
+.wa-cmd-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #0f172a;
+    color: #e2e8f0;
+    padding: 8px 12px;
+    border-radius: 10px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 12px;
+    margin-top: 10px;
+}
+
+.wa-cmd-pill button {
+    background: rgba(255,255,255,0.14);
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    padding: 3px 8px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.wa-cmd-pill button:hover {
+    background: rgba(255,255,255,0.24);
+}
+
+.wa-is-hidden {
+    display: none !important;
+}
+
 /* Hero Activity Summary (Replacing Double Clock) */
 .hero-metric-box {
     background: rgba(15, 23, 42, 0.45);
@@ -1912,6 +2081,13 @@ body {
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/></svg>
                 Kirim Broadcast
             </a>
+            <a href="#koneksi-wa" class="nav-link" style="justify-content: space-between;">
+                <span style="display: inline-flex; align-items: center; gap: 10px;">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
+                    Koneksi WhatsApp
+                </span>
+                <span id="sidebarWaDot" class="agent-ping-dot {{ ($waConnection['whatsapp_ready'] ?? false) ? 'dot-online' : (($waConnection['agent_online'] ?? false) ? 'dot-waiting' : 'dot-offline') }}"></span>
+            </a>
             <a href="#karyawan" class="nav-link">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
                 Data Pegawai
@@ -1976,10 +2152,10 @@ body {
             </div>
 
             <div class="header-right">
-                <div class="agent-topbar-pill {{ ($agentStatus ?? 'offline') === 'online' ? 'agent-pill-online' : 'agent-pill-offline' }}" title="Status koneksi WhatsApp Desktop Agent ke Server">
-                    <span class="agent-ping-dot {{ ($agentStatus ?? 'offline') === 'online' ? 'dot-online' : 'dot-offline' }}"></span>
-                    <span class="agent-pill-text">{{ ($agentStatus ?? 'offline') === 'online' ? 'Agent Online' : 'Agent Offline' }}</span>
-                </div>
+                <a href="#koneksi-wa" id="topbarAgentPill" class="agent-topbar-pill {{ ($waConnection['whatsapp_ready'] ?? false) ? 'agent-pill-online' : (($waConnection['agent_online'] ?? false) ? 'agent-pill-waiting' : 'agent-pill-offline') }}" title="Klik untuk kelola koneksi & scan QR WhatsApp">
+                    <span id="topbarAgentDot" class="agent-ping-dot {{ ($waConnection['whatsapp_ready'] ?? false) ? 'dot-online' : (($waConnection['agent_online'] ?? false) ? 'dot-waiting' : 'dot-offline') }}"></span>
+                    <span id="topbarAgentText" class="agent-pill-text">{{ ($waConnection['whatsapp_ready'] ?? false) ? 'Agent Online' : (($waConnection['agent_online'] ?? false) ? 'Perlu Scan QR' : 'Agent Offline') }}</span>
+                </a>
 
                 <div class="live-badge">
                     <span class="pulse-dot"></span>
@@ -2009,7 +2185,7 @@ body {
                         Kelola jadwal kehadiran pegawai, kirimkan notifikasi WA tepat waktu dengan pantun & kata mutiara motivasi, dan kendalikan pengiriman pesan otomatis secara tersinkronisasi.
                     </p>
                     <div class="hero-pills">
-                        <div class="hero-pill-item">
+                        <div class="hero-pill-item" id="heroAgentPill">
                             @if(($agentStatus ?? 'offline') === 'online')
                                 <span style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; display: inline-block;"></span>
                                 Agent Online (WA Desktop {{ ($whatsappReady ?? false) ? 'Ready' : 'Standby' }})
@@ -2151,6 +2327,84 @@ body {
                             </button>
                         </form>
                     @endif
+                </div>
+            </div>
+
+            {{-- WHATSAPP CONNECTION & QR SCANNER CONTROL PANEL --}}
+            <div class="wa-connect-card" id="koneksi-wa"
+                 data-status-url="{{ route('admin.whatsapp.status') }}"
+                 data-disconnect-url="{{ route('admin.whatsapp.disconnect') }}"
+                 data-reconnect-url="{{ route('admin.whatsapp.reconnect') }}"
+                 data-csrf="{{ csrf_token() }}"
+                 data-initial-state="{{ json_encode($waConnection ?? ['agent_online' => false, 'whatsapp_ready' => false, 'state' => 'offline']) }}">
+                <div class="wa-connect-compact">
+                    <div class="wa-connect-identity">
+                        <div id="waBrandIcon" class="wa-brand-icon {{ ($waConnection['whatsapp_ready'] ?? false) ? 'is-ready' : (($waConnection['agent_online'] ?? false) ? 'is-qr' : 'is-offline') }}">
+                            <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                <h3 style="margin: 0; font-size: 15px; font-weight: 800; color: var(--navy-dark);">Koneksi WhatsApp Pengirim</h3>
+                                <span id="waConnBadge" class="agent-topbar-pill {{ ($waConnection['whatsapp_ready'] ?? false) ? 'agent-pill-online' : (($waConnection['agent_online'] ?? false) ? 'agent-pill-waiting' : 'agent-pill-offline') }}" style="padding: 3px 10px;">
+                                    {{ ($waConnection['whatsapp_ready'] ?? false) ? 'Terhubung' : (($waConnection['agent_online'] ?? false) ? 'Menunggu QR / Sync' : 'Agent Offline') }}
+                                </span>
+                            </div>
+                            <p id="waConnSubtitle" style="margin: 4px 0 0; font-size: 12px; color: var(--text-muted);">
+                                @if($waConnection['whatsapp_ready'] ?? false)
+                                    Aktif mengirim sebagai <strong>{{ $waConnection['pushname'] ?? 'Akun WhatsApp' }}</strong>
+                                    @if(!empty($waConnection['phone'])) (+{{ $waConnection['phone'] }}) @endif
+                                @elseif($waConnection['agent_online'] ?? false)
+                                    WA Agent aktif di PC — memproses koneksi WhatsApp Web...
+                                @else
+                                    WA Agent di PC kantor belum menyala. Nyalakan terlebih dahulu untuk menghubungkan / scan QR.
+                                @endif
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="wa-connect-actions">
+                        <button type="button" id="btnWaReconnect" onclick="confirmReconnectWhatsapp()" class="btn btn-secondary btn-sm" title="Muat ulang mesin WhatsApp Web / perbarui QR Code" {{ !($waConnection['agent_online'] ?? false) ? 'disabled' : '' }}>
+                            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                            Refresh Koneksi
+                        </button>
+                        <button type="button" id="btnWaDisconnect" onclick="confirmDisconnectWhatsapp()" class="btn btn-sm btn-danger-soft" title="Putuskan nomor saat ini lalu tampilkan QR Code baru untuk ganti nomor" {{ !($waConnection['agent_online'] ?? false) ? 'disabled' : '' }}>
+                            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                            Putus &amp; Ganti Nomor
+                        </button>
+                    </div>
+                </div>
+
+                {{-- Area Dinamis QR / Loading / Offline --}}
+                <div id="waQrExpandedArea" class="wa-qr-grid {{ ($waConnection['whatsapp_ready'] ?? false) ? 'wa-is-hidden' : '' }}">
+                    <div>
+                        <div id="waStateTitle" style="font-size: 14px; font-weight: 800; color: var(--navy-dark); margin-bottom: 8px;">
+                            Menyiapkan Koneksi WhatsApp Web...
+                        </div>
+                        <div id="waStepsWrapper">
+                            <ol class="wa-qr-steps">
+                                <li>Buka aplikasi <strong>WhatsApp</strong> di HP nomor pengirim yang baru.</li>
+                                <li>Ketuk menu <strong>(&#8942;) / Pengaturan</strong> &rarr; pilih <strong>Perangkat Tertaut (Linked Devices)</strong>.</li>
+                                <li>Pilih <strong>Tautkan Perangkat (Link a Device)</strong>, lalu arahkan kamera ke QR Code di sebelah kanan.</li>
+                                <li>Halaman ini otomatis berubah menjadi <strong>Terhubung</strong> begitu scan berhasil.</li>
+                            </ol>
+                        </div>
+                        <div id="waOfflineHint" class="{{ ($waConnection['agent_online'] ?? false) ? 'wa-is-hidden' : '' }}">
+                            <p style="margin: 0; font-size: 12.5px; color: var(--text-muted);">
+                                Jalankan perintah di terminal PC atau klik menu <strong>[3]</strong> pada <code>START.bat</code> agar QR Code &amp; tombol kontrol aktif:
+                            </p>
+                            <div class="wa-cmd-pill">
+                                <span id="waStartCmdText">node wa-desktop-agent/wa-agent.js</span>
+                                <button type="button" onclick="copyAgentCmd()">Salin</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="wa-qr-box" id="waQrVisualBox">
+                        <div class="wa-spinner"></div>
+                        <span style="margin-top: 12px; font-size: 12px; color: var(--text-muted); font-weight: 600;">Menunggu status agent...</span>
+                    </div>
                 </div>
             </div>
 
@@ -3947,7 +4201,301 @@ document.addEventListener('DOMContentLoaded', function() {
         const p = heroFill.getAttribute('data-progress') || 0;
         heroFill.style.width = p + '%';
     }
+    initWhatsappMonitor();
 });
+
+let waPollTimer = null;
+let waCurrentDelayMs = 8000;
+
+function formatIndoPhone(rawPhone) {
+    if (!rawPhone) return '';
+    const digits = String(rawPhone).replace(/\D/g, '');
+    return digits ? '+' + digits : '';
+}
+
+function initWhatsappMonitor() {
+    const card = document.getElementById('koneksi-wa');
+    if (card) {
+        const raw = card.getAttribute('data-initial-state');
+        if (raw) {
+            try {
+                renderWaConnection(JSON.parse(raw));
+            } catch (_) {}
+        }
+    }
+    scheduleNextWaPoll(2000);
+    document.addEventListener('visibilitychange', function() {
+        if (!document.hidden) {
+            pollWhatsappStatus();
+        }
+    });
+}
+
+function scheduleNextWaPoll(ms) {
+    if (waPollTimer) clearTimeout(waPollTimer);
+    waCurrentDelayMs = ms;
+    waPollTimer = setTimeout(pollWhatsappStatus, ms);
+}
+
+async function pollWhatsappStatus() {
+    const card = document.getElementById('koneksi-wa');
+    if (!card) return;
+    if (document.hidden) {
+        scheduleNextWaPoll(8000);
+        return;
+    }
+
+    const statusUrl = card.getAttribute('data-status-url');
+    try {
+        const res = await fetch(statusUrl, {
+            headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+            credentials: 'same-origin'
+        });
+        if (res.ok) {
+            const data = await res.json();
+            if (data && data.connection) {
+                renderWaConnection(data.connection);
+                const fastMode = !data.connection.whatsapp_ready && data.connection.agent_online;
+                scheduleNextWaPoll(fastMode ? 2500 : 8000);
+                return;
+            }
+        }
+    } catch (_) {}
+
+    scheduleNextWaPoll(6000);
+}
+
+function renderWaConnection(conn) {
+    const card = document.getElementById('koneksi-wa');
+    if (!card || !conn) return;
+
+    const topPill = document.getElementById('topbarAgentPill');
+    const topDot = document.getElementById('topbarAgentDot');
+    const topText = document.getElementById('topbarAgentText');
+    const sidebarDot = document.getElementById('sidebarWaDot');
+    const heroPill = document.getElementById('heroAgentPill');
+
+    const brandIcon = document.getElementById('waBrandIcon');
+    const badge = document.getElementById('waConnBadge');
+    const subtitle = document.getElementById('waConnSubtitle');
+    const expanded = document.getElementById('waQrExpandedArea');
+    const stateTitle = document.getElementById('waStateTitle');
+    const stepsWrap = document.getElementById('waStepsWrapper');
+    const offlineHint = document.getElementById('waOfflineHint');
+    const qrBox = document.getElementById('waQrVisualBox');
+    const btnReconnect = document.getElementById('btnWaReconnect');
+    const btnDisconnect = document.getElementById('btnWaDisconnect');
+
+    const isOnline = Boolean(conn.agent_online);
+    const isReady = Boolean(conn.whatsapp_ready);
+    const state = conn.state || (isOnline ? (isReady ? 'ready' : 'initializing') : 'offline');
+
+    if (btnReconnect) btnReconnect.disabled = !isOnline || state === 'logging_out';
+    if (btnDisconnect) btnDisconnect.disabled = !isOnline || state === 'logging_out';
+
+    // Reset helper classes
+    [topPill, badge].forEach(el => {
+        if (!el) return;
+        el.classList.remove('agent-pill-online', 'agent-pill-waiting', 'agent-pill-offline');
+    });
+    [topDot, sidebarDot].forEach(el => {
+        if (!el) return;
+        el.classList.remove('dot-online', 'dot-waiting', 'dot-offline');
+    });
+    if (brandIcon) {
+        brandIcon.classList.remove('is-ready', 'is-qr', 'is-offline');
+    }
+
+    if (isReady && state === 'ready') {
+        if (topPill) topPill.classList.add('agent-pill-online');
+        if (topDot) topDot.classList.add('dot-online');
+        if (topText) topText.textContent = 'Agent Online';
+        if (sidebarDot) sidebarDot.classList.add('dot-online');
+        if (heroPill) {
+            heroPill.innerHTML = '<span style="width:8px;height:8px;border-radius:50%;background:#10b981;display:inline-block;"></span> Agent Online (WA Desktop Ready)';
+        }
+
+        if (brandIcon) brandIcon.classList.add('is-ready');
+        if (badge) {
+            badge.classList.add('agent-pill-online');
+            badge.textContent = 'Terhubung';
+        }
+
+        if (subtitle) {
+            const phoneLabel = formatIndoPhone(conn.phone);
+            const nameLabel = conn.pushname || 'Akun WhatsApp';
+            subtitle.textContent = '';
+            const prefix = document.createTextNode('Aktif mengirim sebagai ');
+            const strong = document.createElement('strong');
+            strong.textContent = phoneLabel ? `${nameLabel} (${phoneLabel})` : nameLabel;
+            const tail = document.createTextNode(conn.delay_range ? ` • Jeda ${conn.delay_range}` : '');
+            subtitle.appendChild(prefix);
+            subtitle.appendChild(strong);
+            subtitle.appendChild(tail);
+        }
+
+        if (expanded) expanded.classList.add('wa-is-hidden');
+        return;
+    }
+
+    // Agent online tetapi belum ready (QR / loading / logout / reconnect)
+    if (isOnline) {
+        if (topPill) topPill.classList.add('agent-pill-waiting');
+        if (topDot) topDot.classList.add('dot-waiting');
+        if (topText) topText.textContent = state === 'qr' ? 'Scan QR WA' : 'Menghubungkan...';
+        if (sidebarDot) sidebarDot.classList.add('dot-waiting');
+        if (heroPill) {
+            heroPill.innerHTML = `<span style="width:8px;height:8px;border-radius:50%;background:#f59e0b;display:inline-block;"></span> Agent Online (${state === 'qr' ? 'Menunggu Scan QR' : 'Standby'})`;
+        }
+
+        if (brandIcon) brandIcon.classList.add('is-qr');
+        if (badge) {
+            badge.classList.add('agent-pill-waiting');
+            badge.textContent = state === 'qr' ? 'Siap Scan QR' : (state === 'logging_out' ? 'Memutuskan...' : 'Memuat...');
+        }
+        if (expanded) expanded.classList.remove('wa-is-hidden');
+        if (offlineHint) offlineHint.classList.add('wa-is-hidden');
+        if (stepsWrap) stepsWrap.classList.remove('wa-is-hidden');
+
+        if (state === 'qr' && conn.qr_data_url) {
+            if (subtitle) subtitle.textContent = 'Scan QR Code di bawah ini dari WhatsApp HP Anda untuk menghubungkan nomor pengirim.';
+            if (stateTitle) stateTitle.textContent = 'Scan QR Code WhatsApp di Sini';
+            if (qrBox) {
+                const existingImg = qrBox.querySelector('img');
+                if (!existingImg || existingImg.getAttribute('src') !== conn.qr_data_url) {
+                    qrBox.innerHTML = '';
+                    const img = document.createElement('img');
+                    img.src = conn.qr_data_url;
+                    img.alt = 'QR Code WhatsApp';
+                    const cap = document.createElement('span');
+                    cap.style.cssText = 'margin-top:8px;font-size:11px;color:var(--text-muted);font-weight:600;';
+                    cap.textContent = 'QR diperbarui otomatis saat berubah';
+                    qrBox.appendChild(img);
+                    qrBox.appendChild(cap);
+                }
+            }
+        } else {
+            const pct = conn.loading_percent ? ` (${conn.loading_percent}%)` : '';
+            const statusDesc = state === 'logging_out'
+                ? 'Memutuskan perangkat WhatsApp lama & menyiapkan QR baru...'
+                : (state === 'authenticated'
+                    ? 'Autentikasi berhasil! Sedang menyinkronkan sesi WhatsApp...'
+                    : `Memuat mesin WhatsApp Web${pct}...`);
+
+            if (subtitle) subtitle.textContent = statusDesc;
+            if (stateTitle) stateTitle.textContent = statusDesc;
+            if (qrBox) {
+                qrBox.innerHTML = '';
+                const spin = document.createElement('div');
+                spin.className = 'wa-spinner';
+                const txt = document.createElement('span');
+                txt.style.cssText = 'margin-top:12px;font-size:12px;color:var(--text-muted);font-weight:600;text-align:center;';
+                txt.textContent = statusDesc;
+                qrBox.appendChild(spin);
+                qrBox.appendChild(txt);
+            }
+        }
+        return;
+    }
+
+    // Agent Offline
+    if (topPill) topPill.classList.add('agent-pill-offline');
+    if (topDot) topDot.classList.add('dot-offline');
+    if (topText) topText.textContent = 'Agent Offline';
+    if (sidebarDot) sidebarDot.classList.add('dot-offline');
+    if (heroPill) {
+        heroPill.innerHTML = '<span style="width:8px;height:8px;border-radius:50%;background:#ef4444;display:inline-block;"></span> Agent Offline';
+    }
+
+    if (brandIcon) brandIcon.classList.add('is-offline');
+    if (badge) {
+        badge.classList.add('agent-pill-offline');
+        badge.textContent = 'Agent Offline';
+    }
+    if (subtitle) subtitle.textContent = 'WA Agent di PC kantor belum menyala. Nyalakan terlebih dahulu untuk terhubung.';
+    if (expanded) expanded.classList.remove('wa-is-hidden');
+    if (stateTitle) stateTitle.textContent = 'WA Desktop Agent Belum Berjalan';
+    if (stepsWrap) stepsWrap.classList.add('wa-is-hidden');
+    if (offlineHint) offlineHint.classList.remove('wa-is-hidden');
+    if (qrBox) {
+        qrBox.innerHTML = '<div style="text-align:center;color:#dc2626;padding:10px;"><div style="font-size:28px;margin-bottom:6px;">&#9888;&#65039;</div><div style="font-size:13px;font-weight:700;">Agent Offline</div><div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Jalankan wa-agent.js di PC kantor</div></div>';
+    }
+}
+
+async function sendWaControlRequest(attrName, confirmTitle, confirmText, confirmBtnText, confirmBtnColor) {
+    const card = document.getElementById('koneksi-wa');
+    if (!card) return;
+    const url = card.getAttribute(attrName);
+    const csrf = card.getAttribute('data-csrf');
+
+    const ask = await Swal.fire({
+        title: confirmTitle,
+        text: confirmText,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: confirmBtnColor,
+        cancelButtonColor: '#64748b',
+        confirmButtonText: confirmBtnText,
+        cancelButtonText: 'Batal'
+    });
+    if (!ask.isConfirmed) return;
+
+    try {
+        const res = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrf,
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify({})
+        });
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+            Swal.fire('Gagal', data.message || 'Tidak dapat mengirim perintah ke agent.', 'error');
+            return;
+        }
+        Swal.fire({
+            title: 'Perintah Dikirim',
+            text: data.message,
+            icon: 'success',
+            timer: 2500,
+            showConfirmButton: false
+        });
+        scheduleNextWaPoll(1000);
+    } catch (e) {
+        Swal.fire('Error', 'Terjadi kesalahan koneksi ke server dashboard.', 'error');
+    }
+}
+
+function confirmDisconnectWhatsapp() {
+    sendWaControlRequest(
+        'data-disconnect-url',
+        'Putus & Ganti Nomor WhatsApp?',
+        'Perangkat WhatsApp saat ini akan dikeluarkan (logout) dan sesi lama dihapus, lalu QR Code baru akan muncul di dashboard untuk discan dengan nomor pengganti.',
+        'Ya, Putus & Buat QR Baru',
+        '#dc2626'
+    );
+}
+
+function confirmReconnectWhatsapp() {
+    sendWaControlRequest(
+        'data-reconnect-url',
+        'Refresh Koneksi WhatsApp Web?',
+        'Mesin WhatsApp Web pada agent akan di-restart tanpa menghapus nomor yang tersimpan (atau membuat ulang QR jika belum login).',
+        'Ya, Refresh Sekarang',
+        '#2563eb'
+    );
+}
+
+function copyAgentCmd() {
+    const cmdText = document.getElementById('waStartCmdText')?.textContent || 'node wa-desktop-agent/wa-agent.js';
+    navigator.clipboard?.writeText(cmdText).then(() => {
+        Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Perintah disalin', showConfirmButton: false, timer: 1800 });
+    });
+}
 </script>
 
 @endsection

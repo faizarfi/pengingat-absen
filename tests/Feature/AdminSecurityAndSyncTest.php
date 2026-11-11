@@ -325,4 +325,76 @@ class AdminSecurityAndSyncTest extends TestCase
         $this->assertStringNotContainsString('{target_time}', $msgCheckout);
         $this->assertStringContainsString('{minutes_left}', $msgCheckout);
     }
+
+    public function test_dashboard_qr_and_disconnect_lifecycle(): void
+    {
+        config(['whatsapp.agent_token' => 'test-agent-token']);
+        $agentHeaders = ['Authorization' => 'Bearer test-agent-token'];
+        $admin = User::first() ?? User::factory()->create();
+
+        // 1. Agent mengirim heartbeat dengan QR code
+        $qrSample = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
+        $hbQr = $this->postJson('/api/agent/heartbeat', [
+            'agent_name'     => 'default',
+            'whatsapp_ready' => false,
+            'qr_data_url'    => $qrSample,
+            'metadata'       => ['state' => 'qr', 'loading_percent' => 0],
+        ], $agentHeaders);
+        $hbQr->assertStatus(200)->assertJson(['success' => true, 'command' => null]);
+
+        // 2. Dashboard /admin/whatsapp/status harus mengembalikan QR tersebut
+        $statusRes = $this->actingAs($admin)->getJson('/admin/whatsapp/status');
+        $statusRes->assertStatus(200)
+            ->assertJsonPath('connection.agent_online', true)
+            ->assertJsonPath('connection.whatsapp_ready', false)
+            ->assertJsonPath('connection.state', 'qr')
+            ->assertJsonPath('connection.qr_data_url', $qrSample);
+
+        // 3. Setelah discan (ready), QR dibersihkan dan nomor akun tampil
+        $hbReady = $this->postJson('/api/agent/heartbeat', [
+            'agent_name'     => 'default',
+            'whatsapp_ready' => true,
+            'clear_qr'       => true,
+            'metadata'       => [
+                'state'    => 'ready',
+                'phone'    => '6285183250327',
+                'pushname' => 'Bot BPS Karanganyar',
+            ],
+        ], $agentHeaders);
+        $hbReady->assertStatus(200);
+
+        $statusReady = $this->actingAs($admin)->getJson('/admin/whatsapp/status');
+        $statusReady->assertStatus(200)
+            ->assertJsonPath('connection.whatsapp_ready', true)
+            ->assertJsonPath('connection.state', 'ready')
+            ->assertJsonPath('connection.phone', '6285183250327')
+            ->assertJsonPath('connection.pushname', 'Bot BPS Karanganyar')
+            ->assertJsonPath('connection.qr_data_url', null);
+
+        // 4. Admin klik Putus & Ganti Nomor via dashboard -> command 'logout' diambil oleh agent heartbeat berikutnya
+        $discRes = $this->actingAs($admin)->postJson('/admin/whatsapp/disconnect');
+        $discRes->assertStatus(200)->assertJsonPath('success', true)->assertJsonPath('command', 'logout');
+
+        $hbNext = $this->postJson('/api/agent/heartbeat', [
+            'agent_name'     => 'default',
+            'whatsapp_ready' => true,
+        ], $agentHeaders);
+        $hbNext->assertStatus(200)->assertJson(['command' => 'logout']);
+
+        // 5. Pastikan halaman dashboard render bersih beserta panel Koneksi WhatsApp
+        $dash = $this->actingAs($admin)->get('/admin');
+        $dash->assertStatus(200)->assertSee('Koneksi WhatsApp Pengirim');
+    }
+
+    public function test_disconnect_fails_gracefully_when_agent_is_offline(): void
+    {
+        $admin = User::first() ?? User::factory()->create();
+
+        \App\Models\WaAgentHeartbeat::where('agent_name', 'default')->update([
+            'last_seen_at' => now()->subMinutes(10),
+        ]);
+
+        $res = $this->actingAs($admin)->postJson('/admin/whatsapp/disconnect');
+        $res->assertStatus(422)->assertJson(['success' => false]);
+    }
 }

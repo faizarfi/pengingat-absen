@@ -136,6 +136,7 @@ class AdminController extends Controller
         }
 
         // ── Agent Monitoring ──
+        $waConnection = $this->buildWhatsappConnectionState();
         $agent = WaAgentHeartbeat::where('agent_name', 'default')->first();
         $agentStatus = $agent ? ($agent->isOnline() ? 'online' : 'offline') : 'not_configured';
         $whatsappReady = $agent ? $agent->whatsapp_ready : false;
@@ -195,6 +196,7 @@ class AdminController extends Controller
             'agentStatus',
             'whatsappReady',
             'agentLastSeen',
+            'waConnection',
             'outboxStats',
             'waDriver',
             'outboxMessages',
@@ -1040,6 +1042,118 @@ class AdminController extends Controller
         Log::info('Admin password changed successfully', ['user_id' => $user->id]);
 
         return redirect()->back()->with('status', 'Password admin berhasil diperbarui!');
+    }
+
+    /**
+     * GET /admin/whatsapp/status
+     * Status koneksi WA Agent & QR code live untuk Dashboard.
+     */
+    public function whatsappStatus()
+    {
+        return response()->json([
+            'success'    => true,
+            'connection' => $this->buildWhatsappConnectionState(),
+            'outbox'     => [
+                'pending'         => WaOutbox::pending()->count(),
+                'processing'      => WaOutbox::processing()->count(),
+                'sent_today'      => WaOutbox::where('status', WaOutbox::STATUS_SENT)->today()->count(),
+                'failed'          => WaOutbox::failed()->today()->count(),
+                'retry'           => WaOutbox::retry()->count(),
+                'employees_total' => Employee::count(),
+            ],
+        ]);
+    }
+
+    /**
+     * POST /admin/whatsapp/disconnect
+     * Putus koneksi WA saat ini dan siapkan QR code baru untuk ganti nomor.
+     */
+    public function disconnectWhatsapp(Request $request)
+    {
+        return $this->queueAgentCommand(
+            $request,
+            'logout',
+            'Perintah putuskan koneksi & ganti nomor dikirim ke WA Agent. QR Code baru akan muncul dalam beberapa detik.'
+        );
+    }
+
+    /**
+     * POST /admin/whatsapp/reconnect
+     * Restart koneksi WhatsApp Web pada agent tanpa menghapus sesi tersimpan.
+     */
+    public function reconnectWhatsapp(Request $request)
+    {
+        return $this->queueAgentCommand(
+            $request,
+            'reconnect',
+            'Perintah hubungkan ulang dikirim ke WA Agent. Mohon tunggu sebentar.'
+        );
+    }
+
+    private function queueAgentCommand(Request $request, string $command, string $successMsg)
+    {
+        $agent = WaAgentHeartbeat::where('agent_name', 'default')->first();
+        if (!$agent || !$agent->isOnline()) {
+            $err = 'WA Agent di PC kantor sedang offline. Pastikan node wa-desktop-agent/wa-agent.js sedang berjalan.';
+            return $request->expectsJson()
+                ? response()->json(['success' => false, 'message' => $err], 422)
+                : redirect()->back()->with('error', $err);
+        }
+
+        Cache::put('wa_agent_command_default', $command, now()->addSeconds(60));
+        Cache::put('wa_agent_pending_cmd_default', $command, now()->addSeconds(20));
+
+        if ($command === 'logout') {
+            Cache::forget('wa_agent_qr_default');
+        }
+
+        Log::info("Admin triggered WA agent command: {$command}");
+
+        return $request->expectsJson()
+            ? response()->json(['success' => true, 'message' => $successMsg, 'command' => $command])
+            : redirect()->back()->with('status', $successMsg);
+    }
+
+    private function buildWhatsappConnectionState(): array
+    {
+        $agent = WaAgentHeartbeat::where('agent_name', 'default')->first();
+        $agentOnline = $agent ? $agent->isOnline() : false;
+        $whatsappReady = $agentOnline && $agent->whatsapp_ready;
+        $meta = is_array($agent?->metadata) ? $agent->metadata : [];
+        $pendingCommand = Cache::get('wa_agent_pending_cmd_default');
+        $qrCache = $agentOnline ? Cache::get('wa_agent_qr_default') : null;
+
+        $state = 'offline';
+        if ($agentOnline) {
+            if ($pendingCommand === 'logout') {
+                $state = 'logging_out';
+            } elseif ($pendingCommand === 'reconnect') {
+                $state = 'initializing';
+            } else {
+                $state = $meta['state'] ?? ($whatsappReady ? 'ready' : 'initializing');
+            }
+        }
+
+        if ($agentOnline && !$whatsappReady && !empty($qrCache['data_url']) && !in_array($state, ['logging_out', 'authenticated'], true)) {
+            $state = 'qr';
+        }
+
+        return [
+            'agent_online'    => $agentOnline,
+            'whatsapp_ready'  => $whatsappReady,
+            'state'           => $state,
+            'phone'           => $meta['phone'] ?? null,
+            'pushname'        => $meta['pushname'] ?? null,
+            'platform'        => $meta['platform'] ?? null,
+            'loading_percent' => (int) ($meta['loading_percent'] ?? 0),
+            'loading_message' => $meta['loading_message'] ?? null,
+            'delay_range'     => $meta['delay_range'] ?? null,
+            'qr_data_url'     => ($agentOnline && !$whatsappReady && $state === 'qr') ? ($qrCache['data_url'] ?? null) : null,
+            'qr_updated_at'   => $qrCache['updated_at'] ?? ($meta['qr_updated_at'] ?? null),
+            'last_seen_at'    => $agent?->last_seen_at?->toIso8601String(),
+            'last_seen_human' => $agent?->last_seen_at?->diffForHumans(),
+            'pending_command' => $pendingCommand,
+        ];
     }
 
     /**

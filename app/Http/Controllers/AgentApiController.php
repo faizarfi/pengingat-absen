@@ -7,6 +7,7 @@ use App\Models\WaAgentHeartbeat;
 use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 class AgentApiController extends Controller
@@ -146,9 +147,31 @@ class AgentApiController extends Controller
      */
     public function heartbeat(Request $request): JsonResponse
     {
-        $agentName = $request->input('agent_name', 'default');
+        $agentName = preg_replace('/[^a-zA-Z0-9_-]/', '', (string) $request->input('agent_name', 'default')) ?: 'default';
         $whatsappReady = (bool) $request->input('whatsapp_ready', true);
         $metadata = $request->input('metadata', []);
+        if (!is_array($metadata)) {
+            $metadata = [];
+        }
+
+        // Simpan / bersihkan QR sementara di Cache (tidak membebani kolom JSON database)
+        if ($request->filled('qr_data_url')) {
+            $qrDataUrl = (string) $request->input('qr_data_url');
+            if (str_starts_with($qrDataUrl, 'data:image/')) {
+                Cache::put("wa_agent_qr_{$agentName}", [
+                    'data_url'   => $qrDataUrl,
+                    'updated_at' => now()->toIso8601String(),
+                ], now()->addSeconds(90));
+            }
+        } elseif ($request->boolean('clear_qr') || $whatsappReady) {
+            Cache::forget("wa_agent_qr_{$agentName}");
+        }
+
+        // Bersihkan indikator pending command di dashboard bila agent sudah menerima/memproses
+        $command = Cache::pull("wa_agent_command_{$agentName}");
+        if ($command !== null) {
+            Cache::forget("wa_agent_pending_cmd_{$agentName}");
+        }
 
         $heartbeat = WaAgentHeartbeat::beat($agentName, $whatsappReady, $metadata);
 
@@ -156,6 +179,7 @@ class AgentApiController extends Controller
             'success'      => true,
             'agent_name'   => $heartbeat->agent_name,
             'last_seen_at' => $heartbeat->last_seen_at->toDateTimeString(),
+            'command'      => $command,
         ]);
     }
 

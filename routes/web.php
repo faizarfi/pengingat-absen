@@ -34,6 +34,11 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->controller(AdminCont
         Route::delete('/{id}', 'deleteEmployee')->name('delete');
     });
 
+    // WhatsApp Agent Connection & QR Control
+    Route::get('/whatsapp/status', 'whatsappStatus')->name('whatsapp.status');
+    Route::post('/whatsapp/disconnect', 'disconnectWhatsapp')->name('whatsapp.disconnect');
+    Route::post('/whatsapp/reconnect', 'reconnectWhatsapp')->name('whatsapp.reconnect');
+
     // Send Actions (POST)
     Route::post('/send-now', 'sendNow')->name('send-now');
     Route::post('/send-pre-checkin', 'sendPreCheckinNow')->name('send-pre-checkin');

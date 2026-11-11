@@ -13,6 +13,7 @@
 
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
+const QRCode = require('qrcode');
 const http = require('http');
 const https = require('https');
 const fs = require('fs');
@@ -238,19 +239,56 @@ function httpRequest(requestUrl, method = 'GET', data = null, timeout = 10000) {
 // ==============================================================================
 // API FUNCTIONS
 // ==============================================================================
-async function sendHeartbeat(whatsappReady) {
-    const res = await httpRequest(`${API_BASE_URL}/api/agent/heartbeat`, 'POST', {
+let lastHeartbeatLogTime = 0;
+
+async function sendHeartbeat(forceLog = false) {
+    const payload = {
         agent_name: AGENT_NAME,
-        whatsapp_ready: whatsappReady,
+        whatsapp_ready: isWhatsAppReady,
         metadata: {
             runner: 'nodejs-whatsapp-web-js-v3',
+            state: currentState,
+            phone: accountInfo ? accountInfo.phone : null,
+            pushname: accountInfo ? accountInfo.pushname : null,
+            platform: accountInfo ? accountInfo.platform : null,
+            loading_percent: loadingPercent,
+            loading_message: loadingMessage,
+            qr_updated_at: qrUpdatedAt,
             delay_range: `${DELAY_MIN}-${DELAY_MAX}s`,
             mode: 'background',
             uptime_seconds: Math.floor((Date.now() - startTime) / 1000),
         },
-    });
+    };
+
+    if (currentState === 'qr' && currentQrDataUrl) {
+        payload.qr_data_url = currentQrDataUrl;
+    } else if (currentState !== 'qr') {
+        payload.clear_qr = true;
+    }
+
+    const res = await httpRequest(`${API_BASE_URL}/api/agent/heartbeat`, 'POST', payload);
     if (res && res.success) {
-        logInfo(`[${timestamp()}] ❤️ Heartbeat OK`);
+        const nowSec = Date.now() / 1000;
+        if (forceLog || nowSec - lastHeartbeatLogTime >= 60) {
+            logInfo(`[${timestamp()}] ❤️ Heartbeat OK (state: ${currentState})`);
+            lastHeartbeatLogTime = nowSec;
+        }
+
+        if (res.command === 'logout' && !isSwitchingClient) {
+            handleRemoteLogout().catch(err => logError(`Remote logout error: ${err.message}`));
+        } else if (res.command === 'reconnect' && !isSwitchingClient) {
+            handleRemoteReconnect().catch(err => logError(`Remote reconnect error: ${err.message}`));
+        }
+    }
+}
+
+async function startHeartbeatLoop() {
+    while (!isShuttingDown) {
+        try {
+            await sendHeartbeat(false);
+        } catch { /* ignore transient API outage */ }
+        // Poll cepat (3 detik) saat menunggu QR / switching nomor; hemat (8 detik) saat ready
+        await sleep(isWhatsAppReady && !isSwitchingClient ? 8 : 3);
     }
 }
 
@@ -327,112 +365,307 @@ function findBrowserPath() {
 }
 
 // ==============================================================================
-// WHATSAPP CLIENT SETUP
+// WHATSAPP CLIENT SETUP & REMOTE QR / SWITCH-ACCOUNT LIFECYCLE
 // ==============================================================================
+const AUTH_DATA_PATH = path.join(__dirname, '..', '.wwebjs_auth');
 const browserExecutable = findBrowserPath();
-const client = new Client({
-    authStrategy: new LocalAuth({
-        dataPath: path.join(__dirname, '..', '.wwebjs_auth'),
-    }),
-    authTimeoutMs: 60000,
-    puppeteer: {
-        headless: true,
-        ...(browserExecutable ? { executablePath: browserExecutable } : {}),
-        args: [
-            '--no-sandbox',
-            '--disable-setuid-sandbox',
-            '--disable-gpu',
-            '--disable-dev-shm-usage',
-            '--disable-extensions',
-            '--no-first-run',
-        ],
-    },
-});
 
+let client = null;
 let isWhatsAppReady = false;
 let pollingStarted = false;
+let isSwitchingClient = false;
+let isSendingMessage = false;
+let isShuttingDown = false;
 
-client.on('loading_screen', (percent, message) => {
-    logInfo(`[${timestamp()}] ⏳ Memuat WhatsApp Web: ${percent}% - ${message}`);
-});
+let currentState = 'initializing'; // initializing | loading | qr | authenticated | ready | disconnected | logging_out
+let currentQrDataUrl = null;
+let qrUpdatedAt = null;
+let loadingPercent = 0;
+let loadingMessage = '';
+let accountInfo = null;
 
-client.on('qr', (qr) => {
-    logInfo('\n==================================================');
-    logInfo('📱 SCAN QR CODE INI DENGAN WHATSAPP DI HP:');
-    logInfo('==================================================');
-    qrcode.generate(qr, { small: true });
-    logInfo('==================================================');
-    logInfo('💡 Buka WhatsApp di HP → Menu (⋮) → Linked Devices → Link a Device');
-    logInfo('💡 Setelah scan berhasil, session tersimpan otomatis.');
-    logInfo('==================================================\n');
-});
+function createWhatsAppClient() {
+    return new Client({
+        authStrategy: new LocalAuth({
+            dataPath: AUTH_DATA_PATH,
+        }),
+        authTimeoutMs: 60000,
+        puppeteer: {
+            headless: true,
+            ...(browserExecutable ? { executablePath: browserExecutable } : {}),
+            args: [
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+                '--disable-gpu',
+                '--disable-dev-shm-usage',
+                '--disable-extensions',
+                '--no-first-run',
+            ],
+        },
+    });
+}
 
-client.on('ready', () => {
-    isWhatsAppReady = true;
-    logInfo('\n==================================================');
-    logInfo('✅ WhatsApp Web SIAP! Agent berjalan di BACKGROUND.');
-    logInfo('   Tidak perlu WhatsApp Desktop. Tidak ada jendela terbuka.');
-    logInfo('==================================================\n');
-
-    // Kirim notifikasi reconnect jika ini bukan startup pertama
-    if (stats.disconnects > 0) {
-        stats.lastReconnect = new Date().toLocaleString('id-ID');
-        notifyTelegram(
-            `✅ <b>WhatsApp Agent RECONNECTED</b>\n\n` +
-            `🕐 <b>Waktu:</b> ${stats.lastReconnect}\n` +
-            `📊 <b>Total disconnect:</b> ${stats.disconnects}x\n` +
-            `💡 <i>Agent kembali online dan siap mengirim pesan.</i>`
-        );
-    }
-
-    if (!pollingStarted) {
-        pollingStarted = true;
-        startPolling();
-    }
-});
-
-client.on('authenticated', () => {
-    logInfo(`[${timestamp()}] 🔐 Autentikasi berhasil — session tersimpan.`);
-});
-
-client.on('auth_failure', (msg) => {
-    logError(`[${timestamp()}] ❌ Autentikasi GAGAL: ${msg}`);
-    logError('   Hapus folder .wwebjs_auth/ lalu jalankan ulang untuk scan QR baru.');
-    notifyTelegram(
-        `❌ <b>WhatsApp Agent AUTH GAGAL</b>\n\n` +
-        `🕐 <b>Waktu:</b> ${new Date().toLocaleString('id-ID')}\n` +
-        `📛 <b>Error:</b> ${msg}\n` +
-        `💡 <i>Perlu scan QR code ulang. Hapus folder .wwebjs_auth/ lalu restart agent.</i>`
-    );
-    process.exit(1);
-});
-
-client.on('disconnected', (reason) => {
-    isWhatsAppReady = false;
-    stats.disconnects++;
-    stats.lastDisconnect = new Date().toLocaleString('id-ID');
-
-    logError(`[${timestamp()}] ⚠️ WhatsApp TERPUTUS: ${reason}`);
-    logInfo('   Mencoba reconnect otomatis...');
-
-    // Kirim notifikasi disconnect ke Telegram
-    notifyTelegram(
-        `⚠️ <b>WhatsApp Agent DISCONNECTED</b>\n\n` +
-        `🕐 <b>Waktu:</b> ${stats.lastDisconnect}\n` +
-        `📛 <b>Alasan:</b> ${reason}\n` +
-        `📊 <b>Total disconnect:</b> ${stats.disconnects}x\n` +
-        `🔄 <i>Mencoba reconnect otomatis...</i>\n\n` +
-        `💡 <i>Jika tidak reconnect dalam 5 menit, restart agent manual.</i>`
-    );
-
-    // Coba reconnect otomatis setelah delay
-    setTimeout(() => {
-        if (!isWhatsAppReady) {
-            logInfo(`[${timestamp()}] 🔄 Mencoba initialize ulang...`);
-            try { client.initialize(); } catch { /* ignore */ }
+async function wipeAuthSessionDir() {
+    for (let attempt = 1; attempt <= 6; attempt++) {
+        try {
+            if (fs.existsSync(AUTH_DATA_PATH)) {
+                fs.rmSync(AUTH_DATA_PATH, { recursive: true, force: true });
+            }
+            logInfo(`[${timestamp()}] 🧹 Folder session .wwebjs_auth dibersihkan.`);
+            return true;
+        } catch (err) {
+            logWarn(`[${timestamp()}] ⚠️ Gagal hapus .wwebjs_auth (percobaan ${attempt}/6): ${err.message}`);
+            await sleep(1);
         }
-    }, 30000);
-});
+    }
+    return false;
+}
+
+function bindClientEvents(waClient) {
+    waClient.on('loading_screen', (percent, message) => {
+        currentState = 'loading';
+        loadingPercent = Number(percent) || 0;
+        loadingMessage = message || 'Memuat WhatsApp Web...';
+        logInfo(`[${timestamp()}] ⏳ Memuat WhatsApp Web: ${percent}% - ${message}`);
+    });
+
+    waClient.on('qr', async (qr) => {
+        isWhatsAppReady = false;
+        currentState = 'qr';
+        accountInfo = null;
+        loadingPercent = 0;
+        loadingMessage = 'Menunggu scan QR code...';
+
+        try {
+            currentQrDataUrl = await QRCode.toDataURL(qr, {
+                width: 280,
+                margin: 2,
+                color: {
+                    dark: '#0f172a',
+                    light: '#ffffff',
+                },
+            });
+            qrUpdatedAt = new Date().toISOString();
+            await sendHeartbeat(true);
+        } catch (err) {
+            logError(`[${timestamp()}] ❌ Gagal membuat gambar QR Dashboard: ${err.message}`);
+        }
+
+        logInfo('\n==================================================');
+        logInfo('📱 SCAN QR CODE INI DENGAN WHATSAPP DI HP (atau buka Dashboard Admin):');
+        logInfo('==================================================');
+        qrcode.generate(qr, { small: true });
+        logInfo('==================================================');
+        logInfo('💡 Buka WhatsApp di HP → Menu (⋮) → Linked Devices → Link a Device');
+        logInfo('💡 Atau buka Dashboard → Menu "Koneksi WhatsApp" untuk scan langsung.');
+        logInfo('==================================================\n');
+    });
+
+    waClient.on('authenticated', () => {
+        currentState = 'authenticated';
+        currentQrDataUrl = null;
+        qrUpdatedAt = null;
+        loadingMessage = 'Autentikasi berhasil, sinkronisasi chat...';
+        logInfo(`[${timestamp()}] 🔐 Autentikasi berhasil — session tersimpan.`);
+        sendHeartbeat(false).catch(() => {});
+    });
+
+    waClient.on('ready', async () => {
+        isWhatsAppReady = true;
+        isSwitchingClient = false;
+        currentState = 'ready';
+        currentQrDataUrl = null;
+        qrUpdatedAt = null;
+        loadingPercent = 100;
+        loadingMessage = 'Terhubung & siap mengirim pesan';
+
+        try {
+            const info = waClient.info;
+            accountInfo = info ? {
+                phone: info.wid?.user || null,
+                pushname: info.pushname || null,
+                platform: info.platform || null,
+            } : null;
+        } catch {
+            accountInfo = null;
+        }
+
+        logInfo('\n==================================================');
+        logInfo(`✅ WhatsApp Web SIAP! ${accountInfo?.phone ? `(+${accountInfo.phone} • ${accountInfo.pushname || 'Akun WA'})` : ''}`);
+        logInfo('   Agent berjalan di BACKGROUND. Tidak ada jendela terbuka.');
+        logInfo('==================================================\n');
+
+        await sendHeartbeat(true);
+
+        // Kirim notifikasi reconnect jika ini bukan startup pertama
+        if (stats.disconnects > 0) {
+            stats.lastReconnect = new Date().toLocaleString('id-ID');
+            notifyTelegram(
+                `✅ <b>WhatsApp Agent RECONNECTED</b>\n\n` +
+                `🕐 <b>Waktu:</b> ${stats.lastReconnect}\n` +
+                `📊 <b>Total disconnect:</b> ${stats.disconnects}x\n` +
+                `💡 <i>Agent kembali online dan siap mengirim pesan.</i>`
+            );
+        }
+
+        if (!pollingStarted) {
+            pollingStarted = true;
+            startPolling();
+        }
+    });
+
+    waClient.on('auth_failure', async (msg) => {
+        if (isSwitchingClient || isShuttingDown) return;
+
+        isWhatsAppReady = false;
+        currentState = 'initializing';
+        currentQrDataUrl = null;
+        accountInfo = null;
+
+        logError(`[${timestamp()}] ❌ Autentikasi GAGAL: ${msg}`);
+        logInfo('   Membersihkan sesi lama & menyiapkan QR Code baru di Dashboard...');
+        notifyTelegram(
+            `❌ <b>WhatsApp Agent AUTH GAGAL</b>\n\n` +
+            `🕐 <b>Waktu:</b> ${new Date().toLocaleString('id-ID')}\n` +
+            `📛 <b>Error:</b> ${msg}\n` +
+            `🔄 <i>Agent otomatis mereset sesi dan menyiapkan QR baru di Dashboard.</i>`
+        );
+
+        isSwitchingClient = true;
+        try { await Promise.race([waClient.destroy(), sleep(6)]); } catch { /* ignore */ }
+        await sleep(2);
+        await wipeAuthSessionDir();
+        await bootNewClient();
+    });
+
+    waClient.on('disconnected', async (reason) => {
+        if (isSwitchingClient || isShuttingDown) return;
+
+        isWhatsAppReady = false;
+        currentState = 'disconnected';
+        currentQrDataUrl = null;
+        accountInfo = null;
+        stats.disconnects++;
+        stats.lastDisconnect = new Date().toLocaleString('id-ID');
+
+        logError(`[${timestamp()}] ⚠️ WhatsApp TERPUTUS: ${reason}`);
+        await sendHeartbeat(true);
+
+        if (reason === 'LOGOUT') {
+            logInfo('   Perangkat diputus dari HP. Membersihkan sesi & membuat QR baru untuk Dashboard...');
+            notifyTelegram(
+                `🔌 <b>WhatsApp Terputus (Logout dari HP)</b>\n\n` +
+                `🕐 <b>Waktu:</b> ${stats.lastDisconnect}\n` +
+                `📱 <i>Silakan buka Dashboard Admin untuk scan QR Code baru.</i>`
+            );
+            isSwitchingClient = true;
+            try { await Promise.race([waClient.destroy(), sleep(6)]); } catch { /* ignore */ }
+            await sleep(1.5);
+            await wipeAuthSessionDir();
+            await bootNewClient();
+            return;
+        }
+
+        logInfo('   Mencoba reconnect otomatis...');
+        notifyTelegram(
+            `⚠️ <b>WhatsApp Agent DISCONNECTED</b>\n\n` +
+            `🕐 <b>Waktu:</b> ${stats.lastDisconnect}\n` +
+            `📛 <b>Alasan:</b> ${reason}\n` +
+            `📊 <b>Total disconnect:</b> ${stats.disconnects}x\n` +
+            `🔄 <i>Mencoba reconnect otomatis...</i>`
+        );
+
+        setTimeout(() => {
+            if (!isWhatsAppReady && !isSwitchingClient && !isShuttingDown) {
+                logInfo(`[${timestamp()}] 🔄 Mencoba initialize ulang...`);
+                try { waClient.initialize(); } catch { /* ignore */ }
+            }
+        }, 30000);
+    });
+}
+
+async function bootNewClient() {
+    currentState = 'initializing';
+    currentQrDataUrl = null;
+    qrUpdatedAt = null;
+    loadingPercent = 0;
+    loadingMessage = 'Membuka mesin WhatsApp Web...';
+    accountInfo = null;
+
+    client = createWhatsAppClient();
+    bindClientEvents(client);
+    isSwitchingClient = false;
+
+    await sendHeartbeat(true);
+
+    client.initialize().catch(err => {
+        logError(`[${timestamp()}] ❌ Gagal inisialisasi WhatsApp: ${err.message}`);
+        logInfo('💡 Tips: Klik Refresh Koneksi di Dashboard atau jalankan ulang agent.');
+    });
+}
+
+async function handleRemoteLogout() {
+    if (isSwitchingClient || isShuttingDown) return;
+    isSwitchingClient = true;
+    logInfo(`[${timestamp()}] 🔌 Perintah PUTUS & GANTI NOMOR diterima dari Dashboard Admin...`);
+
+    // Tunggu pengiriman pesan yang sedang berlangsung agar tidak terpotong di tengah jalan
+    while (isSendingMessage) {
+        await sleep(0.5);
+    }
+
+    isWhatsAppReady = false;
+    currentState = 'logging_out';
+    currentQrDataUrl = null;
+    qrUpdatedAt = null;
+    accountInfo = null;
+    loadingPercent = 0;
+    loadingMessage = 'Memutuskan perangkat WhatsApp lama & menyiapkan QR baru...';
+    await sendHeartbeat(true);
+
+    try {
+        if (client) {
+            await Promise.race([client.logout(), sleep(8)]);
+        }
+    } catch { /* ignore if session already closed */ }
+
+    try {
+        if (client) {
+            await Promise.race([client.destroy(), sleep(8)]);
+        }
+    } catch { /* ignore */ }
+
+    await sleep(1.5);
+    await wipeAuthSessionDir();
+    await bootNewClient();
+}
+
+async function handleRemoteReconnect() {
+    if (isSwitchingClient || isShuttingDown) return;
+    isSwitchingClient = true;
+    logInfo(`[${timestamp()}] 🔄 Perintah REFRESH KONEKSI diterima dari Dashboard Admin...`);
+
+    while (isSendingMessage) {
+        await sleep(0.5);
+    }
+
+    isWhatsAppReady = false;
+    currentState = 'initializing';
+    currentQrDataUrl = null;
+    qrUpdatedAt = null;
+    loadingPercent = 0;
+    loadingMessage = 'Menghubungkan ulang mesin WhatsApp Web...';
+    await sendHeartbeat(true);
+
+    try {
+        if (client) {
+            await Promise.race([client.destroy(), sleep(8)]);
+        }
+    } catch { /* ignore */ }
+
+    await sleep(1.5);
+    await bootNewClient();
+}
 
 // ==============================================================================
 // REALTIME DYNAMIC TIME RESOLVER (SISA WAKTU REALTIME SAAT PESAN TERKIRIM)
@@ -611,24 +844,14 @@ async function startPolling() {
     logInfo('🔇 Mode           : BACKGROUND (tidak ada jendela terbuka)');
     logInfo('==================================================');
 
-    let lastHeartbeat = 0;
     let consecutiveSentCount = 0;
 
     // Bersihkan log lama saat startup
     cleanOldLogs();
 
-    while (true) {
+    while (!isShuttingDown) {
         try {
-            const now = Date.now() / 1000;
-
-            // Heartbeat setiap 30 detik
-            if (now - lastHeartbeat >= 30) {
-                await sendHeartbeat(isWhatsAppReady);
-                lastHeartbeat = now;
-            }
-
-            if (!isWhatsAppReady) {
-                logInfo(`[${timestamp()}] ⏳ Menunggu koneksi WhatsApp Web...`);
+            if (!isWhatsAppReady || isSwitchingClient) {
                 await sleep(POLL_INTERVAL);
                 continue;
             }
@@ -709,6 +932,10 @@ async function startPolling() {
                 logInfo(`[${timestamp()}] 📬 Ditemukan ${messages.length} pesan pending... (hari ini: ${dailySentCount}/${limitStr})`);
 
                 for (let i = 0; i < messages.length; i++) {
+                    if (isSwitchingClient || !isWhatsAppReady || isShuttingDown) {
+                        break;
+                    }
+
                     const msg = messages[i];
 
                     // Cek lagi daily limit di tengah batch
@@ -726,7 +953,13 @@ async function startPolling() {
                     const text = resolveDynamicTimePlaceholders(rawText, msgType, targetTime);
 
                     // Kirim pesan via WhatsApp Web (background)
-                    const result = await sendViaWhatsApp(phone, text);
+                    isSendingMessage = true;
+                    let result;
+                    try {
+                        result = await sendViaWhatsApp(phone, text);
+                    } finally {
+                        isSendingMessage = false;
+                    }
 
                     if (result.success) {
                         await markStatus(msgId, 'sent', { final_message: text });
@@ -786,8 +1019,6 @@ async function startPolling() {
 // ==============================================================================
 // GRACEFUL SHUTDOWN
 // ==============================================================================
-let isShuttingDown = false;
-
 async function gracefulShutdown() {
     if (isShuttingDown) return;
     isShuttingDown = true;
@@ -799,14 +1030,11 @@ async function gracefulShutdown() {
     logInfo(`📊 Statistik sesi: Terkirim=${stats.sent} Gagal=${stats.failed} NomorInvalid=${stats.invalidNumbers} Disconnect=${stats.disconnects} DailyLimit=${stats.dailyLimitHits} AutoPause=${stats.autoPauses} Uptime=${uptimeStr}`);
     
     try {
-        await client.destroy();
-        logInfo('✅ Chrome berhasil ditutup.');
-    } catch {
-        try {
-            const { execSync } = require('child_process');
-            execSync('taskkill /F /IM chrome.exe /T 2>nul', { stdio: 'ignore' });
-        } catch { /* ignore */ }
-    }
+        if (client) {
+            await Promise.race([client.destroy(), sleep(6)]);
+            logInfo('✅ Chrome berhasil ditutup.');
+        }
+    } catch { /* ignore */ }
     process.exit(0);
 }
 
@@ -818,13 +1046,11 @@ setTimeout(() => { /* keep alive */ }, 2147483647);
 // START
 // ==============================================================================
 logInfo('==================================================');
-logInfo('🚀 WA Desktop Agent v3.0 — Professional Background Mode');
-logInfo('   whatsapp-web.js + Logging + Telegram Alerts');
+logInfo('🚀 WA Desktop Agent v3.2 — Dashboard QR + Optimized Anti-Ban');
+logInfo('   whatsapp-web.js + Dashboard QR Control + Telegram Alerts');
 logInfo('   100% background. Auto-reconnect. Smart retry.');
 logInfo('==================================================');
-logInfo(`[${timestamp()}] Memulai koneksi WhatsApp Web...`);
+logInfo(`[${timestamp()}] Memulai koneksi WhatsApp Web & Heartbeat Dashboard...`);
 
-client.initialize().catch(err => {
-    logError(`[${timestamp()}] ❌ Gagal inisialisasi WhatsApp: ${err.message}`);
-    logInfo('💡 Tips: Jika terjadi timeout atau sesi terhenti, hapus folder .wwebjs_auth/ lalu jalankan ulang.');
-});
+startHeartbeatLoop();
+bootNewClient();
