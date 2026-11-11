@@ -1100,6 +1100,14 @@ class AdminController extends Controller
                 : redirect()->back()->with('error', $err);
         }
 
+        $meta = is_array($agent->metadata) ? $agent->metadata : [];
+        if (!array_key_exists('state', $meta)) {
+            $err = 'WA Agent yang sedang berjalan masih versi lama. Tutup terminal agent (Ctrl+C) lalu jalankan ulang: node wa-desktop-agent/wa-agent.js';
+            return $request->expectsJson()
+                ? response()->json(['success' => false, 'message' => $err], 422)
+                : redirect()->back()->with('error', $err);
+        }
+
         Cache::put('wa_agent_command_default', $command, now()->addSeconds(60));
         Cache::put('wa_agent_pending_cmd_default', $command, now()->addSeconds(20));
 

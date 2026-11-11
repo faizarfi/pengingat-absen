@@ -405,6 +405,24 @@ function createWhatsAppClient() {
     });
 }
 
+async function destroyClientSafely(targetClient) {
+    if (!targetClient) return;
+    let browserPid = null;
+    try {
+        browserPid = targetClient.pupBrowser?.process()?.pid || null;
+    } catch { /* ignore */ }
+
+    try {
+        await Promise.race([targetClient.destroy(), sleep(6)]);
+    } catch { /* ignore */ }
+
+    if (browserPid) {
+        try {
+            process.kill(browserPid, 'SIGKILL');
+        } catch { /* already exited */ }
+    }
+}
+
 async function wipeAuthSessionDir() {
     for (let attempt = 1; attempt <= 6; attempt++) {
         try {
@@ -532,8 +550,8 @@ function bindClientEvents(waClient) {
         );
 
         isSwitchingClient = true;
-        try { await Promise.race([waClient.destroy(), sleep(6)]); } catch { /* ignore */ }
-        await sleep(2);
+        await destroyClientSafely(waClient);
+        await sleep(1.5);
         await wipeAuthSessionDir();
         await bootNewClient();
     });
@@ -559,7 +577,7 @@ function bindClientEvents(waClient) {
                 `📱 <i>Silakan buka Dashboard Admin untuk scan QR Code baru.</i>`
             );
             isSwitchingClient = true;
-            try { await Promise.race([waClient.destroy(), sleep(6)]); } catch { /* ignore */ }
+            await destroyClientSafely(waClient);
             await sleep(1.5);
             await wipeAuthSessionDir();
             await bootNewClient();
@@ -629,11 +647,7 @@ async function handleRemoteLogout() {
         }
     } catch { /* ignore if session already closed */ }
 
-    try {
-        if (client) {
-            await Promise.race([client.destroy(), sleep(8)]);
-        }
-    } catch { /* ignore */ }
+    await destroyClientSafely(client);
 
     await sleep(1.5);
     await wipeAuthSessionDir();
@@ -657,11 +671,7 @@ async function handleRemoteReconnect() {
     loadingMessage = 'Menghubungkan ulang mesin WhatsApp Web...';
     await sendHeartbeat(true);
 
-    try {
-        if (client) {
-            await Promise.race([client.destroy(), sleep(8)]);
-        }
-    } catch { /* ignore */ }
+    await destroyClientSafely(client);
 
     await sleep(1.5);
     await bootNewClient();
