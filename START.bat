@@ -2,8 +2,11 @@
 cd /d "%~dp0"
 title Pengingat Absensi BPS - Launcher Terpadu
 
-:: Deteksi dan konfigurasi PHP otomatis (prioritaskan XAMPP jika Program Files diblokir Device Guard)
-if exist "C:\xampp\php\php.exe" (
+:: Deteksi dan konfigurasi PHP otomatis (prioritaskan C:\php-8.5 atau XAMPP agar tidak terblokir Device Guard)
+if exist "C:\php-8.5\php.exe" (
+    set "PHPRC=C:\php-8.5"
+    set "PATH=C:\php-8.5;%PATH%"
+) else if exist "C:\xampp\php\php.exe" (
     set "PHPRC=C:\xampp\php"
     set "PATH=C:\xampp\php;%PATH%"
 )
