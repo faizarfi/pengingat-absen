@@ -729,6 +729,21 @@ body {
     border: 1px solid var(--warning-border);
 }
 
+.pantun-quote-box {
+    font-style: italic;
+    background: #f8fafc;
+    padding: 8px 12px;
+    border-radius: 6px;
+}
+
+.pantun-border-masuk {
+    border-left: 3px solid #10b981;
+}
+
+.pantun-border-pulang {
+    border-left: 3px solid #f59e0b;
+}
+
 /* ==========================================================================
    ACTION BANNER (MANUAL BROADCAST HUB)
    ========================================================================== */
@@ -2861,7 +2876,7 @@ body {
                                             @endif
                                         </td>
                                         <td style="color: var(--navy-dark); line-height: 1.6; font-size: 12px;">
-                                            <div style="font-style: italic; background: #f8fafc; padding: 8px 12px; border-radius: 6px; border-left: 3px solid {{ $p->type === 'masuk' ? '#10b981' : '#f59e0b' }};">
+                                            <div class="pantun-quote-box {{ $p->type === 'masuk' ? 'pantun-border-masuk' : 'pantun-border-pulang' }}">
                                                 {!! nl2br(e(str_replace('\\n', "\n", $p->text))) !!}
                                             </div>
                                         </td>
@@ -2872,7 +2887,7 @@ body {
                                             <form id="formDeletePantun_{{ $p->id }}" method="POST" action="{{ route('admin.pantuns.destroy', $p->id) }}" style="display: inline; margin: 0;">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="button" class="btn btn-sm" style="padding: 4px 7px; font-size: 10px; background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; border-radius: 6px;" title="Hapus pantun ini" onclick="confirmDeletePantun({{ $p->id }})">
+                                                <button type="button" class="btn btn-sm" style="padding: 4px 7px; font-size: 10px; background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; border-radius: 6px;" title="Hapus pantun ini" data-id="{{ $p->id }}" onclick="confirmDeletePantun(this.dataset.id)">
                                                     <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                                 </button>
                                             </form>

@@ -19,6 +19,39 @@ class AdminSecurityAndSyncTest extends TestCase
         parent::setUp();
     }
 
+    /**
+     * @return User
+     */
+    protected function getAdminUser(): User
+    {
+        /** @var User|null $admin */
+        $admin = User::query()->first(['*']);
+        if (!$admin) {
+            /** @var User $admin */
+            $admin = User::factory()->create();
+        }
+        return $admin;
+    }
+
+    /**
+     * @param array<string, mixed> $attributes
+     * @return Employee
+     */
+    protected function getTestEmployee(array $attributes = []): Employee
+    {
+        /** @var Employee|null $emp */
+        $emp = Employee::query()->first(['*']);
+        if ($emp) {
+            return $emp;
+        }
+
+        return Employee::create(array_merge([
+            'name' => 'Pegawai Test',
+            'phone_number' => '81299990000',
+            'is_active' => true,
+        ], $attributes));
+    }
+
     public function test_login_has_rate_limiting(): void
     {
         // 5 failed attempts allowed
@@ -40,11 +73,7 @@ class AdminSecurityAndSyncTest extends TestCase
 
     public function test_admin_can_update_password(): void
     {
-        $admin = User::first() ?? User::factory()->create([
-            'email' => 'unique_test_admin@example.com',
-            'password' => Hash::make('oldpassword123'),
-        ]);
-
+        $admin = $this->getAdminUser();
         $admin->password = Hash::make('oldpassword123');
         $admin->save();
 
@@ -63,11 +92,7 @@ class AdminSecurityAndSyncTest extends TestCase
 
     public function test_admin_cannot_update_password_with_wrong_current_password(): void
     {
-        $admin = User::first() ?? User::factory()->create([
-            'email' => 'unique_test_admin2@example.com',
-            'password' => Hash::make('oldpassword123'),
-        ]);
-
+        $admin = $this->getAdminUser();
         $admin->password = Hash::make('oldpassword123');
         $admin->save();
 
@@ -82,7 +107,7 @@ class AdminSecurityAndSyncTest extends TestCase
 
     public function test_cannot_create_employee_with_duplicate_phone(): void
     {
-        $admin = User::first() ?? User::factory()->create();
+        $admin = $this->getAdminUser();
 
         Employee::create([
             'name' => 'Budi Test Unik',
@@ -105,7 +130,7 @@ class AdminSecurityAndSyncTest extends TestCase
 
     public function test_dashboard_displays_status_from_wa_outbox(): void
     {
-        $admin = User::factory()->create();
+        $admin = $this->getAdminUser();
 
         $emp = Employee::create([
             'name' => 'Siti',
@@ -132,7 +157,7 @@ class AdminSecurityAndSyncTest extends TestCase
 
     public function test_admin_can_export_outbox_csv(): void
     {
-        $admin = User::first() ?? User::factory()->create();
+        $admin = $this->getAdminUser();
 
         $emp = Employee::create([
             'name' => 'Ahmad Pegawai',
@@ -159,7 +184,7 @@ class AdminSecurityAndSyncTest extends TestCase
 
     public function test_pre_checkout_preserves_dynamic_minutes_placeholder_in_outbox(): void
     {
-        $admin = User::first() ?? User::factory()->create();
+        $admin = $this->getAdminUser();
 
         $emp = Employee::create([
             'name' => 'Rina Dinamis',
@@ -185,7 +210,7 @@ class AdminSecurityAndSyncTest extends TestCase
         config(['whatsapp.agent_token' => 'test-agent-token']);
         $headers = ['Authorization' => 'Bearer test-agent-token'];
 
-        $emp = Employee::first() ?? Employee::create([
+        $emp = $this->getTestEmployee([
             'name' => 'Bambang Agent',
             'phone_number' => '81233334444',
             'is_active' => true,
@@ -220,7 +245,7 @@ class AdminSecurityAndSyncTest extends TestCase
 
     public function test_no_retry_error_marks_outbox_failed_immediately(): void
     {
-        $emp = Employee::first() ?? Employee::create([
+        $emp = $this->getTestEmployee([
             'name' => 'Nomor Salah',
             'phone_number' => '81200001111',
             'is_active' => true,
@@ -244,7 +269,7 @@ class AdminSecurityAndSyncTest extends TestCase
 
     public function test_recover_stuck_processing_only_resets_stale_items(): void
     {
-        $emp = Employee::first() ?? Employee::create([
+        $emp = $this->getTestEmployee([
             'name' => 'Stuck Test',
             'phone_number' => '81200002222',
             'is_active' => true,
@@ -280,7 +305,7 @@ class AdminSecurityAndSyncTest extends TestCase
 
     public function test_double_click_pre_checkout_prevents_duplicate_outbox(): void
     {
-        $admin = User::first() ?? User::factory()->create();
+        $admin = $this->getAdminUser();
 
         $emp = Employee::create([
             'name' => 'Anto Anti Dobel',
@@ -304,7 +329,7 @@ class AdminSecurityAndSyncTest extends TestCase
 
     public function test_scheduler_build_message_replaces_target_time_and_supports_pre_checkout(): void
     {
-        $emp = Employee::first() ?? Employee::create([
+        $emp = $this->getTestEmployee([
             'name' => 'Dewi Scheduler',
             'panggilan' => 'Ibu',
             'phone_number' => '81277778888',
@@ -331,7 +356,7 @@ class AdminSecurityAndSyncTest extends TestCase
     {
         config(['whatsapp.agent_token' => 'test-agent-token']);
         $agentHeaders = ['Authorization' => 'Bearer test-agent-token'];
-        $admin = User::first() ?? User::factory()->create();
+        $admin = $this->getAdminUser();
 
         // 1. Agent mengirim heartbeat dengan QR code
         $qrSample = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
@@ -389,7 +414,7 @@ class AdminSecurityAndSyncTest extends TestCase
 
     public function test_disconnect_fails_gracefully_when_agent_is_offline(): void
     {
-        $admin = User::first() ?? User::factory()->create();
+        $admin = $this->getAdminUser();
 
         \App\Models\WaAgentHeartbeat::where('agent_name', 'default')->update([
             'last_seen_at' => now()->subMinutes(10),
@@ -401,7 +426,7 @@ class AdminSecurityAndSyncTest extends TestCase
 
     public function test_admin_can_add_pantun(): void
     {
-        $admin = User::first() ?? User::factory()->create();
+        $admin = $this->getAdminUser();
 
         $response = $this->actingAs($admin)->post('/admin/pantuns', [
             'type' => 'masuk',
@@ -417,7 +442,7 @@ class AdminSecurityAndSyncTest extends TestCase
 
     public function test_pantun_validation(): void
     {
-        $admin = User::first() ?? User::factory()->create();
+        $admin = $this->getAdminUser();
 
         // Type invalid
         $res = $this->actingAs($admin)->post('/admin/pantuns', [
@@ -436,7 +461,7 @@ class AdminSecurityAndSyncTest extends TestCase
 
     public function test_admin_can_delete_pantun(): void
     {
-        $admin = User::first() ?? User::factory()->create();
+        $admin = $this->getAdminUser();
 
         $pantun = Pantun::create([
             'type' => 'pulang',
@@ -450,7 +475,7 @@ class AdminSecurityAndSyncTest extends TestCase
 
     public function test_admin_can_search_outbox(): void
     {
-        $admin = User::first() ?? User::factory()->create();
+        $admin = $this->getAdminUser();
 
         $emp = Employee::create([
             'name' => 'Budi Santoso Unik',
@@ -486,7 +511,7 @@ class AdminSecurityAndSyncTest extends TestCase
 
     public function test_stale_outbox_messages_are_auto_cancelled(): void
     {
-        $emp = Employee::first() ?? Employee::create([
+        $emp = $this->getTestEmployee([
             'name' => 'Pegawai Uji',
             'phone_number' => '628111222333',
             'is_active' => true,

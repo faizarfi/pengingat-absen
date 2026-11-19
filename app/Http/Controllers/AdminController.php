@@ -275,7 +275,7 @@ class AdminController extends Controller
         $data['phone_number'] = $phone;
         $data['panggilan'] = $data['panggilan'] ?? 'Yth.';
 
-        if (Employee::where('phone_number', $phone)->exists()) {
+        if (Employee::query()->where('phone_number', $phone)->exists()) {
             return redirect()->back()->with('error', "Nomor WhatsApp (62{$phone}) sudah terdaftar untuk pegawai lain.");
         }
 
@@ -302,7 +302,7 @@ class AdminController extends Controller
         $data['phone_number'] = $phone;
         $data['panggilan'] = $data['panggilan'] ?? 'Yth.';
 
-        if (Employee::where('phone_number', $phone)->where('id', '!=', $employee->id)->exists()) {
+        if (Employee::query()->where('phone_number', $phone)->where('id', '!=', $employee->id)->exists()) {
             return redirect()->back()->with('error', "Nomor WhatsApp (62{$phone}) sudah digunakan pegawai lain.");
         }
 
@@ -406,7 +406,7 @@ class AdminController extends Controller
                 }
 
                 // Cek nomor duplikat agar tidak tertimpa atau dobel kirim
-                if (Employee::where('phone_number', $phone)->exists()) {
+                if (Employee::query()->where('phone_number', $phone)->exists()) {
                     $skipped++;
                     continue;
                 }
@@ -1156,7 +1156,7 @@ class AdminController extends Controller
                 'sent_today'      => WaOutbox::where('status', WaOutbox::STATUS_SENT)->today()->count(),
                 'failed'          => WaOutbox::failed()->today()->count(),
                 'retry'           => WaOutbox::retry()->count(),
-                'employees_total' => Employee::count(),
+                'employees_total' => Employee::query()->count(),
             ],
         ]);
     }

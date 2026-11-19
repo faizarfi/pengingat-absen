@@ -413,30 +413,70 @@ async function destroyClientSafely(targetClient) {
     } catch { /* ignore */ }
 
     try {
-        await Promise.race([targetClient.destroy(), sleep(6)]);
+        await Promise.race([targetClient.destroy(), sleep(4)]);
     } catch { /* ignore */ }
 
     if (browserPid) {
         try {
-            process.kill(browserPid, 'SIGKILL');
+            if (process.platform === 'win32') {
+                const { execSync } = require('child_process');
+                execSync(`taskkill /pid ${browserPid} /t /f`, { stdio: 'ignore' });
+            } else {
+                process.kill(browserPid, 'SIGKILL');
+            }
         } catch { /* already exited */ }
     }
 }
 
 async function wipeAuthSessionDir() {
-    for (let attempt = 1; attempt <= 6; attempt++) {
-        try {
-            if (fs.existsSync(AUTH_DATA_PATH)) {
-                fs.rmSync(AUTH_DATA_PATH, { recursive: true, force: true });
+    // Bersihkan folder trash lama jika ada
+    try {
+        const rootDir = path.dirname(AUTH_DATA_PATH);
+        const entries = fs.readdirSync(rootDir);
+        for (const entry of entries) {
+            if (entry.startsWith('.wwebjs_auth_trash_')) {
+                try {
+                    fs.rmSync(path.join(rootDir, entry), { recursive: true, force: true });
+                } catch { /* ignore */ }
             }
-            logInfo(`[${timestamp()}] 🧹 Folder session .wwebjs_auth dibersihkan.`);
-            return true;
+        }
+    } catch { /* ignore */ }
+
+    if (!fs.existsSync(AUTH_DATA_PATH)) {
+        return true;
+    }
+
+    // Percobaan hapus langsung
+    for (let attempt = 1; attempt <= 3; attempt++) {
+        try {
+            fs.rmSync(AUTH_DATA_PATH, { recursive: true, force: true, maxRetries: 3, retryDelay: 300 });
+            if (!fs.existsSync(AUTH_DATA_PATH)) {
+                logInfo(`[${timestamp()}] 🧹 Folder session .wwebjs_auth berhasil dibersihkan.`);
+                return true;
+            }
         } catch (err) {
-            logWarn(`[${timestamp()}] ⚠️ Gagal hapus .wwebjs_auth (percobaan ${attempt}/6): ${err.message}`);
-            await sleep(1);
+            await sleep(0.5);
         }
     }
-    return false;
+
+    // Jika Windows masih mengunci file di dalam folder (EBUSY/EPERM), rename folder auth ke folder trash unik
+    if (fs.existsSync(AUTH_DATA_PATH)) {
+        const trashPath = `${AUTH_DATA_PATH}_trash_${Date.now()}`;
+        try {
+            fs.renameSync(AUTH_DATA_PATH, trashPath);
+            logInfo(`[${timestamp()}] 🧹 Folder sesi lama dialihkan (${path.basename(trashPath)}) untuk memastikan QR baru bersih.`);
+            setTimeout(() => {
+                try {
+                    fs.rmSync(trashPath, { recursive: true, force: true });
+                } catch { /* ignore */ }
+            }, 6000);
+            return true;
+        } catch (renameErr) {
+            logWarn(`[${timestamp()}] ⚠️ Gagal mengalihkan folder sesi: ${renameErr.message}`);
+        }
+    }
+
+    return !fs.existsSync(AUTH_DATA_PATH);
 }
 
 function bindClientEvents(waClient) {
@@ -643,7 +683,7 @@ async function handleRemoteLogout() {
 
     try {
         if (client) {
-            await Promise.race([client.logout(), sleep(8)]);
+            await Promise.race([client.logout(), sleep(3)]);
         }
     } catch { /* ignore if session already closed */ }
 
