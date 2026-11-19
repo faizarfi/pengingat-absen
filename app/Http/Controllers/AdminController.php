@@ -14,12 +14,13 @@ use App\Models\Employee;
 use App\Models\Setting;
 use App\Models\WaOutbox;
 use App\Models\WaAgentHeartbeat;
+use App\Models\Pantun;
 use App\Services\WhatsAppService;
 use Maatwebsite\Excel\Facades\Excel;
 
 class AdminController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $employees = Employee::all();
         $employeeStatuses = [];
@@ -153,11 +154,57 @@ class AdminController extends Controller
 
         $waDriver = config('whatsapp.driver', 'desktop');
 
-        // ── Recent Outbox Messages (Paginate 5 items per page) ──
-        $outboxMessages = WaOutbox::with('employee')
-            ->orderBy('id', 'desc')
-            ->paginate(5, ['*'], 'outbox_page')
+        // ── Recent Outbox Messages (Pencarian & Filter Status) ──
+        $outboxSearch = trim((string) $request->input('outbox_search', ''));
+        $outboxStatus = (string) $request->input('outbox_status', '');
+
+        $outboxQuery = WaOutbox::with('employee')->orderBy('id', 'desc');
+
+        if ($outboxSearch !== '') {
+            $outboxQuery->where(function ($q) use ($outboxSearch) {
+                $q->where('phone_number', 'like', "%{$outboxSearch}%")
+                  ->orWhere('message', 'like', "%{$outboxSearch}%")
+                  ->orWhere('type', 'like', "%{$outboxSearch}%")
+                  ->orWhere('status', 'like', "%{$outboxSearch}%")
+                  ->orWhereHas('employee', function ($eq) use ($outboxSearch) {
+                      $eq->where('name', 'like', "%{$outboxSearch}%");
+                  });
+            });
+        }
+
+        if ($outboxStatus !== '' && $outboxStatus !== 'all') {
+            $outboxQuery->where('status', $outboxStatus);
+        }
+
+        $outboxMessages = $outboxQuery
+            ->paginate(10, ['*'], 'outbox_page')
+            ->appends($request->only('outbox_search', 'outbox_status'))
             ->fragment('outbox-section');
+
+        // ── Pantun Collection (Pencarian & Manajemen) ──
+        $pantunSearch = trim((string) $request->input('pantun_search', ''));
+        $pantunType = (string) $request->input('pantun_type', '');
+
+        $pantunQuery = Pantun::query()->orderBy('id', 'desc');
+
+        if ($pantunSearch !== '') {
+            $pantunQuery->where('text', 'like', "%{$pantunSearch}%");
+        }
+
+        if (in_array($pantunType, ['masuk', 'pulang'], true)) {
+            $pantunQuery->where('type', $pantunType);
+        }
+
+        $pantuns = $pantunQuery
+            ->paginate(10, ['*'], 'pantun_page')
+            ->appends($request->only('pantun_search', 'pantun_type'))
+            ->fragment('pantun-section');
+
+        $pantunStats = [
+            'total'  => Pantun::count(),
+            'masuk'  => Pantun::masuk()->count(),
+            'pulang' => Pantun::pulang()->count(),
+        ];
 
         $holidayService = app(\App\Services\HolidayService::class);
         $todayHoliday = $holidayService->getHolidayInfo(now());
@@ -200,6 +247,12 @@ class AdminController extends Controller
             'outboxStats',
             'waDriver',
             'outboxMessages',
+            'outboxSearch',
+            'outboxStatus',
+            'pantuns',
+            'pantunStats',
+            'pantunSearch',
+            'pantunType',
             'isTodayHoliday',
             'todayHolidayName',
             'holidaysJson',
@@ -1018,6 +1071,50 @@ class AdminController extends Controller
     {
         $count = app(\App\Services\HolidayService::class)->syncNationalHolidays(date('Y'));
         return redirect()->back()->with('status', "Berhasil sinkronisasi {$count} hari libur nasional tahun " . date('Y') . ".");
+    }
+
+    /**
+     * Tambah pantun baru untuk pengingat masuk atau pulang.
+     */
+    public function storePantun(Request $request)
+    {
+        $validated = $request->validate([
+            'type' => 'required|in:masuk,pulang',
+            'text' => 'required|string|min:5|max:1000',
+        ], [
+            'type.required' => 'Pilih tipe pantun (masuk atau pulang).',
+            'type.in'       => 'Tipe pantun hanya boleh masuk atau pulang.',
+            'text.required' => 'Isi pantun wajib diisi.',
+            'text.min'      => 'Isi pantun minimal 5 karakter.',
+            'text.max'      => 'Isi pantun maksimal 1000 karakter.',
+        ]);
+
+        $pantun = Pantun::create([
+            'type' => $validated['type'],
+            'text' => trim($validated['text']),
+        ]);
+
+        $label = $pantun->type === 'masuk' ? 'Pengingat Masuk (Pagi)' : 'Pengingat Pulang (Sore)';
+
+        return redirect()->to(url()->previous() . '#pantun-section')
+            ->with('status', "Pantun baru untuk {$label} berhasil ditambahkan!");
+    }
+
+    /**
+     * Hapus pantun berdasarkan ID.
+     */
+    public function deletePantun(Request $request, int $id)
+    {
+        $pantun = Pantun::find($id);
+        if (!$pantun) {
+            return redirect()->to(url()->previous() . '#pantun-section')
+                ->with('error', 'Pantun tidak ditemukan atau sudah dihapus.');
+        }
+
+        $pantun->delete();
+
+        return redirect()->to(url()->previous() . '#pantun-section')
+            ->with('status', "Pantun ID #{$id} berhasil dihapus.");
     }
 
     /**

@@ -24,6 +24,24 @@ class AgentApiController extends Controller
             $waService->checkAndSendBatchCompletionReport();
         }
 
+        // Otomatis batalkan sisa antrean pengingat dari hari sebelumnya agar tidak terkirim di hari baru
+        $expired = WaOutbox::whereIn('status', [WaOutbox::STATUS_PENDING, WaOutbox::STATUS_RETRY])
+            ->where(function ($q) {
+                $q->whereDate('scheduled_at', '<', now()->toDateString())
+                  ->orWhere(function ($sub) {
+                      $sub->whereNull('scheduled_at')
+                          ->whereDate('created_at', '<', now()->toDateString());
+                  });
+            })
+            ->update([
+                'status'     => WaOutbox::STATUS_CANCELLED,
+                'last_error' => 'Kadaluarsa: Pesan dari hari sebelumnya otomatis dibatalkan.',
+            ]);
+
+        if ($expired > 0) {
+            Log::info("Agent: auto-cancelled {$expired} stale outbox messages from previous days");
+        }
+
         $limit = (int) $request->input('limit', 10);
 
         $messages = WaOutbox::readyToSend()

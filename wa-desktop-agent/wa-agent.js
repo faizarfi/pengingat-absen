@@ -948,6 +948,18 @@ async function startPolling() {
 
                     const msg = messages[i];
 
+                    // Safety Guard: Pastikan pesan bukan pengingat kedaluwarsa dari hari kemarin
+                    if (msg.scheduled_at) {
+                        const schedDate = new Date(msg.scheduled_at);
+                        const todayStart = new Date();
+                        todayStart.setHours(0, 0, 0, 0);
+                        if (schedDate < todayStart) {
+                            logWarn(`[${timestamp()}] ⏭️ Melewati pesan #${msg.id} (${msg.phone_number}) karena berasal dari hari sebelumnya (${schedDate.toLocaleDateString('id-ID')}).`);
+                            await markStatus(msg.id, 'failed', 'Pesan kedaluwarsa dari hari sebelumnya');
+                            continue;
+                        }
+                    }
+
                     // Cek lagi daily limit di tengah batch
                     if (isDailyLimitReached()) {
                         logWarn(`[${timestamp()}] 🚫 Daily limit tercapai di tengah batch. Stop.`);

@@ -55,6 +55,10 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->controller(AdminCont
     Route::delete('/outbox/{id}', 'deleteSingleOutbox')->name('outbox.delete-single');
     Route::post('/holidays/sync', 'syncHolidays')->name('holidays.sync');
 
+    // Pantun Management Actions
+    Route::post('/pantuns', 'storePantun')->name('pantuns.store');
+    Route::delete('/pantuns/{id}', 'deletePantun')->name('pantuns.destroy');
+
     // Fallback GET redirects (mencegah MethodNotAllowed jika diakses lewat URL)
     Route::get('/send-now', fn() => redirect()->route('admin.dashboard')->with('error', 'Gunakan tombol di dashboard untuk mengirim pengingat (POST).'));
     Route::get('/send-pre-checkin', fn() => redirect()->route('admin.dashboard')->with('error', 'Gunakan tombol di dashboard untuk mengirim pengingat masuk (POST).'));

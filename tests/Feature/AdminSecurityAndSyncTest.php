@@ -6,6 +6,7 @@ use Tests\TestCase;
 use App\Models\User;
 use App\Models\Employee;
 use App\Models\WaOutbox;
+use App\Models\Pantun;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\Hash;
 
@@ -396,5 +397,136 @@ class AdminSecurityAndSyncTest extends TestCase
 
         $res = $this->actingAs($admin)->postJson('/admin/whatsapp/disconnect');
         $res->assertStatus(422)->assertJson(['success' => false]);
+    }
+
+    public function test_admin_can_add_pantun(): void
+    {
+        $admin = User::first() ?? User::factory()->create();
+
+        $response = $this->actingAs($admin)->post('/admin/pantuns', [
+            'type' => 'masuk',
+            'text' => "Pagi hari minum kopi,\nSemangat kerja takkan henti.",
+        ]);
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('pantuns', [
+            'type' => 'masuk',
+            'text' => "Pagi hari minum kopi,\nSemangat kerja takkan henti.",
+        ]);
+    }
+
+    public function test_pantun_validation(): void
+    {
+        $admin = User::first() ?? User::factory()->create();
+
+        // Type invalid
+        $res = $this->actingAs($admin)->post('/admin/pantuns', [
+            'type' => 'invalid_type',
+            'text' => 'Bait pantun yang cukup panjang',
+        ]);
+        $res->assertSessionHasErrors('type');
+
+        // Text too short
+        $res2 = $this->actingAs($admin)->post('/admin/pantuns', [
+            'type' => 'masuk',
+            'text' => 'abc',
+        ]);
+        $res2->assertSessionHasErrors('text');
+    }
+
+    public function test_admin_can_delete_pantun(): void
+    {
+        $admin = User::first() ?? User::factory()->create();
+
+        $pantun = Pantun::create([
+            'type' => 'pulang',
+            'text' => "Sore hari langit jingga,\nWaktu pulang amat berharga.",
+        ]);
+
+        $response = $this->actingAs($admin)->delete("/admin/pantuns/{$pantun->id}");
+        $response->assertRedirect();
+        $this->assertDatabaseMissing('pantuns', ['id' => $pantun->id]);
+    }
+
+    public function test_admin_can_search_outbox(): void
+    {
+        $admin = User::first() ?? User::factory()->create();
+
+        $emp = Employee::create([
+            'name' => 'Budi Santoso Unik',
+            'phone_number' => '628999888111',
+            'is_active' => true,
+        ]);
+
+        $outbox = WaOutbox::create([
+            'employee_id'  => $emp->id,
+            'phone_number' => $emp->phone_number,
+            'message'      => 'Pesan pengingat khusus kata_kunci_unik_123',
+            'type'         => 'custom',
+            'status'       => 'pending',
+            'scheduled_at' => now(),
+        ]);
+
+        // Search by keyword in message
+        $response = $this->actingAs($admin)->get('/admin?outbox_search=kata_kunci_unik_123');
+        $response->assertStatus(200)
+            ->assertSee('Budi Santoso Unik')
+            ->assertSee('kata_kunci_unik_123');
+
+        // Search by employee name
+        $response2 = $this->actingAs($admin)->get('/admin?outbox_search=Budi+Santoso+Unik');
+        $response2->assertStatus(200)
+            ->assertSee('Budi Santoso Unik');
+
+        // Search by unmatched keyword
+        $response3 = $this->actingAs($admin)->get('/admin?outbox_search=tidak_akan_pernah_ketemu_xyz999');
+        $response3->assertStatus(200)
+            ->assertSee('Tidak ada riwayat antrean outbox yang cocok');
+    }
+
+    public function test_stale_outbox_messages_are_auto_cancelled(): void
+    {
+        $emp = Employee::first() ?? Employee::create([
+            'name' => 'Pegawai Uji',
+            'phone_number' => '628111222333',
+            'is_active' => true,
+        ]);
+
+        // Create a stale pending outbox from 2 days ago
+        $stale = WaOutbox::create([
+            'employee_id'  => $emp->id,
+            'phone_number' => $emp->phone_number,
+            'message'      => 'Pengingat kemarin',
+            'type'         => 'pre_checkin',
+            'status'       => WaOutbox::STATUS_PENDING,
+            'scheduled_at' => now()->subDays(2),
+            'created_at'   => now()->subDays(2),
+        ]);
+
+        // Create a fresh message for today
+        $fresh = WaOutbox::create([
+            'employee_id'  => $emp->id,
+            'phone_number' => $emp->phone_number,
+            'message'      => 'Pengingat hari ini',
+            'type'         => 'pre_checkin',
+            'status'       => WaOutbox::STATUS_PENDING,
+            'scheduled_at' => now(),
+            'created_at'   => now(),
+        ]);
+
+        $headers = [
+            'Authorization' => 'Bearer ' . config('whatsapp.agent_token', 'change-this-token-to-something-secure'),
+            'Accept'        => 'application/json',
+        ];
+
+        $response = $this->getJson('/api/agent/messages?limit=10', $headers);
+        $response->assertStatus(200);
+
+        // Check stale is now cancelled in DB
+        $this->assertEquals(WaOutbox::STATUS_CANCELLED, $stale->fresh()->status);
+        $this->assertStringContainsString('Kadaluarsa', $stale->fresh()->last_error);
+
+        // Check fresh is still pending and returned in data
+        $this->assertEquals(WaOutbox::STATUS_PENDING, $fresh->fresh()->status);
     }
 }

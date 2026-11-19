@@ -2096,6 +2096,10 @@ body {
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                 Jadwal & Pesan
             </a>
+            <a href="#pantun-section" class="nav-link">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg>
+                Koleksi Pantun
+            </a>
 
             <span class="nav-category">Jadwal & Kalender</span>
             <a href="#kalender" class="nav-link">
@@ -2460,7 +2464,7 @@ body {
                                 </span>
                             @endif
                         </h3>
-                        <p>Menampilkan riwayat dan status proses pengiriman pesan terbaru (5 pesan per halaman).</p>
+                        <p>Menampilkan riwayat dan status proses pengiriman pesan (10 pesan per halaman).</p>
                     </div>
 
                     <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
@@ -2490,6 +2494,39 @@ body {
                     </div>
                 </div>
 
+                {{-- BAR PENCARIAN & FILTER ANTREAN LOG --}}
+                <div style="padding: 12px 24px; background: #f8fafc; border-bottom: 1px solid var(--border-light); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+                    <form method="GET" action="{{ route('admin.dashboard') }}#outbox-section" id="outboxSearchForm" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; flex: 1; margin: 0;">
+                        <div style="position: relative; flex: 1; min-width: 240px; max-width: 420px;">
+                            <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); pointer-events: none;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                            <input type="text" name="outbox_search" id="outboxSearchInput" value="{{ $outboxSearch ?? '' }}" placeholder="Cari nama pegawai, nomor WA, pesan..." style="width: 100%; padding: 8px 12px 8px 36px; font-size: 12px; border: 1px solid var(--border); border-radius: var(--radius-md); background: #ffffff; color: var(--navy-dark); font-weight: 500;" onkeyup="quickFilterOutboxTable(this.value)">
+                        </div>
+                        <select name="outbox_status" id="outboxStatusSelect" style="padding: 8px 12px; font-size: 12px; border: 1px solid var(--border); border-radius: var(--radius-md); background: #ffffff; color: var(--navy-dark); font-weight: 600; cursor: pointer;" onchange="this.form.submit()">
+                            <option value="all" {{ ($outboxStatus ?? '') === 'all' || empty($outboxStatus) ? 'selected' : '' }}>Semua Status</option>
+                            <option value="pending" {{ ($outboxStatus ?? '') === 'pending' ? 'selected' : '' }}>Menunggu (Pending)</option>
+                            <option value="processing" {{ ($outboxStatus ?? '') === 'processing' ? 'selected' : '' }}>Sedang Diproses (Processing)</option>
+                            <option value="sent" {{ ($outboxStatus ?? '') === 'sent' ? 'selected' : '' }}>Terkirim (Sent)</option>
+                            <option value="failed" {{ ($outboxStatus ?? '') === 'failed' ? 'selected' : '' }}>Gagal (Failed)</option>
+                            <option value="cancelled" {{ ($outboxStatus ?? '') === 'cancelled' ? 'selected' : '' }}>Dibatalkan (Cancelled)</option>
+                        </select>
+                        <button type="submit" class="btn btn-sm btn-primary" style="padding: 8px 16px; font-size: 12px; display: inline-flex; align-items: center; gap: 6px;">
+                            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                            Cari
+                        </button>
+                        @if(!empty($outboxSearch) || (!empty($outboxStatus) && $outboxStatus !== 'all'))
+                            <a href="{{ route('admin.dashboard') }}#outbox-section" class="btn btn-sm btn-secondary" style="padding: 8px 12px; font-size: 12px; display: inline-flex; align-items: center; gap: 5px;" title="Reset filter & tampilkan semua log">
+                                <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                Reset
+                            </a>
+                        @endif
+                    </form>
+                    @if(!empty($outboxSearch) || (!empty($outboxStatus) && $outboxStatus !== 'all'))
+                        <div style="font-size: 11px; color: var(--primary); font-weight: 700; background: var(--primary-light); padding: 4px 10px; border-radius: 999px;">
+                            Filter Aktif: {{ !empty($outboxSearch) ? '"' . $outboxSearch . '"' : '' }} {{ (!empty($outboxStatus) && $outboxStatus !== 'all') ? '(' . strtoupper($outboxStatus) . ')' : '' }}
+                        </div>
+                    @endif
+                </div>
+
                 @if(isset($outboxMessages) && $outboxMessages->isNotEmpty())
                     <div class="table-responsive">
                         <table class="modern-table">
@@ -2509,7 +2546,7 @@ body {
                             </thead>
                             <tbody>
                                 @foreach($outboxMessages as $msg)
-                                    <tr>
+                                    <tr class="outbox-row" data-search-text="{{ strtolower(($msg->employee->name ?? 'pegawai') . ' ' . $msg->phone_number . ' ' . $msg->type . ' ' . $msg->status . ' ' . $msg->message) }}">
                                         <td style="padding-left: 20px; text-align: center;">
                                             <input type="checkbox" class="outbox-checkbox" value="{{ $msg->id }}" onchange="handleOutboxCheckChange()" style="cursor: pointer; transform: scale(1.15);">
                                         </td>
@@ -2624,7 +2661,275 @@ body {
                 @else
                     <div style="padding: 36px 20px; text-align: center; color: var(--text-muted); font-size: 13px;">
                         <svg width="36" height="36" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin: 0 auto 10px; color: var(--text-subtle); display:block;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/></svg>
-                        <p style="margin: 0;">Belum ada riwayat antrean outbox hari ini.</p>
+                        @if(!empty($outboxSearch) || (!empty($outboxStatus) && $outboxStatus !== 'all'))
+                            <p style="margin: 0 0 10px; font-weight: 600; color: var(--navy-dark);">Tidak ada riwayat antrean outbox yang cocok dengan pencarian.</p>
+                            <a href="{{ route('admin.dashboard') }}#outbox-section" class="btn btn-sm btn-secondary">
+                                Tampilkan Semua Log
+                            </a>
+                        @else
+                            <p style="margin: 0;">Belum ada riwayat antrean outbox hari ini.</p>
+                        @endif
+                    </div>
+                @endif
+            </div>
+
+            {{-- ============================================================== --}}
+            {{-- KOLEKSI PANTUN PENGINGAT ABSENSI                               --}}
+            {{-- ============================================================== --}}
+            <div class="app-card" id="pantun-section" style="margin-bottom: 24px;">
+                <div class="card-header">
+                    <div class="card-title-group">
+                        <h3>
+                            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg>
+                            Koleksi Pantun Pengingat Absensi
+                            <span style="font-size: 11px; font-weight: 700; background: var(--primary-light); color: var(--primary); padding: 2px 8px; border-radius: 999px;">
+                                Total: {{ $pantunStats['total'] ?? 0 }}
+                            </span>
+                            <span style="font-size: 11px; font-weight: 700; background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; padding: 2px 8px; border-radius: 999px;">
+                                Masuk: {{ $pantunStats['masuk'] ?? 0 }}
+                            </span>
+                            <span style="font-size: 11px; font-weight: 700; background: #fffbeb; color: #d97706; border: 1px solid #fde68a; padding: 2px 8px; border-radius: 999px;">
+                                Pulang: {{ $pantunStats['pulang'] ?? 0 }}
+                            </span>
+                        </h3>
+                        <p>Pantun motivasi yang disisipkan secara acak ke pesan pengingat masuk atau pulang pegawai via placeholder <code>{pantun}</code>.</p>
+                    </div>
+
+                    <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                        <button type="button" onclick="toggleTambahPantunBox()" class="btn btn-sm btn-primary" style="display: inline-flex; align-items: center; gap: 6px;">
+                            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                            Tambah Pantun Baru
+                        </button>
+                    </div>
+                </div>
+
+                {{-- FORM TAMBAH PANTUN (EXPANDABLE/COLLAPSIBLE) --}}
+                <div id="boxTambahPantun" style="display: none; padding: 20px 24px; background: #f8fafc; border-bottom: 1px solid var(--border-light);">
+                    <div style="max-width: 860px; margin: 0 auto; background: #ffffff; border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 22px; box-shadow: var(--shadow-card);">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; border-bottom: 1px solid var(--border-light); padding-bottom: 12px;">
+                            <div>
+                                <h4 style="margin: 0; font-size: 14px; font-weight: 800; color: var(--navy-dark);">
+                                    Formulir Tambah Pantun Baru
+                                </h4>
+                                <p style="margin: 2px 0 0; font-size: 11px; color: var(--text-muted);">
+                                    Tulis bait pantun berima (misal a-b-a-b) yang santun dan menyemangati kerja pegawai BPS.
+                                </p>
+                            </div>
+                            <button type="button" onclick="toggleTambahPantunBox()" class="btn btn-sm btn-secondary" style="padding: 4px 10px; font-size: 11px;">
+                                Tutup Form
+                            </button>
+                        </div>
+
+                        <form method="POST" action="{{ route('admin.pantuns.store') }}" id="formTambahPantun">
+                            @csrf
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                                <div>
+                                    {{-- PILIH TIPE PANTUN --}}
+                                    <div style="margin-bottom: 16px;">
+                                        <label style="display: block; font-size: 12px; font-weight: 700; color: var(--navy-dark); margin-bottom: 8px;">
+                                            Tipe Pengingat Pantun <span style="color: #ef4444;">*</span>
+                                        </label>
+                                        <div style="display: flex; gap: 12px;">
+                                            <label style="flex: 1; display: flex; align-items: center; gap: 8px; padding: 10px 14px; border: 1px solid var(--border); border-radius: var(--radius-md); background: #ffffff; cursor: pointer; transition: all 0.2s ease;">
+                                                <input type="radio" name="type" value="masuk" checked onchange="updatePantunPreview()" style="cursor: pointer;">
+                                                <div>
+                                                    <strong style="display: block; font-size: 12px; color: var(--navy-dark);">Masuk Kerja (Pagi)</strong>
+                                                    <span style="font-size: 10px; color: var(--text-muted);">Untuk pengingat absensi pagi</span>
+                                                </div>
+                                            </label>
+                                            <label style="flex: 1; display: flex; align-items: center; gap: 8px; padding: 10px 14px; border: 1px solid var(--border); border-radius: var(--radius-md); background: #ffffff; cursor: pointer; transition: all 0.2s ease;">
+                                                <input type="radio" name="type" value="pulang" onchange="updatePantunPreview()" style="cursor: pointer;">
+                                                <div>
+                                                    <strong style="display: block; font-size: 12px; color: var(--navy-dark);">Pulang Kerja (Sore)</strong>
+                                                    <span style="font-size: 10px; color: var(--text-muted);">Untuk pengingat absensi sore</span>
+                                                </div>
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    {{-- ISI TEKS PANTUN --}}
+                                    <div style="margin-bottom: 16px;">
+                                        <label for="pantunTextarea" style="display: block; font-size: 12px; font-weight: 700; color: var(--navy-dark); margin-bottom: 6px;">
+                                            Bait Pantun <span style="color: #ef4444;">*</span>
+                                        </label>
+                                        <textarea id="pantunTextarea" name="text" rows="5" required placeholder="Tuliskan 2 s.d. 4 baris pantun di sini...&#10;Contoh:&#10;Burung elang terbang ke awan,&#10;Singgah sebentar di pohon kelapa.&#10;Selamat pagi wahai kawan,&#10;Sambut hari dengan ceria." style="width: 100%; padding: 10px 12px; font-size: 12px; line-height: 1.6; border: 1px solid var(--border); border-radius: var(--radius-md); font-family: inherit; resize: vertical;" oninput="updatePantunPreview()"></textarea>
+                                        <small style="display: block; font-size: 10px; color: var(--text-muted); margin-top: 4px;">
+                                            Gunakan tombol <strong>Enter</strong> untuk ganti baris. Pantun akan tersimpan rapi per baris.
+                                        </small>
+                                    </div>
+
+                                    <div style="display: flex; gap: 10px; align-items: center;">
+                                        <button type="submit" class="btn btn-primary" style="padding: 9px 18px; font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+                                            <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                            Simpan Pantun
+                                        </button>
+                                        <button type="button" onclick="toggleTambahPantunBox()" class="btn btn-secondary" style="padding: 9px 14px; font-size: 12px;">
+                                            Batal
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {{-- LIVE PREVIEW DALAM CHAT WA --}}
+                                <div>
+                                    <label style="display: block; font-size: 12px; font-weight: 700; color: var(--navy-dark); margin-bottom: 8px;">
+                                        Preview Tampilan di WhatsApp Pegawai
+                                    </label>
+                                    <div style="background: #eef2f6; border-radius: var(--radius-md); padding: 16px; border: 1px solid var(--border-light); font-size: 11px;">
+                                        <div style="background: #ffffff; border-radius: 8px; padding: 12px 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); position: relative; border-left: 4px solid #10b981;">
+                                            <div style="font-weight: 700; color: #1e293b; margin-bottom: 6px;">
+                                                Yth. Bpk/Ibu Pegawai BPS,
+                                            </div>
+                                            <div id="previewHeaderMsg" style="color: #475569; margin-bottom: 10px;">
+                                                Kami dari BPS Karanganyar mengingatkan bahwa jam masuk kerja adalah pukul 07:30 WIB...
+                                            </div>
+                                            <div id="previewPantunContent" style="padding: 8px 10px; background: #f8fafc; border-left: 3px solid #2563eb; border-radius: 4px; font-style: italic; color: #1e3a8a; line-height: 1.5; margin-bottom: 10px; white-space: pre-wrap;">(Tuliskan pantun di samping untuk melihat preview di sini)</div>
+                                            <div style="color: #64748b; font-size: 10px;">
+                                                Semangat kerja! • Hormat kami, BPS Karanganyar
+                                            </div>
+                                            <div style="text-align: right; font-size: 9px; color: #94a3b8; margin-top: 4px;">
+                                                07:05 ✓✓
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                {{-- FILTER TABS & SEARCH BOX PANTUN --}}
+                <div style="padding: 12px 24px; background: #f8fafc; border-bottom: 1px solid var(--border-light); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+                    <div style="display: flex; gap: 6px; align-items: center;">
+                        <a href="{{ route('admin.dashboard', array_merge(request()->except(['pantun_type', 'pantun_page']), ['pantun_type' => ''])) }}#pantun-section" class="btn btn-sm {{ empty($pantunType) ? 'btn-primary' : 'btn-secondary' }}" style="padding: 6px 12px; font-size: 11px; font-weight: 700;">
+                            Semua ({{ $pantunStats['total'] ?? 0 }})
+                        </a>
+                        <a href="{{ route('admin.dashboard', array_merge(request()->except(['pantun_type', 'pantun_page']), ['pantun_type' => 'masuk'])) }}#pantun-section" class="btn btn-sm {{ ($pantunType ?? '') === 'masuk' ? 'btn-primary' : 'btn-secondary' }}" style="padding: 6px 12px; font-size: 11px; font-weight: 700;">
+                            Masuk Kerja ({{ $pantunStats['masuk'] ?? 0 }})
+                        </a>
+                        <a href="{{ route('admin.dashboard', array_merge(request()->except(['pantun_type', 'pantun_page']), ['pantun_type' => 'pulang'])) }}#pantun-section" class="btn btn-sm {{ ($pantunType ?? '') === 'pulang' ? 'btn-primary' : 'btn-secondary' }}" style="padding: 6px 12px; font-size: 11px; font-weight: 700;">
+                            Pulang Kerja ({{ $pantunStats['pulang'] ?? 0 }})
+                        </a>
+                    </div>
+
+                    <form method="GET" action="{{ route('admin.dashboard') }}#pantun-section" style="display: flex; align-items: center; gap: 8px; margin: 0;">
+                        <input type="hidden" name="pantun_type" value="{{ $pantunType ?? '' }}">
+                        <div style="position: relative;">
+                            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text-muted); pointer-events: none;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                            <input type="text" name="pantun_search" value="{{ $pantunSearch ?? '' }}" placeholder="Cari isi pantun..." style="padding: 7px 12px 7px 32px; font-size: 12px; border: 1px solid var(--border); border-radius: var(--radius-md); background: #ffffff; color: var(--navy-dark); min-width: 200px;">
+                        </div>
+                        <button type="submit" class="btn btn-sm btn-primary" style="padding: 7px 12px; font-size: 11px;">
+                            Cari
+                        </button>
+                        @if(!empty($pantunSearch) || !empty($pantunType))
+                            <a href="{{ route('admin.dashboard') }}#pantun-section" class="btn btn-sm btn-secondary" style="padding: 7px 10px; font-size: 11px;" title="Reset filter pantun">
+                                Reset
+                            </a>
+                        @endif
+                    </form>
+                </div>
+
+                {{-- TABEL PANTUN --}}
+                @if(isset($pantuns) && $pantuns->isNotEmpty())
+                    <div class="table-responsive">
+                        <table class="modern-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 50px; padding-left: 20px;">ID</th>
+                                    <th style="width: 140px;">Kategori</th>
+                                    <th>Isi Bait Pantun</th>
+                                    <th style="width: 140px;">Ditambahkan</th>
+                                    <th style="width: 80px; text-align: right; padding-right: 24px;">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($pantuns as $p)
+                                    <tr>
+                                        <td style="padding-left: 20px; font-weight: 700; color: var(--text-muted);">
+                                            #{{ $p->id }}
+                                        </td>
+                                        <td>
+                                            @if($p->type === 'masuk')
+                                                <span class="badge badge-success" style="font-size: 11px;">
+                                                    <span class="badge-dot"></span>
+                                                    Masuk Kerja
+                                                </span>
+                                            @else
+                                                <span class="badge badge-warning" style="font-size: 11px;">
+                                                    <span class="badge-dot"></span>
+                                                    Pulang Kerja
+                                                </span>
+                                            @endif
+                                        </td>
+                                        <td style="color: var(--navy-dark); line-height: 1.6; font-size: 12px;">
+                                            <div style="font-style: italic; background: #f8fafc; padding: 8px 12px; border-radius: 6px; border-left: 3px solid {{ $p->type === 'masuk' ? '#10b981' : '#f59e0b' }};">
+                                                {!! nl2br(e(str_replace('\\n', "\n", $p->text))) !!}
+                                            </div>
+                                        </td>
+                                        <td style="color: var(--text-muted); font-size: 11px;">
+                                            {{ $p->created_at ? $p->created_at->format('d/m/Y H:i') : '-' }}
+                                        </td>
+                                        <td style="text-align: right; padding-right: 24px;">
+                                            <form id="formDeletePantun_{{ $p->id }}" method="POST" action="{{ route('admin.pantuns.destroy', $p->id) }}" style="display: inline; margin: 0;">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="button" class="btn btn-sm" style="padding: 4px 7px; font-size: 10px; background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; border-radius: 6px;" title="Hapus pantun ini" onclick="confirmDeletePantun({{ $p->id }})">
+                                                    <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {{-- PAGINATION PANTUN --}}
+                    @if($pantuns->hasPages())
+                        <div style="padding: 14px 24px; border-top: 1px solid var(--border-light); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; background: #fafcff;">
+                            <div style="font-size: 12px; color: var(--text-muted); font-weight: 500;">
+                                Menampilkan <strong>{{ $pantuns->firstItem() ?? 0 }}</strong> - <strong>{{ $pantuns->lastItem() ?? 0 }}</strong> dari <strong>{{ $pantuns->total() }}</strong> pantun
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                @if ($pantuns->onFirstPage())
+                                    <span class="btn btn-sm btn-secondary" style="opacity: 0.45; cursor: not-allowed; padding: 5px 12px;">
+                                        &laquo; Sebelumnya
+                                    </span>
+                                @else
+                                    <a href="{{ $pantuns->previousPageUrl() }}" class="btn btn-sm btn-secondary" style="padding: 5px 12px;">
+                                        &laquo; Sebelumnya
+                                    </a>
+                                @endif
+
+                                <span style="font-size: 11px; font-weight: 800; color: var(--navy-dark); padding: 5px 10px; background: #ffffff; border: 1px solid var(--border); border-radius: var(--radius-sm);">
+                                    {{ $pantuns->currentPage() }} / {{ $pantuns->lastPage() }}
+                                </span>
+
+                                @if ($pantuns->hasMorePages())
+                                    <a href="{{ $pantuns->nextPageUrl() }}" class="btn btn-sm btn-secondary" style="padding: 5px 12px;">
+                                        Berikutnya &raquo;
+                                    </a>
+                                @else
+                                    <span class="btn btn-sm btn-secondary" style="opacity: 0.45; cursor: not-allowed; padding: 5px 12px;">
+                                        Berikutnya &raquo;
+                                    </span>
+                                @endif
+                            </div>
+                        </div>
+                    @endif
+                @else
+                    <div style="padding: 36px 20px; text-align: center; color: var(--text-muted); font-size: 13px;">
+                        <svg width="36" height="36" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin: 0 auto 10px; color: var(--text-subtle); display:block;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg>
+                        @if(!empty($pantunSearch) || !empty($pantunType))
+                            <p style="margin: 0 0 10px; font-weight: 600; color: var(--navy-dark);">Tidak ada pantun yang cocok dengan kriteria pencarian.</p>
+                            <a href="{{ route('admin.dashboard') }}#pantun-section" class="btn btn-sm btn-secondary">
+                                Tampilkan Semua Pantun
+                            </a>
+                        @else
+                            <p style="margin: 0 0 10px;">Belum ada pantun tersimpan di sistem.</p>
+                            <button type="button" onclick="toggleTambahPantunBox()" class="btn btn-sm btn-primary">
+                                + Buat Pantun Pertama
+                            </button>
+                        @endif
                     </div>
                 @endif
             </div>
@@ -3708,6 +4013,89 @@ function confirmDeleteSingleOutbox(id) {
             form.innerHTML = `@csrf<input type="hidden" name="_method" value="DELETE">`;
             document.body.appendChild(form);
             form.submit();
+        }
+    });
+}
+
+/* Realtime Quick Filter pada Antrean Log Outbox */
+function quickFilterOutboxTable(query) {
+    const q = (query || '').toLowerCase().trim();
+    const rows = document.querySelectorAll('.outbox-row');
+    rows.forEach(row => {
+        const text = row.getAttribute('data-search-text') || '';
+        if (q === '' || text.includes(q)) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+}
+
+/* Pantun Management Helpers */
+function toggleTambahPantunBox() {
+    const box = document.getElementById('boxTambahPantun');
+    if (!box) return;
+    const isHidden = box.style.display === 'none' || box.style.display === '';
+    box.style.display = isHidden ? 'block' : 'none';
+    if (isHidden) {
+        box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        const textarea = document.getElementById('pantunTextarea');
+        if (textarea) textarea.focus();
+    }
+}
+
+function updatePantunPreview() {
+    const textarea = document.getElementById('pantunTextarea');
+    const previewContent = document.getElementById('previewPantunContent');
+    const previewHeader = document.getElementById('previewHeaderMsg');
+    const typeRadios = document.getElementsByName('type');
+    
+    let typeVal = 'masuk';
+    for (const r of typeRadios) {
+        if (r.checked) {
+            typeVal = r.value;
+            break;
+        }
+    }
+
+    if (previewHeader) {
+        if (typeVal === 'masuk') {
+            previewHeader.textContent = 'Kami dari BPS Karanganyar mengingatkan bahwa jam masuk kerja Anda adalah pukul 07:30 WIB. Mohon segera melakukan absensi pagi...';
+        } else {
+            previewHeader.textContent = 'Ini adalah pengingat absen pulang. Jam pulang kerja Anda adalah pukul 16:00 WIB. Mohon jangan lupa absen pulang sebelum meninggalkan kantor...';
+        }
+    }
+
+    if (previewContent && textarea) {
+        const val = textarea.value.trim();
+        if (val) {
+            previewContent.textContent = val;
+            previewContent.style.fontStyle = 'italic';
+            previewContent.style.color = '#1e3a8a';
+        } else {
+            previewContent.textContent = '(Tuliskan pantun di samping untuk melihat preview di sini)';
+            previewContent.style.fontStyle = 'italic';
+            previewContent.style.color = '#94a3b8';
+        }
+    }
+}
+
+function confirmDeletePantun(id) {
+    Swal.fire({
+        title: `Hapus Pantun #${id}?`,
+        text: 'Bait pantun ini akan dihapus dari koleksi pengingat absensi.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#64748b',
+        confirmButtonText: 'Ya, Hapus Pantun',
+        cancelButtonText: 'Batal'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const form = document.getElementById(`formDeletePantun_${id}`);
+            if (form) {
+                form.submit();
+            }
         }
     });
 }
